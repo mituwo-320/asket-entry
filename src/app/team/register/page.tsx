@@ -13,6 +13,7 @@ export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [teamId, setTeamId] = useState<string | null>(null);
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+    const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         name: "",
         nameKana: "", // NEW
@@ -69,8 +70,13 @@ export default function RegisterPage() {
                 throw new Error(data.error || "登録に失敗しました");
             }
 
+            if (data.user) {
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+            }
+
             setTeamId(data.teamId);
             setRegisteredEmail(formData.email);
+            setRegisteredPassword(formData.password);
 
         } catch (err: any) {
             setError(err.message);
@@ -96,21 +102,25 @@ export default function RegisterPage() {
 
                         <div>
                             <h2 className="text-2xl font-bold text-white mb-2">登録完了！</h2>
-                            <p className="text-slate-400">アカウントが作成されました。<br />メールアドレスでログインしてください。</p>
+                            <p className="text-slate-400">アカウントが作成され、自動的にログインしました。<br />次回ログインのために以下の情報は必ず保存しておいてください。</p>
                         </div>
 
                         <div className="bg-slate-950 rounded-lg p-6 border border-slate-800 space-y-4">
                             <div>
-                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインID (メールアドレス)</p>
-                                <p className="text-lg font-mono font-bold text-indigo-400 tracking-wider">{registeredEmail}</p>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインメールアドレス</p>
+                                <p className="text-lg font-mono font-bold text-indigo-400 tracking-wider bg-slate-900 rounded p-2 select-all break-all">{registeredEmail}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインパスワード</p>
+                                <p className="text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all">{registeredPassword}</p>
                             </div>
                         </div>
 
                         <Button
                             className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
-                            onClick={() => router.push("/login")}
+                            onClick={() => router.push("/dashboard")}
                         >
-                            ログイン画面へ
+                            マイページへ進む
                         </Button>
                     </div>
                 </Card>

@@ -57,7 +57,16 @@ export async function POST(request: Request) {
         const success = await saveTeamEntry(newEntry);
 
         if (success) {
-            return NextResponse.json({ success: true, teamId: newEntry.id });
+            return NextResponse.json({
+                success: true,
+                teamId: newEntry.id,
+                user: {
+                    id: newUser.id,
+                    email: newUser.email,
+                    name: newUser.name,
+                    role: 'user'
+                }
+            });
         } else {
             return NextResponse.json({ error: 'Failed to register' }, { status: 500 });
         }
