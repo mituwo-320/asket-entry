@@ -11,9 +11,9 @@ export async function POST(request: Request) {
         if (user) {
             return NextResponse.json({ success: true, user });
         } else {
-            return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
+            return NextResponse.json({ success: false, message: 'メールアドレスまたはパスワードが間違っています' }, { status: 401 });
         }
     } catch (e) {
-        return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+        return NextResponse.json({ success: false, message: 'サーバーエラーが発生しました' }, { status: 500 });
     }
 }

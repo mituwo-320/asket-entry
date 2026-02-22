@@ -24,11 +24,11 @@ export async function POST(request: Request) {
             userSaved = await saveUser(newUser);
         } catch (dbError: any) {
             console.error('saveUser dbError:', dbError);
-            return NextResponse.json({ error: `DB Error: ${dbError.message || String(dbError)}` }, { status: 500 });
+            return NextResponse.json({ error: `データベースの保存に失敗しました。時間をおいて再度お試しください。(${dbError.message || String(dbError)})` }, { status: 500 });
         }
 
         if (!userSaved) {
-            return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
+            return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 400 });
         }
 
         // 2. Create Initial Team Entry with Rep as 1st Player
@@ -68,11 +68,11 @@ export async function POST(request: Request) {
                 }
             });
         } else {
-            return NextResponse.json({ error: 'Failed to register' }, { status: 500 });
+            return NextResponse.json({ error: 'チームの登録に失敗しました' }, { status: 500 });
         }
     } catch (e) {
         console.error(e);
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
     }
 }
 
