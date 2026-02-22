@@ -16,6 +16,9 @@ export const MOCK_ENTRIES: TeamEntry[] = [
         userId: "u1",
         tournamentId: "2024-Spring",
         teamName: "湘北高校",
+        teamNameKana: "ショウホクコウコウ",
+        teamIntroduction: "全国制覇",
+        isBeginnerFriendlyAccepted: true,
         status: 'submitted',
         createdAt: "2024-01-01T10:00:00Z",
         players: [
@@ -28,6 +31,9 @@ export const MOCK_ENTRIES: TeamEntry[] = [
         userId: "u2",
         tournamentId: "2024-Spring",
         teamName: "陵南高校",
+        teamNameKana: "リョウナンコウコウ",
+        teamIntroduction: "打倒海南",
+        isBeginnerFriendlyAccepted: true,
         status: 'submitted',
         createdAt: "2024-01-02T10:00:00Z",
         players: [
