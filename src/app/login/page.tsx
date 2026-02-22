@@ -90,7 +90,7 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-slate-300 tracking-wide">パスワード</label>
-                                <Link href="#" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                                <Link href="/login/reset" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
                             </div>
