@@ -13,7 +13,7 @@ import Link from "next/link";
 import * as XLSX from 'xlsx';
 import { TeamEntry, User, Match } from "@/lib/types";
 import { getTournamentName } from "@/lib/tournament-constants";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboard() {
     // State
@@ -34,6 +34,7 @@ export default function AdminDashboard() {
     const [settings, setSettings] = useState({ participationFee: 15000, insuranceFee: 800 });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
     // Helper
     const getTeamName = (teamId: string) => {
@@ -353,10 +354,10 @@ export default function AdminDashboard() {
                             <p className="text-slate-400 text-sm">大会の運営状況を一元管理し、全体の進行をサポートします。</p>
                         </div>
                         <Button
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 hidden sm:flex"
-                            onClick={() => { document.getElementById('settings-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 flex items-center"
+                            onClick={() => setIsSettingsModalOpen(true)}
                         >
-                            <Settings className="w-4 h-4 mr-2" /> 設定
+                            <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">設定</span>
                         </Button>
                     </motion.div>
 
@@ -392,53 +393,6 @@ export default function AdminDashboard() {
                         </Card>
                     </motion.div>
 
-                    {/* NEW: Settings Section */}
-                    <motion.div variants={itemVariants} className="mt-8 mb-8" id="settings-section">
-                        <Card className="p-6 border-white/5 bg-slate-900/40 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
-                            <div className="flex justify-between items-center mb-4 relative z-10">
-                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Settings className="w-5 h-5 text-indigo-400" />
-                                    大会費用設定 (自動計算)
-                                </h2>
-                                {saveMessage && (
-                                    <div className={`text-sm px-3 py-1.5 rounded-md font-medium flex items-center gap-2 ${saveMessage.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                                        {saveMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                        {saveMessage.text}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">チーム基本参加費 (円)</label>
-                                    <Input
-                                        type="number"
-                                        value={settings.participationFee}
-                                        onChange={(e) => setSettings({ ...settings, participationFee: parseInt(e.target.value) || 0 })}
-                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">スポーツ保険料 (1人あたり/円)</label>
-                                    <Input
-                                        type="number"
-                                        value={settings.insuranceFee}
-                                        onChange={(e) => setSettings({ ...settings, insuranceFee: parseInt(e.target.value) || 0 })}
-                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50"
-                                    />
-                                </div>
-                                <div className="flex items-end">
-                                    <Button
-                                        onClick={handleSaveSettings}
-                                        disabled={isSavingSettings}
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                                    >
-                                        {isSavingSettings ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />保存中...</> : '設定を保存'}
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    </motion.div>
 
                     {/* NEW: Team Management Section */}
                     <motion.div variants={itemVariants}>
@@ -905,6 +859,86 @@ export default function AdminDashboard() {
                     }));
                 })}
             />
+
+            <AnimatePresence>
+                {isSettingsModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="w-full max-w-2xl"
+                        >
+                            <Card className="p-6 border-white/5 bg-slate-900/90 relative overflow-hidden backdrop-blur-xl shadow-2xl shadow-indigo-500/10">
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                                <div className="flex justify-between items-start mb-6 relative z-10">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-1">
+                                            <Settings className="w-6 h-6 text-indigo-400" />
+                                            大会費用設定 (自動計算)
+                                        </h2>
+                                        <p className="text-sm text-slate-400">こちらの設定は全チームの合計支払額の算出に使用されます。</p>
+                                    </div>
+                                    <Button variant="ghost" size="sm" onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-white -mr-2 -mt-2">
+                                        <X className="w-5 h-5" />
+                                    </Button>
+                                </div>
+
+                                {saveMessage && (
+                                    <div className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-3 border ${saveMessage.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                        {saveMessage.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                                        {saveMessage.text}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 mb-6">
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">チーム基本参加費 (円)</label>
+                                        <Input
+                                            type="number"
+                                            value={settings.participationFee}
+                                            onChange={(e) => setSettings({ ...settings, participationFee: parseInt(e.target.value) || 0 })}
+                                            className="bg-slate-950/80 border-slate-800 text-lg h-12 focus-visible:ring-indigo-500"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">スポーツ保険料 (1人あたり/円)</label>
+                                        <Input
+                                            type="number"
+                                            value={settings.insuranceFee}
+                                            onChange={(e) => setSettings({ ...settings, insuranceFee: parseInt(e.target.value) || 0 })}
+                                            className="bg-slate-950/80 border-slate-800 text-lg h-12 focus-visible:ring-indigo-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end relative z-10 border-t border-white/5 pt-6 mt-2">
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setIsSettingsModalOpen(false)}
+                                            className="text-slate-300 w-full sm:w-auto"
+                                        >
+                                            閉じる
+                                        </Button>
+                                        <Button
+                                            onClick={handleSaveSettings}
+                                            disabled={isSavingSettings}
+                                            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 w-full sm:w-auto px-8"
+                                        >
+                                            {isSavingSettings ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />保存中...</> : '設定を保存'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
