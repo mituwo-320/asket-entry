@@ -33,6 +33,7 @@ export default function AdminDashboard() {
     // NEW: Settings State
     const [settings, setSettings] = useState({ participationFee: 15000, insuranceFee: 800 });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Helper
     const getTeamName = (teamId: string) => {
@@ -243,16 +244,22 @@ export default function AdminDashboard() {
     // Save Settings Handler
     const handleSaveSettings = async () => {
         setIsSavingSettings(true);
+        setSaveMessage(null);
         try {
             const res = await fetch('/api/admin/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(settings)
             });
-            if (res.ok) alert("設定を保存しました");
-            else alert("設定の保存に失敗しました");
+            if (res.ok) {
+                setSaveMessage({ type: 'success', text: '設定を保存しました！チーム一覧に即時反映されます。' });
+                // We could call loadData() but total fee is derived locally effectively if we update state here or trust the current settings state
+                setTimeout(() => setSaveMessage(null), 5000);
+            } else {
+                setSaveMessage({ type: 'error', text: '設定の保存に失敗しました' });
+            }
         } catch (e) {
-            alert("エラーが発生しました");
+            setSaveMessage({ type: 'error', text: '通信エラーが発生しました' });
         } finally {
             setIsSavingSettings(false);
         }
@@ -345,7 +352,10 @@ export default function AdminDashboard() {
                             <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">ダッシュボード</h2>
                             <p className="text-slate-400 text-sm">大会の運営状況を一元管理し、全体の進行をサポートします。</p>
                         </div>
-                        <Button className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 hidden sm:flex">
+                        <Button
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 hidden sm:flex"
+                            onClick={() => { document.getElementById('settings-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+                        >
                             <Settings className="w-4 h-4 mr-2" /> 設定
                         </Button>
                     </motion.div>
@@ -379,6 +389,54 @@ export default function AdminDashboard() {
                             <div className="text-emerald-300 text-sm font-bold tracking-wider mb-2 relative z-10">ステータス</div>
                             <div className="text-2xl sm:text-3xl font-black text-white relative z-10">受付中</div>
                             <div className="text-xs text-emerald-400/80 mt-2 font-medium relative z-10">残り 5日</div>
+                        </Card>
+                    </motion.div>
+
+                    {/* NEW: Settings Section */}
+                    <motion.div variants={itemVariants} className="mt-8 mb-8" id="settings-section">
+                        <Card className="p-6 border-white/5 bg-slate-900/40 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                            <div className="flex justify-between items-center mb-4 relative z-10">
+                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <Settings className="w-5 h-5 text-indigo-400" />
+                                    大会費用設定 (自動計算)
+                                </h2>
+                                {saveMessage && (
+                                    <div className={`text-sm px-3 py-1.5 rounded-md font-medium flex items-center gap-2 ${saveMessage.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                        {saveMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                        {saveMessage.text}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">チーム基本参加費 (円)</label>
+                                    <Input
+                                        type="number"
+                                        value={settings.participationFee}
+                                        onChange={(e) => setSettings({ ...settings, participationFee: parseInt(e.target.value) || 0 })}
+                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">スポーツ保険料 (1人あたり/円)</label>
+                                    <Input
+                                        type="number"
+                                        value={settings.insuranceFee}
+                                        onChange={(e) => setSettings({ ...settings, insuranceFee: parseInt(e.target.value) || 0 })}
+                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50"
+                                    />
+                                </div>
+                                <div className="flex items-end">
+                                    <Button
+                                        onClick={handleSaveSettings}
+                                        disabled={isSavingSettings}
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                    >
+                                        {isSavingSettings ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />保存中...</> : '設定を保存'}
+                                    </Button>
+                                </div>
+                            </div>
                         </Card>
                     </motion.div>
 
