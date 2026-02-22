@@ -1,0 +1,195 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "email": "demo@test.com",
+      "password": "pass",
+      "name": "Updated Rep宮城 リョータ",
+      "phone": "090-1234-5678",
+      "postalCode": "",
+      "address": "",
+      "wristbandColor": "赤"
+    },
+    {
+      "id": "u_0c0a4665-105a-4f29-bb86-972ae5bc4331",
+      "email": "test@example.com",
+      "password": "$2b$10$5evCnGVfFDf7cxbB4Jx/1eo4haqBYgmVAk4yGUcytl/AbZ.6Yy6gK",
+      "name": "Test Rep",
+      "phone": "09012345678",
+      "postalCode": "123-4567",
+      "address": "",
+      "wristbandColor": "赤"
+    },
+    {
+      "id": "u_9f689b48-dd61-48e1-bf2e-94947e342910",
+      "email": "unique@test.com",
+      "password": "$2b$10$1uLzVYJR67DbQTtPF51XIeQa.3HEzjRtjBItq6IpsknAn2gqWnRf.",
+      "name": "Unique Rep Name",
+      "phone": "09099999999",
+      "postalCode": "999-9999",
+      "address": "",
+      "wristbandColor": "赤"
+    },
+    {
+      "id": "test-fix-1771081378145",
+      "email": "test-fix-1771081378145@example.com",
+      "name": "Updated Name Fix",
+      "phone": "999-9999-9999",
+      "postalCode": "123-4567",
+      "address": "Updated Address",
+      "wristbandColor": "White",
+      "password": "$2b$10$Da.ooERvFrqWzvt7VRxXSOyV4NTQEK0QcIAKJD4JIyDk0JIG5JbxG"
+    },
+    {
+      "id": "test-fix-1771081378263",
+      "email": "test-fix-1771081378263@example.com",
+      "name": "Updated Name Fix",
+      "phone": "999-9999-9999",
+      "postalCode": "123-4567",
+      "address": "Updated Address",
+      "wristbandColor": "White",
+      "password": "$2b$10$HR0aDy7c/guIHNLC6rd1ieQgwtjbx6HhER1jyQJwjcHVzR4YoxZOi"
+    }
+  ],
+  "entries": [
+    {
+      "id": "e1",
+      "userId": "u1",
+      "tournamentId": "2024-Spring",
+      "teamName": "Updated Team Name湘北高校",
+      "status": "submitted",
+      "createdAt": "2024-01-01T10:00:00Z",
+      "players": [
+        {
+          "id": "1",
+          "name": "Updated Rep宮城 リョータ",
+          "furigana": "ミヤギ リョータ",
+          "insurance": true,
+          "wristbandColor": "青"
+        },
+        {
+          "id": "2",
+          "name": "三井 寿",
+          "furigana": "ミツイ ヒサシ",
+          "insurance": true,
+          "wristbandColor": "赤"
+        }
+      ],
+      "teamNameKana": "",
+      "teamIntroduction": ""
+    },
+    {
+      "id": "e2",
+      "userId": "u2",
+      "tournamentId": "2024-Spring",
+      "teamName": "陵南高校",
+      "status": "submitted",
+      "createdAt": "2024-01-02T10:00:00Z",
+      "players": [
+        {
+          "id": "3",
+          "name": "仙道 彰",
+          "furigana": "センドウ アキラ",
+          "insurance": true,
+          "wristbandColor": "青"
+        },
+        {
+          "id": "4",
+          "name": "魚住 純",
+          "furigana": "ウオズミ ジュン",
+          "insurance": true,
+          "wristbandColor": "青"
+        }
+      ]
+    },
+    {
+      "id": "e_3e08241e-1f52-45a8-9784-bd014fc13fd3",
+      "userId": "u_0c0a4665-105a-4f29-bb86-972ae5bc4331",
+      "tournamentId": "2024-Spring",
+      "teamName": "Test Team",
+      "teamNameKana": "Test Team Furigana",
+      "teamIntroduction": "We are a very enthusiastic team! Thank you!",
+      "isBeginnerFriendlyAccepted": true,
+      "players": [
+        {
+          "id": "p_31264781-f7e0-429e-bcc5-50bd91a222bd",
+          "name": "Test Rep",
+          "furigana": "Test Rep Furigana",
+          "insurance": true,
+          "wristbandColor": "赤",
+          "isRepresentative": true
+        }
+      ],
+      "status": "draft",
+      "createdAt": "2026-02-14T08:53:33.071Z"
+    },
+    {
+      "id": "e_ba80b20d-ffee-4fd6-a5f6-09ab0f0ad613",
+      "userId": "u_9f689b48-dd61-48e1-bf2e-94947e342910",
+      "tournamentId": "2024-Spring",
+      "teamName": "Unique Team",
+      "teamNameKana": "Unique Team Furigana",
+      "teamIntroduction": "Unique team intro. Testing the edit functionality.",
+      "isBeginnerFriendlyAccepted": true,
+      "players": [
+        {
+          "id": "p_b4579402-0b76-4392-a09c-eed327a0cbaa",
+          "name": "Unique Rep Name",
+          "furigana": "Unique Rep Furigana",
+          "insurance": true,
+          "wristbandColor": "赤",
+          "isRepresentative": true
+        }
+      ],
+      "status": "draft",
+      "createdAt": "2026-02-14T09:10:15.284Z"
+    },
+    {
+      "id": "test-admin-api-1771081997104",
+      "userId": "test-user",
+      "tournamentId": "2024-Spring",
+      "teamName": "Admin API Test Team",
+      "teamNameKana": "test",
+      "teamIntroduction": "test",
+      "isBeginnerFriendlyAccepted": true,
+      "status": "submitted",
+      "players": [],
+      "isPaid": true,
+      "createdAt": "2026-02-14T15:13:17.104Z"
+    },
+    {
+      "id": "test-admin-api-1771081997120",
+      "userId": "test-user",
+      "tournamentId": "2024-Spring",
+      "teamName": "Admin API Test Team",
+      "teamNameKana": "test",
+      "teamIntroduction": "test",
+      "isBeginnerFriendlyAccepted": true,
+      "status": "submitted",
+      "players": [],
+      "isPaid": true,
+      "createdAt": "2026-02-14T15:13:17.120Z"
+    }
+  ],
+  "matches": [],
+  "events": [
+    {
+      "id": "evt_1",
+      "tournamentId": "2024-Spring",
+      "type": "ceremony",
+      "title": "開会式",
+      "startTime": "10:00",
+      "endTime": "10:20",
+      "court": "ALL"
+    },
+    {
+      "id": "evt_2",
+      "tournamentId": "2024-Spring",
+      "type": "match",
+      "title": "第1試合",
+      "startTime": "10:25",
+      "endTime": "10:38",
+      "court": "A"
+    }
+  ]
+}

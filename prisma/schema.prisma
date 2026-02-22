@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String      @id @default(cuid())
+  email          String      @unique
+  name           String
+  phone          String
+  password       String
+  postalCode     String?
+  address        String?
+  wristbandColor String?
+  role           String      @default("user")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  teamEntries    TeamEntry[]
+}
+
+model TeamEntry {
+  id                         String   @id @default(cuid())
+  userId                     String
+  user                       User     @relation(fields: [userId], references: [id])
+  tournamentId               String   @default("2024-Spring")
+  teamName                   String
+  teamNameKana               String   @default("")
+  teamIntroduction           String   @default("")
+  isBeginnerFriendlyAccepted Boolean  @default(false)
+  isPaid                     Boolean  @default(false)
+  status                     String   @default("draft")
+  group                      String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  players                    Player[]
+}
+
+model Player {
+  id               String    @id @default(cuid())
+  entryId          String
+  teamEntry        TeamEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  name             String
+  furigana         String    @default("")
+  insurance        Boolean   @default(false)
+  isRepresentative Boolean   @default(false)
+  wristbandColor   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Match {
+  id            String   @id @default(cuid())
+  tournamentId  String   @default("2024-Spring")
+  matchNumber   String?
+  type          String   @default("match")
+  time          String?
+  court         String?
+  round         Int?
+  teamIdA       String?
+  teamIdB       String?
+  scoreA        Int?
+  scoreB        Int?
+  winnerId      String?
+  refereeTeamId String?
+  status        String   @default("scheduled")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  tournamentId String   @default("2024-Spring")
+  type         String   @default("event")
+  title        String
+  startTime    String
+  endTime      String?
+  court        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
