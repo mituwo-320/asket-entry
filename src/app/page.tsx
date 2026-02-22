@@ -27,7 +27,26 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 w-full max-w-4xl">
+      <div className="grid md:grid-cols-3 gap-6 w-full max-w-6xl">
+        <Link href="/team/register" className="group">
+          <Card className="h-full hover:border-emerald-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
+            <div className="flex flex-col h-full">
+              <div className="p-3 bg-emerald-500/10 w-fit rounded-lg mb-4 group-hover:bg-emerald-500/20 transition-colors">
+                <Users className="w-8 h-8 text-emerald-400" />
+              </div>
+              <h2 className="text-2xl font-bold font-heading mb-2 text-white group-hover:text-emerald-300 transition-colors">
+                はじめての方 (新規登録)
+              </h2>
+              <p className="text-slate-400 mb-6 flex-1">
+                大会への新規エントリーはこちらから。チーム情報と代表者情報を登録して参加申し込みを行います。
+              </p>
+              <div className="flex items-center text-emerald-400 font-medium">
+                新規登録へ進む <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+
         <Link href="/login" className="group">
           <Card className="h-full hover:border-indigo-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
             <div className="flex flex-col h-full">
@@ -35,13 +54,13 @@ export default function Home() {
                 <Users className="w-8 h-8 text-indigo-400" />
               </div>
               <h2 className="text-2xl font-bold font-heading mb-2 text-white group-hover:text-indigo-300 transition-colors">
-                チーム代表者はこちら
+                登録済みの方 (ログイン)
               </h2>
               <p className="text-slate-400 mb-6 flex-1">
-                選手登録、登録内容の変更、大会情報の確認はこちらから行えます。
+                すでに登録済みのチーム代表者はこちら。登録内容の変更や、大会スケジュールの確認が行えます。
               </p>
               <div className="flex items-center text-indigo-400 font-medium">
-                ポータルへ進む <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                ログイン画面へ <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Card>
