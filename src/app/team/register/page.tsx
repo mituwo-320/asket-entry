@@ -192,7 +192,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 & 住所 <span className="text-red-400 ml-1">*必須 (住所は任意)</span></label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 & 住所 <span className="text-red-400 ml-1">*必須 (郵便番号・住所は任意)</span></label>
                             <Input
                                 type="email"
                                 placeholder="メールアドレス"
@@ -210,10 +210,9 @@ export default function RegisterPage() {
                             />
                             <div className="space-y-2">
                                 <Input
-                                    placeholder="郵便番号 (必須)"
+                                    placeholder="郵便番号 (任意)"
                                     value={formData.postalCode}
                                     onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                                    required
                                     className="w-1/3 bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                                 />
                                 <Input
