@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "postinstall": "prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@types/bcryptjs": "^3.0.0",
