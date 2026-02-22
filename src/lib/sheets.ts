@@ -5,33 +5,28 @@ import { db } from './db';
 // --- Users ---
 
 export async function saveUser(user: User): Promise<boolean> {
-    try {
-        const hashedPassword = user.password ? await bcrypt.hash(user.password, 10) : '';
-        await db.user.upsert({
-            where: { id: user.id },
-            update: {
-                name: user.name,
-                phone: user.phone,
-                postalCode: user.postalCode || '',
-                address: user.address || '',
-                wristbandColor: user.wristbandColor || '',
-            },
-            create: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                phone: user.phone,
-                password: hashedPassword,
-                postalCode: user.postalCode || '',
-                address: user.address || '',
-                wristbandColor: user.wristbandColor || '',
-            }
-        });
-        return true;
-    } catch (e) {
-        console.error('saveUser error:', e);
-        return false;
-    }
+    const hashedPassword = user.password ? await bcrypt.hash(user.password, 10) : '';
+    await db.user.upsert({
+        where: { id: user.id },
+        update: {
+            name: user.name,
+            phone: user.phone,
+            postalCode: user.postalCode || '',
+            address: user.address || '',
+            wristbandColor: user.wristbandColor || '',
+        },
+        create: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            password: hashedPassword,
+            postalCode: user.postalCode || '',
+            address: user.address || '',
+            wristbandColor: user.wristbandColor || '',
+        }
+    });
+    return true;
 }
 
 export async function verifyUserLogin(email: string, password: string): Promise<User | null> {

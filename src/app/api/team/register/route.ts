@@ -19,7 +19,14 @@ export async function POST(request: Request) {
             wristbandColor: body.wristbandColor
         };
 
-        const userSaved = await saveUser(newUser);
+        let userSaved = false;
+        try {
+            userSaved = await saveUser(newUser);
+        } catch (dbError: any) {
+            console.error('saveUser dbError:', dbError);
+            return NextResponse.json({ error: `DB Error: ${dbError.message || String(dbError)}` }, { status: 500 });
+        }
+
         if (!userSaved) {
             return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
         }
