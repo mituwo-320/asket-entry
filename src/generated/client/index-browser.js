@@ -189,6 +189,13 @@ exports.Prisma.EventScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SettingScalarFieldEnum = {
+  id: 'id',
+  participationFee: 'participationFee',
+  insuranceFee: 'insuranceFee',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -210,7 +217,8 @@ exports.Prisma.ModelName = {
   TeamEntry: 'TeamEntry',
   Player: 'Player',
   Match: 'Match',
-  Event: 'Event'
+  Event: 'Event',
+  Setting: 'Setting'
 };
 
 /**

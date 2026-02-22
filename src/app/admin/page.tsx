@@ -30,6 +30,10 @@ export default function AdminDashboard() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
+    // NEW: Settings State
+    const [settings, setSettings] = useState({ participationFee: 15000, insuranceFee: 800 });
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
+
     // Helper
     const getTeamName = (teamId: string) => {
         if (teamId === 'Bye') return '不戦勝';
@@ -50,6 +54,13 @@ export default function AdminDashboard() {
             const matchRes = await fetch('/api/matches');
             const matchData = await matchRes.json();
             if (matchData.matches) setMatches(matchData.matches);
+
+            // Fetch Settings
+            const settingsRes = await fetch('/api/admin/settings');
+            if (settingsRes.ok) {
+                const settingsData = await settingsRes.json();
+                if (settingsData.setting) setSettings(settingsData.setting);
+            }
 
         } catch (e) {
             console.error("Failed to fetch admin data", e);
@@ -143,12 +154,13 @@ export default function AdminDashboard() {
         }
     };
 
-    // 1. Stats Calculation
+    // Stats Calculation
     const totalEntries = entries.length;
-    const totalPlayers = entries.reduce((acc, entry) => acc + entry.players.length, 0);
+    const totalPlayers = entries.reduce((acc, entry) => acc + (entry.players ? entry.players.length : 0), 0);
     const insuranceNeeded = entries.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
-    // Mock fee calculation (e.g., 800 yen per person)
-    const insuranceCost = insuranceNeeded * 800;
+
+    // Revenue Calculation
+    const expectedRevenue = totalEntries * settings.participationFee + insuranceNeeded * settings.insuranceFee;
 
     // Helper to download Insurance List (Client-side)
     const downloadInsuranceList = () => {
@@ -181,6 +193,69 @@ export default function AdminDashboard() {
 
         // 3. Download
         XLSX.writeFile(wb, "保険加入者リスト.xlsx");
+    };
+
+    // Helper to download Detailed Team List
+    const downloadDetailedTeamList = () => {
+        const rows: any[] = [];
+        entries.forEach(entry => {
+            const user = users.find(u => u.id === entry.userId);
+            const repName = user ? user.name : "Unknown";
+            const repPhone = user ? user.phone : "-";
+            const repEmail = user ? user.email : "-";
+            const teamTotalFee = settings.participationFee + (entry.players ? entry.players.filter(p => p.insurance).length * settings.insuranceFee : 0);
+
+            if (entry.players && entry.players.length > 0) {
+                entry.players.forEach(player => {
+                    rows.push({
+                        "チーム名": entry.teamName,
+                        "フリガナ(チーム)": entry.teamNameKana || "",
+                        "参加状態": entry.status === 'submitted' ? '確定済' : '下書き',
+                        "代表者": repName,
+                        "電話番号": repPhone,
+                        "メールアドレス": repEmail,
+                        "支払状況": entry.isPaid ? '支払い済' : '未払い',
+                        "合計請求額(円)": player.isRepresentative ? teamTotalFee : "-", // Only show fee once per team on rep's row for clarity or calculate per team
+                        "選手名": player.name,
+                        "フリガナ(選手)": player.furigana,
+                        "代表フラグ": player.isRepresentative ? "〇" : "",
+                        "リストバンド色": player.wristbandColor || "未定",
+                        "保険加入": player.insurance ? "〇" : "×"
+                    });
+                });
+            } else {
+                // Teams with no players yet
+                rows.push({
+                    "チーム名": entry.teamName,
+                    "代表者": repName,
+                    "電話番号": repPhone,
+                    "選手名": "(選手未登録)",
+                });
+            }
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "詳細チームプレイヤの一覧");
+        XLSX.writeFile(wb, "詳細チームプレイヤの一覧.xlsx");
+    };
+
+    // Save Settings Handler
+    const handleSaveSettings = async () => {
+        setIsSavingSettings(true);
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+            if (res.ok) alert("設定を保存しました");
+            else alert("設定の保存に失敗しました");
+        } catch (e) {
+            alert("エラーが発生しました");
+        } finally {
+            setIsSavingSettings(false);
+        }
     };
 
     // 2. Search Handler
@@ -281,23 +356,22 @@ export default function AdminDashboard() {
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Users className="w-16 h-16 text-white" />
                             </div>
-                            <h3 className="text-slate-400 text-sm font-bold tracking-wider mb-2 z-10 relative">チーム</h3>
-                            <div className="flex items-baseline gap-2 z-10 relative">
-                                <span className="text-4xl font-black text-white">{totalEntries}</span>
-                            </div>
+                            <Trophy className="w-8 h-8 text-indigo-400 mb-3" />
+                            <p className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-1">Total Teams</p>
+                            <h3 className="text-4xl font-black text-white">{totalEntries}<span className="text-xl text-slate-500 ml-1 font-medium">チーム</span></h3>
                         </Card>
                         <Card className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 border-indigo-500/30 p-6 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                             <div className="text-indigo-300 text-sm font-bold tracking-wider mb-2 relative z-10">登録選手総数</div>
                             <div className="text-4xl font-black text-white relative z-10">{totalPlayers}</div>
-                            <div className="text-xs text-indigo-400/80 mt-2 font-medium relative z-10">1チーム平均 {(totalPlayers / (totalEntries || 1)).toFixed(1)}人</div>
+                            <div className="text-xs text-indigo-400/80 mt-2 font-medium relative z-10">1チーム平均 {(totalPlayers / Math.max(1, totalEntries)).toFixed(1)}人</div>
                         </Card>
                         <Card className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 border-pink-500/30 p-6 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                             <div className="text-pink-300 text-sm font-bold tracking-wider mb-2 relative z-10">保険対象者 (¥800)</div>
                             <div className="text-4xl font-black text-white relative z-10">{insuranceNeeded}</div>
                             <div className="text-xs text-pink-400/80 mt-2 font-medium relative z-10">
-                                見積: ¥{insuranceCost.toLocaleString()}
+                                見積: ¥{(insuranceNeeded * settings.insuranceFee).toLocaleString()}
                             </div>
                         </Card>
                         <Card className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 border-emerald-500/30 p-6 relative overflow-hidden">
@@ -318,24 +392,8 @@ export default function AdminDashboard() {
                                 </h2>
                                 <div className="flex items-center gap-4 w-full sm:w-auto">
                                     <div className="text-sm text-slate-400 font-medium hidden sm:block">{totalEntries} チーム</div>
-                                    <Button className="w-full sm:w-auto" size="sm" variant="outline" onClick={() => {
-                                        // Download Team List CSV/Excel
-                                        const rows = entries.map(e => ({
-                                            ID: e.id,
-                                            TeamName: e.teamName,
-                                            RepName: getRepName(e.userId),
-                                            Phone: getRepPhone(e.userId),
-                                            PlayerCount: e.players.length,
-                                            Status: e.status,
-                                            Paid: e.isPaid ? 'Yes' : 'No',
-                                            CreatedAt: e.createdAt
-                                        }));
-                                        const ws = XLSX.utils.json_to_sheet(rows);
-                                        const wb = XLSX.utils.book_new();
-                                        XLSX.utils.book_append_sheet(wb, ws, "TeamList");
-                                        XLSX.writeFile(wb, "TeamList.xlsx");
-                                    }}>
-                                        <Download className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">リスト出力</span>
+                                    <Button className="w-full sm:w-auto hover:bg-indigo-600 hover:text-white" size="sm" variant="outline" onClick={downloadDetailedTeamList}>
+                                        <Download className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">リスト出力 (詳細)</span>
                                     </Button>
                                 </div>
                             </div>
@@ -370,9 +428,10 @@ export default function AdminDashboard() {
                                             <th className="px-6 py-4">チーム名</th>
                                             <th className="px-6 py-4">代表者</th>
                                             <th className="px-6 py-4">電話番号</th>
-                                            <th className="px-6 py-4">選手数</th>
+                                            <th className="px-6 py-4">選手数 / 保険</th>
                                             <th className="px-6 py-4">ステータス</th>
-                                            <th className="px-6 py-4">参加費</th>
+                                            <th className="px-6 py-4">合計金額</th>
+                                            <th className="px-6 py-4">支払状況</th>
                                             <th className="px-6 py-4 text-right">アクション</th>
                                         </tr>
                                     </thead>
@@ -382,11 +441,17 @@ export default function AdminDashboard() {
                                                 <td className="px-6 py-4 font-medium text-white">{entry.teamName}</td>
                                                 <td className="px-6 py-4">{getRepName(entry.userId)}</td>
                                                 <td className="px-6 py-4">{getRepPhone(entry.userId)}</td>
-                                                <td className="px-6 py-4">{entry.players.length}名</td>
+                                                <td className="px-6 py-4">
+                                                    <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
+                                                    <span className="text-xs text-slate-500 ml-2">(保険: {entry.players ? entry.players.filter(p => p.insurance).length : 0}名)</span>
+                                                </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
                                                         {entry.status === 'submitted' ? '確定済' : '下書き'}
                                                     </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-emerald-400 font-bold tracking-wider">
+                                                    ¥{(settings.participationFee + (entry.players ? entry.players.filter(p => p.insurance).length * settings.insuranceFee : 0)).toLocaleString()}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <button
@@ -582,6 +647,15 @@ export default function AdminDashboard() {
                                     </div>
                                     <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={() => window.open('/admin/print/lottery', '_blank')}>
                                         <Printer className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">詳細チーム・選手情報一覧</p>
+                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
+                                    </div>
+                                    <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadDetailedTeamList}>
+                                        <Download className="w-4 h-4" />
                                     </Button>
                                 </div>
                             </div>
