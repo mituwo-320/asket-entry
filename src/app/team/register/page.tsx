@@ -159,7 +159,7 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム情報</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム情報 <span className="text-red-400 ml-1">*必須</span></label>
                             <Input
                                 placeholder="チーム名"
                                 value={formData.name}
@@ -192,7 +192,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 & 住所</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 & 住所 <span className="text-red-400 ml-1">*必須 (住所は任意)</span></label>
                             <Input
                                 type="email"
                                 placeholder="メールアドレス"
@@ -205,13 +205,15 @@ export default function RegisterPage() {
                                 placeholder="電話番号 (緊急連絡先)"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                required
                                 className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                             />
                             <div className="space-y-2">
                                 <Input
-                                    placeholder="郵便番号"
+                                    placeholder="郵便番号 (必須)"
                                     value={formData.postalCode}
                                     onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                                    required
                                     className="w-1/3 bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                                 />
                                 <Input
@@ -224,7 +226,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">スポーツ保険の加入状況</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">スポーツ保険の加入状況 <span className="text-red-400 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Option 1: Join Insurance */}
                                 <div
@@ -277,7 +279,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">代表者のリストバンド色</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">代表者のリストバンド色 <span className="text-red-400 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 gap-2">
                                 <p className="text-xs text-slate-500 mb-1">
                                     ※ 試合中の識別に使用します。ご自身の経験に合わせて選択してください。
@@ -313,7 +315,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム紹介・意気込み</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム紹介・意気込み <span className="text-red-400 ml-1">*必須</span></label>
                             <textarea
                                 placeholder="今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）"
                                 value={formData.introduction}
@@ -324,6 +326,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-4 pt-2">
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">参加同意 <span className="text-red-400 ml-1">*必須</span></label>
                             <div className="flex items-start space-x-3 p-4 bg-slate-900/50 border border-slate-800 rounded-lg">
                                 <input
                                     type="checkbox"
@@ -340,7 +343,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">ログイン設定</label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-400 ml-1">*必須</span></label>
                             <Input
                                 type="password"
                                 placeholder="パスワード (PIN)"
