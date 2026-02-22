@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
     // NEW: Settings State
-    const [settings, setSettings] = useState({ participationFee: 15000, insuranceFee: 800 });
+    const [settings, setSettings] = useState<{ participationFee: number | string, insuranceFee: number | string }>({ participationFee: 15000, insuranceFee: 800 });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -72,6 +72,17 @@ export default function AdminDashboard() {
     };
 
     useEffect(() => {
+        const storedUser = localStorage.getItem('currentUser');
+        try {
+            if (!storedUser || JSON.parse(storedUser).email !== 'test@example.com') { // Assuming test@example.com is admin
+                window.location.href = '/login';
+                return;
+            }
+        } catch (e) {
+            window.location.href = '/login';
+            return;
+        }
+
         loadData();
     }, []);
 
@@ -162,7 +173,7 @@ export default function AdminDashboard() {
     const insuranceNeeded = entries.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
 
     // Revenue Calculation
-    const expectedRevenue = totalEntries * settings.participationFee + insuranceNeeded * settings.insuranceFee;
+    const expectedRevenue = totalEntries * Number(settings.participationFee || 0) + insuranceNeeded * Number(settings.insuranceFee || 0);
 
     // Helper to download Insurance List (Client-side)
     const downloadInsuranceList = () => {
@@ -205,7 +216,7 @@ export default function AdminDashboard() {
             const repName = user ? user.name : "Unknown";
             const repPhone = user ? user.phone : "-";
             const repEmail = user ? user.email : "-";
-            const teamTotalFee = settings.participationFee + (entry.players ? entry.players.filter(p => p.insurance).length * settings.insuranceFee : 0);
+            const teamTotalFee = Number(settings.participationFee || 0) + (entry.players ? entry.players.filter(p => p.insurance).length * Number(settings.insuranceFee || 0) : 0);
 
             if (entry.players && entry.players.length > 0) {
                 entry.players.forEach(player => {
@@ -250,7 +261,10 @@ export default function AdminDashboard() {
             const res = await fetch('/api/admin/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings)
+                body: JSON.stringify({
+                    participationFee: Number(settings.participationFee) || 0,
+                    insuranceFee: Number(settings.insuranceFee) || 0
+                })
             });
             if (res.ok) {
                 setSaveMessage({ type: 'success', text: '設定を保存しました！チーム一覧に即時反映されます。' });
@@ -379,10 +393,10 @@ export default function AdminDashboard() {
                         </Card>
                         <Card className="bg-gradient-to-br from-pink-900/40 to-slate-900/40 border-pink-500/30 p-6 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-                            <div className="text-pink-300 text-sm font-bold tracking-wider mb-2 relative z-10">保険対象者 (¥800)</div>
+                            <div className="text-pink-300 text-sm font-bold tracking-wider mb-2 relative z-10">保険対象者 (¥{Number(settings.insuranceFee || 0)})</div>
                             <div className="text-4xl font-black text-white relative z-10">{insuranceNeeded}</div>
                             <div className="text-xs text-pink-400/80 mt-2 font-medium relative z-10">
-                                見積: ¥{(insuranceNeeded * settings.insuranceFee).toLocaleString()}
+                                見積: ¥{(insuranceNeeded * Number(settings.insuranceFee || 0)).toLocaleString()}
                             </div>
                         </Card>
                         <Card className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 border-emerald-500/30 p-6 relative overflow-hidden">
@@ -463,7 +477,7 @@ export default function AdminDashboard() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 font-mono text-emerald-400 font-bold tracking-wider">
-                                                    ¥{(settings.participationFee + (entry.players ? entry.players.filter(p => p.insurance).length * settings.insuranceFee : 0)).toLocaleString()}
+                                                    ¥{(Number(settings.participationFee || 0) + (entry.players ? entry.players.filter(p => p.insurance).length * Number(settings.insuranceFee || 0) : 0)).toLocaleString()}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <button
@@ -571,11 +585,11 @@ export default function AdminDashboard() {
                                                     登録選手
                                                 </h3>
                                                 <span className="text-xs font-bold text-slate-300 bg-white/10 px-3 py-1 rounded-full border border-white/10">
-                                                    計 {selectedEntry.players.length}名
+                                                    計 {selectedEntry.players?.length || 0}名
                                                 </span>
                                             </div>
                                             <div className="space-y-3">
-                                                {selectedEntry.players.map((player, idx) => (
+                                                {(selectedEntry.players || []).map((player, idx) => (
                                                     <div key={player.id || idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-white/5 hover:border-indigo-500/30 transition-colors gap-3">
                                                         <div className="flex items-center gap-4">
                                                             <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-sm font-bold text-slate-400">
@@ -902,7 +916,7 @@ export default function AdminDashboard() {
                                         <Input
                                             type="number"
                                             value={settings.participationFee}
-                                            onChange={(e) => setSettings({ ...settings, participationFee: parseInt(e.target.value) || 0 })}
+                                            onChange={(e) => setSettings({ ...settings, participationFee: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                                             className="bg-slate-950/80 border-slate-800 text-lg h-12 focus-visible:ring-indigo-500"
                                         />
                                     </div>
@@ -911,7 +925,7 @@ export default function AdminDashboard() {
                                         <Input
                                             type="number"
                                             value={settings.insuranceFee}
-                                            onChange={(e) => setSettings({ ...settings, insuranceFee: parseInt(e.target.value) || 0 })}
+                                            onChange={(e) => setSettings({ ...settings, insuranceFee: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                                             className="bg-slate-950/80 border-slate-800 text-lg h-12 focus-visible:ring-indigo-500"
                                         />
                                     </div>

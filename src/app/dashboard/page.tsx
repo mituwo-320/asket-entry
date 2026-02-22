@@ -25,8 +25,16 @@ export default function UserDashboard() {
             router.push('/login');
             return;
         }
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+
+        let parsedUser;
+        try {
+            parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+        } catch (e) {
+            localStorage.removeItem('currentUser');
+            router.push('/login');
+            return;
+        }
 
         // 2. Fetch Entries
         const fetchEntries = async () => {
@@ -223,7 +231,7 @@ export default function UserDashboard() {
 
                                                                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-400">
                                                                     <span className="flex items-center gap-1.5 bg-slate-900/50 px-2.5 py-1 rounded-lg">
-                                                                        <UserIcon className="w-4 h-4 text-indigo-400" /> 選手 {entry.players.length}名
+                                                                        <UserIcon className="w-4 h-4 text-indigo-400" /> 選手 {entry.players?.length || 0}名
                                                                     </span>
                                                                     <span className="flex items-center gap-1.5">
                                                                         <History className="w-4 h-4" /> 最終更新: {new Date(entry.createdAt).toLocaleDateString()}
