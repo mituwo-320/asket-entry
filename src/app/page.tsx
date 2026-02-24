@@ -27,7 +27,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 w-full max-w-6xl">
+      <div className="grid md:grid-cols-2 gap-6 w-full max-w-4xl">
         <Link href="/team/register" className="group">
           <Card className="h-full hover:border-emerald-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
             <div className="flex flex-col h-full">
@@ -61,25 +61,6 @@ export default function Home() {
               </p>
               <div className="flex items-center text-indigo-400 font-medium">
                 ログイン画面へ <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href="/admin" className="group">
-          <Card className="h-full hover:border-pink-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
-            <div className="flex flex-col h-full">
-              <div className="p-3 bg-pink-500/10 w-fit rounded-lg mb-4 group-hover:bg-pink-500/20 transition-colors">
-                <ShieldCheck className="w-8 h-8 text-pink-400" />
-              </div>
-              <h2 className="text-2xl font-bold font-heading mb-2 text-white group-hover:text-pink-300 transition-colors">
-                運営者ダッシュボード
-              </h2>
-              <p className="text-slate-400 mb-6 flex-1">
-                参加チーム状況の確認、保険リストや抽選券の印刷データの出力はこちら。
-              </p>
-              <div className="flex items-center text-pink-400 font-medium">
-                管理画面へアクセス <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Card>

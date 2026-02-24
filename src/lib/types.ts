@@ -20,6 +20,15 @@ export interface User {
 }
 
 // Tournament Entry (Context for a specific tournament)
+export interface Project {
+    id: string;
+    name: string;
+    isActive: boolean;
+    entryStartDate?: string;
+    entryEndDate?: string;
+    createdAt?: string;
+}
+
 export interface TeamEntry {
     id: string;
     userId: string; // Link to User

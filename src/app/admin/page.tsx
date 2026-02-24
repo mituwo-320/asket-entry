@@ -9,9 +9,10 @@ import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
 import GroupManager from '@/components/admin/GroupManager';
+import ProjectManagerModal from '@/components/admin/ProjectManagerModal'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
-import { TeamEntry, User, Match } from "@/lib/types";
+import { TeamEntry, User, Match, Project } from "@/lib/types";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +20,8 @@ export default function AdminDashboard() {
     // State
     const [entries, setEntries] = useState<TeamEntry[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]); // NEW: Projects State
+    const [selectedProjectId, setSelectedProjectId] = useState<string>("2024-Spring"); // NEW: Project filter
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResult, setSearchResult] = useState<{ playerName: string, teamName: string, insurance: boolean } | null>(null);
@@ -29,6 +32,7 @@ export default function AdminDashboard() {
     const [matches, setMatches] = useState<Match[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
+    const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false); // NEW
 
     // NEW: Settings State
     const [settings, setSettings] = useState<{ participationFee: number | string, insuranceFee: number | string, lineOpenChatLink?: string, entryDeadline?: string }>({ participationFee: 15000, insuranceFee: 800, lineOpenChatLink: "", entryDeadline: "" });
@@ -57,6 +61,18 @@ export default function AdminDashboard() {
             const matchData = await matchRes.json();
             if (matchData.matches) setMatches(matchData.matches);
 
+            // Fetch Projects (Dates)
+            const projectsRes = await fetch('/api/admin/projects');
+            if (projectsRes.ok) {
+                const projectsData = await projectsRes.json();
+                if (projectsData.projects) {
+                    setProjects(projectsData.projects);
+                    if (projectsData.projects.length > 0) {
+                        setSelectedProjectId(projectsData.projects[0].id);
+                    }
+                }
+            }
+
             // Fetch Settings
             const settingsRes = await fetch('/api/settings');
             if (settingsRes.ok) {
@@ -72,17 +88,7 @@ export default function AdminDashboard() {
     };
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('currentUser');
-        try {
-            if (!storedUser || JSON.parse(storedUser).email !== 'test@example.com') { // Assuming test@example.com is admin
-                window.location.href = '/login';
-                return;
-            }
-        } catch (e) {
-            window.location.href = '/login';
-            return;
-        }
-
+        // middleware.ts handles admin route protection, no need for localStorage checks here.
         loadData();
     }, []);
 
@@ -167,19 +173,36 @@ export default function AdminDashboard() {
         }
     };
 
-    // Stats Calculation
-    const totalEntries = entries.length;
-    const totalPlayers = entries.reduce((acc, entry) => acc + (entry.players ? entry.players.length : 0), 0);
-    const insuranceNeeded = entries.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
+    // Current View Filter logic for matches, entries
+    const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId);
+    const activeMatches = matches.filter(m => m.tournamentId === selectedProjectId);
 
-    // Revenue Calculation
+    // Stats Calculation using ONLY activeEntries
+    const totalEntries = activeEntries.length;
+    const totalPlayers = activeEntries.reduce((acc, entry) => acc + (entry.players ? entry.players.length : 0), 0);
+    const insuranceNeeded = activeEntries.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
+
+    // Settings & Project State Logic
     const expectedRevenue = totalEntries * Number(settings.participationFee || 0) + insuranceNeeded * Number(settings.insuranceFee || 0);
+
+    const activeProjectData = projects.find(p => p.id === selectedProjectId);
+    const now = new Date();
+    let daysRemaining = -1;
+    let isAccepting = false;
+
+    if (activeProjectData?.entryEndDate) {
+        const endDate = new Date(activeProjectData.entryEndDate);
+        const startDate = activeProjectData.entryStartDate ? new Date(activeProjectData.entryStartDate) : new Date(0);
+        const diffTime = endDate.getTime() - now.getTime();
+        daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        isAccepting = activeProjectData.isActive && now >= startDate && now <= endDate;
+    }
 
     // Helper to download Insurance List (Client-side)
     const downloadInsuranceList = () => {
         // 1. Flatten Data
         const rows: any[] = [];
-        entries.forEach(entry => {
+        activeEntries.forEach(entry => {
             // Find User for Rep Name
             const user = users.find(u => u.id === entry.userId);
             const repName = user ? user.name : "Unknown";
@@ -211,7 +234,7 @@ export default function AdminDashboard() {
     // Helper to download Detailed Team List
     const downloadDetailedTeamList = () => {
         const rows: any[] = [];
-        entries.forEach(entry => {
+        activeEntries.forEach(entry => {
             const user = users.find(u => u.id === entry.userId);
             const repName = user ? user.name : "Unknown";
             const repPhone = user ? user.phone : "-";
@@ -319,7 +342,7 @@ export default function AdminDashboard() {
     };
 
     // Filter Entries for Team List View
-    const filteredEntries = entries.filter(entry => {
+    const filteredEntries = activeEntries.filter(entry => {
         // 1. Search (Team Name or Rep Name or Phone)
         const q = teamSearchQuery.toLowerCase();
         const repName = getRepName(entry.userId).toLowerCase();
@@ -366,7 +389,7 @@ export default function AdminDashboard() {
         return assigned;
     };
 
-    const lotteryAssignments = calculateLotteryNumbers(entries);
+    const lotteryAssignments = calculateLotteryNumbers(activeEntries);
 
     if (isLoading) {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white"><Loader2 className="animate-spin w-8 h-8 mr-3 text-indigo-500" /> <span className="text-lg">Loading Admin Data...</span></div>;
@@ -383,15 +406,39 @@ export default function AdminDashboard() {
                         </div>
                         <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">BasketEntry Admin</h1>
                     </div>
+                    {/* Project Selector section in header */}
                     <div className="flex items-center gap-4">
-                        <span className="text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hidden sm:inline-block tracking-wide">
+                        <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
+                            <span className="text-xs text-slate-400 pl-2">対象日程:</span>
+                            <select
+                                value={selectedProjectId}
+                                onChange={(e) => setSelectedProjectId(e.target.value)}
+                                className="bg-slate-950/50 border-none text-slate-200 text-sm rounded focus:ring-1 focus:ring-indigo-500 outline-none h-8 px-2"
+                            >
+                                <option value="" disabled>---</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-md shadow-indigo-500/20"
+                            onClick={() => setIsProjectManagerOpen(true)}
+                        >
+                            <Calendar className="w-4 h-4 mr-1.5" />
+                            日程・プロジェクト管理
+                        </Button>
+                        <span className="text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hidden lg:inline-block tracking-wide">
                             v1.0.0 (Beta)
                         </span>
-                        <Link href="/">
-                            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                                ログアウト
-                            </Button>
-                        </Link>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white" onClick={async () => {
+                            await fetch('/api/admin/auth/logout', { method: 'POST' });
+                            window.location.href = '/';
+                        }}>
+                            ログアウト
+                        </Button>
                     </div>
                 </div>
             </header>
@@ -444,8 +491,12 @@ export default function AdminDashboard() {
                         <Card className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 border-emerald-500/30 p-6 relative overflow-hidden">
                             <div className="absolute inset-0 bg-emerald-500/5 pulse-slow" />
                             <div className="text-emerald-300 text-sm font-bold tracking-wider mb-2 relative z-10">ステータス</div>
-                            <div className="text-2xl sm:text-3xl font-black text-white relative z-10">受付中</div>
-                            <div className="text-xs text-emerald-400/80 mt-2 font-medium relative z-10">残り 5日</div>
+                            <div className={`text-2xl sm:text-3xl font-black relative z-10 ${isAccepting ? 'text-white' : 'text-slate-400'}`}>
+                                {isAccepting ? '受付中' : '受付期間外'}
+                            </div>
+                            <div className="text-xs text-emerald-400/80 mt-2 font-medium relative z-10">
+                                {isAccepting ? `残り ${daysRemaining}日` : '---'}
+                            </div>
                         </Card>
                     </motion.div>
 
@@ -801,8 +852,8 @@ export default function AdminDashboard() {
                         <div>
                             <p className="text-white font-bold mb-2 text-lg">タイムスケジュール</p>
                             <TimeScheduleEditor
-                                entries={entries}
-                                matches={matches}
+                                entries={activeEntries}
+                                matches={activeMatches}
                                 refreshData={() => {
                                     fetch('/api/matches').then(res => res.json()).then(data => {
                                         if (data.matches) setMatches(data.matches);
@@ -833,7 +884,7 @@ export default function AdminDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5 bg-slate-900/10">
-                                            {matches.sort((a, b) => (a.matchNumber || '').localeCompare(b.matchNumber || '')).map((match) => (
+                                            {activeMatches.sort((a, b) => (a.matchNumber || '').localeCompare(b.matchNumber || '')).map((match) => (
                                                 <tr key={match.id} className="hover:bg-white/5 transition-colors group">
                                                     <td className="px-6 py-5 font-mono text-lg font-bold text-slate-500 group-hover:text-indigo-400 transition-colors">
                                                         {match.matchNumber}
@@ -884,7 +935,7 @@ export default function AdminDashboard() {
                                                     </td>
                                                 </tr>
                                             ))}
-                                            {matches.length === 0 && (
+                                            {activeMatches.length === 0 && (
                                                 <tr>
                                                     <td colSpan={6} className="px-6 py-12 text-center text-slate-500 bg-slate-900/30">
                                                         試合データがありません。スケジュール生成を行ってください。
@@ -917,7 +968,7 @@ export default function AdminDashboard() {
             <LotteryModal
                 isOpen={isLotteryOpen}
                 onClose={() => setIsLotteryOpen(false)}
-                participants={entries.flatMap(entry => {
+                participants={activeEntries.flatMap(entry => {
                     const players = entry.players || [];
                     return players.map(player => ({
                         teamName: entry.teamName,
@@ -1034,6 +1085,14 @@ export default function AdminDashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ProjectManagerModal
+                isOpen={isProjectManagerOpen}
+                onClose={() => setIsProjectManagerOpen(false)}
+                projects={projects}
+                onProjectsUpdate={setProjects}
+            />
+
         </div>
     );
 }

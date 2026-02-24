@@ -102,7 +102,7 @@ function DashboardContent() {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-white leading-tight">{teamEntry.teamName}</h1>
-                            <p className="text-xs text-indigo-400">{getTournamentName(teamEntry.tournamentId)}</p>
+                            <p className="text-xs text-indigo-400">{(teamEntry as any).projectName || teamEntry.tournamentId}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -119,21 +119,21 @@ function DashboardContent() {
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-5xl mx-auto space-y-8">
 
-                    {settings?.entryDeadline && (() => {
-                        const deadline = new Date(settings.entryDeadline);
+                    {(teamEntry as any).projectEndDate && (() => {
+                        const deadline = new Date((teamEntry as any).projectEndDate);
                         const now = new Date();
                         const diffTime = deadline.getTime() - now.getTime();
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                         return (
-                            <div className={`p-4 rounded-xl border flex items-center gap-3 ${diffDays > 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
+                            <div className={`p-4 rounded-xl border flex items-center gap-3 ${diffTime > 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
                                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                                 <div>
                                     <h3 className="font-bold text-sm">
-                                        {diffDays > 0 ? "エントリー・編集締切まで" : "エントリー受付期間終了"}
+                                        {diffTime > 0 ? "エントリー・編集締切まで" : "エントリー受付期間終了"}
                                     </h3>
                                     <p className="text-xs opacity-80 mt-1">
-                                        {diffDays > 0 ? `残り ${diffDays} 日 (${deadline.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })})` : "参加内容の編集はできません。"}
+                                        {diffTime > 0 ? `残り ${diffDays} 日 (${deadline.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })})` : "参加内容の編集はできません。"}
                                     </p>
                                 </div>
                             </div>

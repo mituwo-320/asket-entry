@@ -209,7 +209,7 @@ export default function UserDashboard() {
                                                             <div className="p-6 pl-8 flex-1">
                                                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                                                     <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/10">
-                                                                        {getTournamentName(entry.tournamentId)}
+                                                                        {(entry as any).projectName || entry.tournamentId}
                                                                     </div>
                                                                     <div className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted'
                                                                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'

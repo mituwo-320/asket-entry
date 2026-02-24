@@ -7,42 +7,52 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        // 1. Create User
-        const newUser: User = {
-            id: "u_" + uuidv4(),
-            email: body.email,
-            password: body.password, // plain text, sheets.ts will hash it
-            name: body.representative, // Form sends 'representative'
-            phone: body.phone,
-            wristbandColor: body.wristbandColor
-        };
+        let userId = "";
+        let userName = body.representative;
+        let userEmail = body.email;
+        let userWristband = body.wristbandColor;
 
-        let userSaved = false;
-        try {
-            userSaved = await saveUser(newUser);
-        } catch (dbError: any) {
-            console.error('saveUser dbError:', dbError);
-            return NextResponse.json({ error: `データベースの保存に失敗しました。時間をおいて再度お試しください。(${dbError.message || String(dbError)})` }, { status: 500 });
-        }
+        if (body.existingUserId) {
+            userId = body.existingUserId;
+        } else {
+            // 1. Create User
+            const newUser: User = {
+                id: "u_" + uuidv4(),
+                email: body.email,
+                password: body.password, // plain text, sheets.ts will hash it
+                name: body.representative, // Form sends 'representative'
+                phone: body.phone,
+                wristbandColor: body.wristbandColor
+            };
 
-        if (!userSaved) {
-            return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 400 });
+            let userSaved = false;
+            try {
+                userSaved = await saveUser(newUser);
+            } catch (dbError: any) {
+                console.error('saveUser dbError:', dbError);
+                return NextResponse.json({ error: `データベースの保存に失敗しました。時間をおいて再度お試しください。(${dbError.message || String(dbError)})` }, { status: 500 });
+            }
+
+            if (!userSaved) {
+                return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 400 });
+            }
+            userId = newUser.id;
         }
 
         // 2. Create Initial Team Entry with Rep as 1st Player
         const repPlayer: Player = {
             id: "p_" + uuidv4(),
-            name: newUser.name,
+            name: userName,
             furigana: body.furigana || "", // NEW: Rep registration now asks for furigana
             insurance: body.insurance || false, // NEW: Rep registration now asks for insurance
-            wristbandColor: newUser.wristbandColor,
+            wristbandColor: userWristband,
             isRepresentative: true
         };
 
         const newEntry: TeamEntry = {
             id: "e_" + uuidv4(),
-            userId: newUser.id, // Link to the REAL new user
-            tournamentId: "2024-Spring",
+            userId: userId, // Link to the REAL new or existing user
+            tournamentId: body.tournamentId, // NEW
             teamName: body.name, // Form sends 'name' for team name
             teamNameKana: body.teamNameKana || "", // NEW
             teamIntroduction: body.teamIntroduction || "", // NEW
@@ -60,9 +70,10 @@ export async function POST(request: Request) {
                 success: true,
                 teamId: newEntry.id,
                 user: {
-                    id: newUser.id,
-                    email: newUser.email,
-                    name: newUser.name,
+                    id: userId,
+                    email: userEmail,
+                    name: userName,
+                    furigana: body.furigana || "",
                     role: 'user'
                 }
             });

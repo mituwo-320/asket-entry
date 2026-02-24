@@ -131,6 +131,16 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isActive: 'isActive',
+  entryStartDate: 'entryStartDate',
+  entryEndDate: 'entryEndDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.TeamEntryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -217,6 +227,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Project: 'Project',
   TeamEntry: 'TeamEntry',
   Player: 'Player',
   Match: 'Match',

@@ -17,7 +17,10 @@ export default function RegisterPage() {
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
     const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
     const [settings, setSettings] = useState<any>(null);
+    const [projects, setProjects] = useState<any[]>([]);
     const [formData, setFormData] = useState({
+        projectId: "", // NEW: Selected Tournament Day/Project
+        existingUserId: "", // NEW: Track existing user if logged in
         name: "",
         nameKana: "", // NEW
         introduction: "", // NEW
@@ -35,21 +38,55 @@ export default function RegisterPage() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        fetch("/api/settings")
-            .then(res => res.json())
-            .then(data => {
-                setSettings(data);
-                setIsSettingsLoaded(true);
-            })
-            .catch(() => setIsSettingsLoaded(true));
+        const userJson = localStorage.getItem('currentUser');
+        let initialUser: any = null;
+        if (userJson) {
+            try {
+                initialUser = JSON.parse(userJson);
+            } catch (e) { }
+        }
+
+        Promise.all([
+            fetch("/api/settings").then(res => res.json()).catch(() => null),
+            fetch("/api/projects/active").then(res => res.json()).catch(() => ({ projects: [] }))
+        ]).then(([settingsData, projectsData]) => {
+            if (settingsData) setSettings(settingsData);
+            if (projectsData && projectsData.projects) {
+                setProjects(projectsData.projects);
+                // Auto-select the first available project if it exists
+                if (projectsData.projects.length > 0) {
+                    setFormData(prev => ({
+                        ...prev,
+                        projectId: projectsData.projects[0].id,
+                        existingUserId: initialUser ? initialUser.id : "",
+                        email: initialUser ? initialUser.email : "",
+                        representative: initialUser ? initialUser.name : "",
+                        furigana: initialUser && initialUser.furigana ? initialUser.furigana : ""
+                    }));
+                } else if (initialUser) {
+                    setFormData(prev => ({
+                        ...prev,
+                        existingUserId: initialUser.id,
+                        email: initialUser.email,
+                        representative: initialUser.name,
+                        furigana: initialUser.furigana || ""
+                    }));
+                }
+            }
+            setIsSettingsLoaded(true);
+        }).catch(() => setIsSettingsLoaded(true));
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
-        if (formData.password !== formData.confirmPassword) {
+        if (!formData.existingUserId && formData.password !== formData.confirmPassword) {
             setError("パスワードが一致しません");
+            return;
+        }
+        if (!formData.projectId) {
+            setError("参加する大会（日程）を選択してください");
             return;
         }
         if (!formData.preliminaryNumber) {
@@ -64,6 +101,8 @@ export default function RegisterPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    tournamentId: formData.projectId, // NEW
+                    existingUserId: formData.existingUserId, // NEW
                     name: formData.name,
                     teamNameKana: formData.nameKana, // NEW
                     teamIntroduction: formData.introduction, // NEW
@@ -108,15 +147,17 @@ export default function RegisterPage() {
         );
     }
 
-    if (settings?.entryDeadline && new Date() > new Date(settings.entryDeadline)) {
+
+
+    if (projects.length === 0) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
                 <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
-                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-red-500" />
+                    <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-amber-500" />
                     </div>
-                    <h2 className="text-xl font-bold text-white">エントリー受付終了</h2>
-                    <p className="text-slate-400">申し訳ありませんが、本大会のエントリーは締め切られました。</p>
+                    <h2 className="text-xl font-bold text-white">募集期間外です</h2>
+                    <p className="text-slate-400">現在、エントリーを受け付けている大会日程はありません。</p>
                     <Button onClick={() => router.push("/")} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">トップへ戻る</Button>
                 </Card>
             </div>
@@ -212,15 +253,31 @@ export default function RegisterPage() {
                         大会への参加申し込みを行います。<br />
                         登録後、すぐにマイページをご利用いただけます。
                     </p>
-                    {settings?.entryDeadline && (
+                    {formData.projectId && projects.find(p => p.id === formData.projectId)?.entryEndDate && (
                         <div className="mt-4 pl-11 text-amber-400 text-sm font-medium">
-                            締切: {new Date(settings.entryDeadline).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            締切: {new Date(projects.find(p => p.id === formData.projectId)!.entryEndDate!).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                     )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">参加する大会日程 <span className="text-red-400 ml-1">*必須</span></label>
+                            <select
+                                value={formData.projectId}
+                                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                                required
+                                className="bg-slate-950/50 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 h-11 outline-none"
+                            >
+                                <option value="" disabled>選択してください</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                            <p className="text-[10px] text-slate-500 px-1">募集中の日程から選択してください。</p>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム情報 <span className="text-red-400 ml-1">*必須</span></label>
                             <Input
@@ -238,40 +295,60 @@ export default function RegisterPage() {
                                 required
                                 className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                             />
-                            <Input
-                                placeholder="代表者氏名"
-                                value={formData.representative}
-                                onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
-                                required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
-                            <Input
-                                placeholder="代表者氏名 (フリガナ)"
-                                value={formData.furigana}
-                                onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
-                                required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
+                            {formData.existingUserId ? (
+                                <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm mt-2">
+                                    <p className="text-xs text-slate-500 mb-1">代表者氏名</p>
+                                    <p>{formData.representative}</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <Input
+                                        placeholder="代表者氏名"
+                                        value={formData.representative}
+                                        onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
+                                        required
+                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                    />
+                                    <Input
+                                        placeholder="代表者氏名 (フリガナ)"
+                                        value={formData.furigana}
+                                        onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
+                                        required
+                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                    />
+                                </>
+                            )}
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 <span className="text-red-400 ml-1">*必須</span></label>
-                            <Input
-                                type="email"
-                                placeholder="メールアドレス"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
-                            <Input
-                                type="tel"
-                                placeholder="電話番号 (緊急連絡先)"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
-                        </div>
+                        {!formData.existingUserId ? (
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 <span className="text-red-400 ml-1">*必須</span></label>
+                                <Input
+                                    type="email"
+                                    placeholder="メールアドレス"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    required
+                                    className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                />
+                                <Input
+                                    type="tel"
+                                    placeholder="電話番号 (緊急連絡先)"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    required
+                                    className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                />
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">代表者連絡先</label>
+                                <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm">
+                                    <p className="text-xs text-slate-500 mb-1">ログイン中のアカウントのアドレスを使用します</p>
+                                    <p>{formData.email}</p>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-400 ml-1">*必須</span></label>
@@ -282,8 +359,8 @@ export default function RegisterPage() {
                                         key={num}
                                         onClick={() => setFormData({ ...formData, preliminaryNumber: num.toString() })}
                                         className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.preliminaryNumber === num.toString()
-                                                ? "border-amber-500 bg-amber-500/20 text-amber-400 font-bold"
-                                                : "border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
+                                            ? "border-amber-500 bg-amber-500/20 text-amber-400 font-bold"
+                                            : "border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
                                             }`}
                                     >
                                         {num}
@@ -410,25 +487,27 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-400 ml-1">*必須</span></label>
-                            <Input
-                                type="password"
-                                placeholder="パスワード (PIN)"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
-                            <Input
-                                type="password"
-                                placeholder="パスワード (確認用)"
-                                value={formData.confirmPassword}
-                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                            />
-                        </div>
+                        {!formData.existingUserId && (
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-400 ml-1">*必須</span></label>
+                                <Input
+                                    type="password"
+                                    placeholder="パスワード (PIN)"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    required
+                                    className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                />
+                                <Input
+                                    type="password"
+                                    placeholder="パスワード (確認用)"
+                                    value={formData.confirmPassword}
+                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                    required
+                                    className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {error && (

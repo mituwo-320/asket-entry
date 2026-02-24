@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 
 export default function LoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState("demo@test.com"); // Pre-fill for demo
-    const [password, setPassword] = useState("pass");    // Pre-fill for demo
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 

@@ -24,6 +24,16 @@ model User {
   teamEntries TeamEntry[]
 }
 
+model Project {
+  id             String    @id @default(cuid()) // ex: "2024-Spring-Day1"
+  name           String // "1日目", "4月10日大会", etc.
+  isActive       Boolean   @default(true) // Open for general registration
+  entryStartDate DateTime?
+  entryEndDate   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
 model TeamEntry {
   id                         String   @id @default(cuid())
   userId                     String
@@ -36,7 +46,7 @@ model TeamEntry {
   isPaid                     Boolean  @default(false)
   status                     String   @default("draft")
   group                      String?
-  preliminaryNumber          Int?     // NEW: Lottery selection 1-16
+  preliminaryNumber          Int? // NEW: Lottery selection 1-16
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 
@@ -95,4 +105,3 @@ model Setting {
   entryDeadline    DateTime?
   updatedAt        DateTime  @updatedAt
 }
-

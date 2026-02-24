@@ -1,6 +1,52 @@
-import { User, TeamEntry, Player, Match, ScheduleEvent } from './types';
+import { User, TeamEntry, Player, Match, ScheduleEvent, Project } from './types';
 import * as bcrypt from 'bcryptjs';
 import { db } from './db';
+
+// --- Projects ---
+
+export async function getProjects(): Promise<Project[]> {
+    try {
+        const projects = await db.project.findMany({
+            orderBy: { createdAt: 'asc' }
+        });
+        return projects.map(p => ({
+            id: p.id,
+            name: p.name,
+            isActive: p.isActive,
+            entryStartDate: p.entryStartDate ? p.entryStartDate.toISOString() : undefined,
+            entryEndDate: p.entryEndDate ? p.entryEndDate.toISOString() : undefined,
+            createdAt: p.createdAt.toISOString()
+        }));
+    } catch (e) {
+        console.error('getProjects error:', e);
+        return [];
+    }
+}
+
+export async function saveProject(project: Project): Promise<boolean> {
+    try {
+        await db.project.upsert({
+            where: { id: project.id },
+            update: {
+                name: project.name,
+                isActive: project.isActive,
+                entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
+                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null
+            },
+            create: {
+                id: project.id,
+                name: project.name,
+                isActive: project.isActive,
+                entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
+                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null
+            }
+        });
+        return true;
+    } catch (e) {
+        console.error('saveProject error:', e);
+        return false;
+    }
+}
 
 // --- Users ---
 
