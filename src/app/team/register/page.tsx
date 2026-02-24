@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -14,6 +15,8 @@ export default function RegisterPage() {
     const [teamId, setTeamId] = useState<string | null>(null);
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
+    const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+    const [settings, setSettings] = useState<any>(null);
     const [formData, setFormData] = useState({
         name: "",
         nameKana: "", // NEW
@@ -23,8 +26,7 @@ export default function RegisterPage() {
         furigana: "",
         email: "",
         phone: "",
-        postalCode: "",
-        address: "",
+        preliminaryNumber: "", // 1-16
         wristbandColor: "赤",
         insurance: true,
         password: "",
@@ -32,12 +34,26 @@ export default function RegisterPage() {
     });
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        fetch("/api/settings")
+            .then(res => res.json())
+            .then(data => {
+                setSettings(data);
+                setIsSettingsLoaded(true);
+            })
+            .catch(() => setIsSettingsLoaded(true));
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
         if (formData.password !== formData.confirmPassword) {
             setError("パスワードが一致しません");
+            return;
+        }
+        if (!formData.preliminaryNumber) {
+            setError("予選抽選用の数字を選択してください");
             return;
         }
 
@@ -56,8 +72,7 @@ export default function RegisterPage() {
                     furigana: formData.furigana,
                     email: formData.email,
                     phone: formData.phone,
-                    postalCode: formData.postalCode,
-                    address: formData.address,
+                    preliminaryNumber: parseInt(formData.preliminaryNumber, 10),
                     wristbandColor: formData.wristbandColor,
                     insurance: formData.insurance,
                     password: formData.password
@@ -84,6 +99,29 @@ export default function RegisterPage() {
             setIsLoading(false);
         }
     };
+
+    if (!isSettingsLoaded) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (settings?.entryDeadline && new Date() > new Date(settings.entryDeadline)) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
+                <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">エントリー受付終了</h2>
+                    <p className="text-slate-400">申し訳ありませんが、本大会のエントリーは締め切られました。</p>
+                    <Button onClick={() => router.push("/")} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">トップへ戻る</Button>
+                </Card>
+            </div>
+        );
+    }
 
     if (teamId) {
         return (
@@ -115,6 +153,26 @@ export default function RegisterPage() {
                                 <p className="text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all">{registeredPassword}</p>
                             </div>
                         </div>
+
+                        {settings?.lineOpenChatLink && (
+                            <div className="bg-emerald-500/10 border-emerald-500/20 border rounded-lg p-6 text-left space-y-4">
+                                <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                                    <MessageCircle className="w-5 h-5" />
+                                    <span>LINEオープンチャット参加のお願い</span>
+                                </div>
+                                <p className="text-sm text-emerald-100/80">
+                                    リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
+                                </p>
+                                <a
+                                    href={settings.lineOpenChatLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block text-center w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-4 rounded transition-colors"
+                                >
+                                    LINEオープンチャットに参加する
+                                </a>
+                            </div>
+                        )}
 
                         <Button
                             className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
@@ -154,6 +212,11 @@ export default function RegisterPage() {
                         大会への参加申し込みを行います。<br />
                         登録後、すぐにマイページをご利用いただけます。
                     </p>
+                    {settings?.entryDeadline && (
+                        <div className="mt-4 pl-11 text-amber-400 text-sm font-medium">
+                            締切: {new Date(settings.entryDeadline).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                    )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -192,7 +255,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 & 住所 <span className="text-red-400 ml-1">*必須 (郵便番号・住所は任意)</span></label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先 <span className="text-red-400 ml-1">*必須</span></label>
                             <Input
                                 type="email"
                                 placeholder="メールアドレス"
@@ -208,19 +271,24 @@ export default function RegisterPage() {
                                 required
                                 className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                             />
-                            <div className="space-y-2">
-                                <Input
-                                    placeholder="郵便番号 (任意)"
-                                    value={formData.postalCode}
-                                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                                    className="w-1/3 bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                                />
-                                <Input
-                                    placeholder="住所 (任意)"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    className="w-full bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                                />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-400 ml-1">*必須</span></label>
+                            <p className="text-[10px] text-slate-500 px-1 mb-1">※ 1〜16の枠から好きな数字を選択してください。重複した場合はエントリー順により繰り上がりとなります。</p>
+                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                                {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
+                                    <div
+                                        key={num}
+                                        onClick={() => setFormData({ ...formData, preliminaryNumber: num.toString() })}
+                                        className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.preliminaryNumber === num.toString()
+                                                ? "border-amber-500 bg-amber-500/20 text-amber-400 font-bold"
+                                                : "border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
+                                            }`}
+                                    >
+                                        {num}
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
@@ -247,6 +315,7 @@ export default function RegisterPage() {
                                         <div>
                                             <h3 className={`font-bold ${formData.insurance ? "text-emerald-400" : "text-slate-300"}`}>大会保険に加入</h3>
                                             <p className="text-xs text-slate-400 mt-1">大会が指定するスポ―ツ保険に加入します (推奨)</p>
+                                            <p className="text-xs font-bold text-emerald-400 mt-1">※ 別途{settings?.insuranceFee || 150}円が必要です</p>
                                         </div>
                                     </div>
                                 </div>

@@ -9,19 +9,19 @@ datasource db {
 }
 
 model User {
-  id             String      @id @default(cuid())
-  email          String      @unique
+  id             String   @id @default(cuid())
+  email          String   @unique
   name           String
   phone          String
   password       String
   postalCode     String?
   address        String?
   wristbandColor String?
-  role           String      @default("user")
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  
-  teamEntries    TeamEntry[]
+  role           String   @default("user")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teamEntries TeamEntry[]
 }
 
 model TeamEntry {
@@ -36,10 +36,11 @@ model TeamEntry {
   isPaid                     Boolean  @default(false)
   status                     String   @default("draft")
   group                      String?
+  preliminaryNumber          Int?     // NEW: Lottery selection 1-16
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 
-  players                    Player[]
+  players Player[]
 }
 
 model Player {
@@ -87,8 +88,11 @@ model Event {
 }
 
 model Setting {
-  id               String   @id @default("default")
-  participationFee Int      @default(15000)
-  insuranceFee     Int      @default(800)
-  updatedAt        DateTime @updatedAt
+  id               String    @id @default("default")
+  participationFee Int       @default(2500)
+  insuranceFee     Int       @default(150)
+  lineOpenChatLink String?
+  entryDeadline    DateTime?
+  updatedAt        DateTime  @updatedAt
 }
+

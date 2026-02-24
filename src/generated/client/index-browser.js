@@ -142,6 +142,7 @@ exports.Prisma.TeamEntryScalarFieldEnum = {
   isPaid: 'isPaid',
   status: 'status',
   group: 'group',
+  preliminaryNumber: 'preliminaryNumber',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -193,6 +194,8 @@ exports.Prisma.SettingScalarFieldEnum = {
   id: 'id',
   participationFee: 'participationFee',
   insuranceFee: 'insuranceFee',
+  lineOpenChatLink: 'lineOpenChatLink',
+  entryDeadline: 'entryDeadline',
   updatedAt: 'updatedAt'
 };
 

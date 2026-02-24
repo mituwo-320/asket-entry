@@ -11,8 +11,6 @@ export async function saveUser(user: User): Promise<boolean> {
         update: {
             name: user.name,
             phone: user.phone,
-            postalCode: user.postalCode || '',
-            address: user.address || '',
             wristbandColor: user.wristbandColor || '',
         },
         create: {
@@ -21,8 +19,6 @@ export async function saveUser(user: User): Promise<boolean> {
             name: user.name,
             phone: user.phone,
             password: hashedPassword,
-            postalCode: user.postalCode || '',
-            address: user.address || '',
             wristbandColor: user.wristbandColor || '',
         }
     });
@@ -87,7 +83,8 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 isBeginnerFriendlyAccepted: entry.isBeginnerFriendlyAccepted,
                 status: entry.status,
                 isPaid: entry.isPaid || false,
-                group: entry.group || null
+                group: entry.group || null,
+                preliminaryNumber: entry.preliminaryNumber || null
             },
             create: {
                 id: entry.id,
@@ -99,7 +96,8 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 isBeginnerFriendlyAccepted: entry.isBeginnerFriendlyAccepted,
                 status: entry.status,
                 isPaid: entry.isPaid || false,
-                group: entry.group || null
+                group: entry.group || null,
+                preliminaryNumber: entry.preliminaryNumber || null
             }
         });
 
@@ -150,6 +148,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             status: e.status as 'draft' | 'submitted',
             isPaid: e.isPaid,
             group: e.group || undefined,
+            preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map(p => ({
                 id: p.id,
@@ -185,6 +184,7 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             status: e.status as 'draft' | 'submitted',
             isPaid: e.isPaid,
             group: e.group || undefined,
+            preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map(p => ({
                 id: p.id,
@@ -375,6 +375,7 @@ export async function getAllAdminData() {
             status: e.status as 'draft' | 'submitted',
             isPaid: e.isPaid,
             group: e.group || undefined,
+            preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map(p => ({
                 id: p.id,
@@ -399,6 +400,56 @@ export async function getAllAdminData() {
     } catch (e) {
         console.error('getAllAdminData error:', e);
         return { users: [], entries: [] };
+    }
+}
+
+export async function getSetting() {
+    try {
+        let setting = await db.setting.findUnique({ where: { id: "default" } });
+        if (!setting) {
+            setting = await db.setting.create({
+                data: {
+                    id: "default",
+                    participationFee: 2500,
+                    insuranceFee: 150
+                }
+            });
+        }
+        return {
+            id: setting.id,
+            participationFee: setting.participationFee,
+            insuranceFee: setting.insuranceFee,
+            lineOpenChatLink: setting.lineOpenChatLink || undefined,
+            entryDeadline: setting.entryDeadline ? setting.entryDeadline.toISOString() : undefined
+        };
+    } catch (e) {
+        console.error("getSetting error:", e);
+        return null;
+    }
+}
+
+export async function updateSetting(data: { participationFee: number; insuranceFee: number; lineOpenChatLink?: string; entryDeadline?: string }) {
+    try {
+        await db.setting.upsert({
+            where: { id: "default" },
+            update: {
+                participationFee: data.participationFee,
+                insuranceFee: data.insuranceFee,
+                lineOpenChatLink: data.lineOpenChatLink || null,
+                entryDeadline: data.entryDeadline ? new Date(data.entryDeadline) : null
+            },
+            create: {
+                id: "default",
+                participationFee: data.participationFee,
+                insuranceFee: data.insuranceFee,
+                lineOpenChatLink: data.lineOpenChatLink || null,
+                entryDeadline: data.entryDeadline ? new Date(data.entryDeadline) : null
+            }
+        });
+        return true;
+    } catch (e) {
+        console.error("updateSetting error:", e);
+        return false;
     }
 }
 

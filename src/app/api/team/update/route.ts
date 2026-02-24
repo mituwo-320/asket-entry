@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { findTeamEntry, saveTeamEntry, findUserById, saveUser } from '@/lib/sheets';
+import { findTeamEntry, saveTeamEntry, findUserById, saveUser, getSetting } from '@/lib/sheets';
 import { TeamEntry, User } from '@/lib/types';
 
 export async function POST(request: Request) {
@@ -18,6 +18,11 @@ export async function POST(request: Request) {
         if (!existingEntry) {
             console.error(`[API Update] Entry not found: ${entryId}`);
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
+        }
+
+        const setting = await getSetting();
+        if (setting?.entryDeadline && new Date() > new Date(setting.entryDeadline)) {
+            return NextResponse.json({ error: 'エントリー期間は終了しました' }, { status: 403 });
         }
 
         const user = await findUserById(existingEntry.userId);
@@ -63,8 +68,6 @@ export async function POST(request: Request) {
             ...user,
             name: body.representativeName, // Sync user name with rep name
             phone: body.phone,
-            postalCode: body.postalCode,
-            address: body.address,
             wristbandColor: body.wristbandColor, // Sync preference
         };
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Users, ShieldCheck, ArrowLeft, Plus } from "lucide-react";
+import { Users, ShieldCheck, ArrowLeft, Plus, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Player, TeamEntry } from "@/lib/types";
 import { PlayerForm } from "@/components/ui/PlayerForm";
@@ -19,6 +19,11 @@ function DashboardContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+    const [settings, setSettings] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/settings").then(res => res.json()).then(setSettings).catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (!entryId) return;
@@ -113,6 +118,27 @@ function DashboardContent() {
 
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-5xl mx-auto space-y-8">
+
+                    {settings?.entryDeadline && (() => {
+                        const deadline = new Date(settings.entryDeadline);
+                        const now = new Date();
+                        const diffTime = deadline.getTime() - now.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        return (
+                            <div className={`p-4 rounded-xl border flex items-center gap-3 ${diffDays > 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <div>
+                                    <h3 className="font-bold text-sm">
+                                        {diffDays > 0 ? "エントリー・編集締切まで" : "エントリー受付期間終了"}
+                                    </h3>
+                                    <p className="text-xs opacity-80 mt-1">
+                                        {diffDays > 0 ? `残り ${diffDays} 日 (${deadline.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })})` : "参加内容の編集はできません。"}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -14,8 +14,6 @@ export async function POST(request: Request) {
             password: body.password, // plain text, sheets.ts will hash it
             name: body.representative, // Form sends 'representative'
             phone: body.phone,
-            postalCode: body.postalCode,
-            address: body.address,
             wristbandColor: body.wristbandColor
         };
 
@@ -51,6 +49,7 @@ export async function POST(request: Request) {
             isBeginnerFriendlyAccepted: body.isBeginnerFriendlyAccepted || false, // NEW
             players: [repPlayer], // Add Rep immediately
             status: 'draft',
+            preliminaryNumber: body.preliminaryNumber ? parseInt(body.preliminaryNumber, 10) : undefined, // NEW
             createdAt: new Date().toISOString()
         };
 

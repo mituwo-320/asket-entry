@@ -16,6 +16,8 @@ function EditTeamContent() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+    const [settings, setSettings] = useState<any>(null);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
@@ -27,13 +29,21 @@ function EditTeamContent() {
         // Representative (User)
         representativeName: "",
         phone: "",
-        postalCode: "",
-        address: "",
         // Representative (Player)
         repFurigana: "",
         wristbandColor: "赤",
         insurance: false,
     });
+
+    useEffect(() => {
+        fetch("/api/settings")
+            .then(res => res.json())
+            .then(data => {
+                setSettings(data);
+                setIsSettingsLoaded(true);
+            })
+            .catch(() => setIsSettingsLoaded(true));
+    }, []);
 
     useEffect(() => {
         if (!entryId) return;
@@ -84,8 +94,6 @@ function EditTeamContent() {
                     teamIntroduction: team.teamIntroduction || "",
                     representativeName: repPlayer.name, // Edit Rep Name on Player
                     phone: "", // Will be filled if API returns user
-                    postalCode: "",
-                    address: "",
                     repFurigana: repPlayer.furigana,
                     wristbandColor: repPlayer.wristbandColor || "赤",
                     insurance: repPlayer.insurance,
@@ -97,8 +105,6 @@ function EditTeamContent() {
                     setFormData(prev => ({
                         ...prev,
                         phone: u.phone,
-                        postalCode: u.postalCode || "",
-                        address: u.address || "",
                         // Note: User name and Player name should be synced.
                     }));
                 }
@@ -141,8 +147,23 @@ function EditTeamContent() {
         }
     };
 
-    if (isLoading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>;
+    if (isLoading || !isSettingsLoaded) return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div>;
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid ID</div>;
+
+    if (settings?.entryDeadline && new Date() > new Date(settings.entryDeadline)) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
+                <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">エントリー・編集期間終了</h2>
+                    <p className="text-slate-400">誠に申し訳ありませんが、本大会の編集受付期間は終了いたしました。</p>
+                    <Button onClick={() => router.push(`/team/dashboard?id=${entryId}`)} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">ダッシュボードへ戻る</Button>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
@@ -228,27 +249,6 @@ function EditTeamContent() {
                                     required
                                     className="bg-slate-950/50 border-slate-800"
                                 />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex gap-2">
-                                    <div className="w-1/3">
-                                        <label className="text-sm font-medium text-slate-400">郵便番号</label>
-                                        <Input
-                                            value={formData.postalCode}
-                                            onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                                            className="bg-slate-950/50 border-slate-800"
-                                        />
-                                    </div>
-                                    <div className="w-full">
-                                        <label className="text-sm font-medium text-slate-400">住所</label>
-                                        <Input
-                                            value={formData.address}
-                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            className="bg-slate-950/50 border-slate-800"
-                                        />
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
     // NEW: Settings State
-    const [settings, setSettings] = useState<{ participationFee: number | string, insuranceFee: number | string }>({ participationFee: 15000, insuranceFee: 800 });
+    const [settings, setSettings] = useState<{ participationFee: number | string, insuranceFee: number | string, lineOpenChatLink?: string, entryDeadline?: string }>({ participationFee: 15000, insuranceFee: 800, lineOpenChatLink: "", entryDeadline: "" });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -58,10 +58,10 @@ export default function AdminDashboard() {
             if (matchData.matches) setMatches(matchData.matches);
 
             // Fetch Settings
-            const settingsRes = await fetch('/api/admin/settings');
+            const settingsRes = await fetch('/api/settings');
             if (settingsRes.ok) {
                 const settingsData = await settingsRes.json();
-                if (settingsData.setting) setSettings(settingsData.setting);
+                if (settingsData && settingsData.participationFee !== undefined) setSettings(settingsData);
             }
 
         } catch (e) {
@@ -257,13 +257,25 @@ export default function AdminDashboard() {
     const handleSaveSettings = async () => {
         setIsSavingSettings(true);
         setSaveMessage(null);
+
+        // Normalize empty string to undefined for date
+        let updatedDeadline: string | undefined = settings.entryDeadline;
+        if (!updatedDeadline || updatedDeadline.trim() === '') {
+            updatedDeadline = undefined;
+        } else {
+            // ensure valid date, datetime-local usually returns YYYY-MM-DDThh:mm
+            updatedDeadline = new Date(updatedDeadline).toISOString();
+        }
+
         try {
-            const res = await fetch('/api/admin/settings', {
+            const res = await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     participationFee: Number(settings.participationFee) || 0,
-                    insuranceFee: Number(settings.insuranceFee) || 0
+                    insuranceFee: Number(settings.insuranceFee) || 0,
+                    lineOpenChatLink: settings.lineOpenChatLink || undefined,
+                    entryDeadline: updatedDeadline
                 })
             });
             if (res.ok) {
@@ -325,6 +337,36 @@ export default function AdminDashboard() {
 
         return matchesSearch && matchesFilter;
     });
+
+    const calculateLotteryNumbers = (entriesList: TeamEntry[]) => {
+        const sorted = [...entriesList].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const occupied = new Set<number>();
+        const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
+
+        for (const entry of sorted) {
+            let req = entry.preliminaryNumber;
+            let finalNum: number | undefined = undefined;
+            let bumped = false;
+
+            if (req && !occupied.has(req)) {
+                finalNum = req;
+                occupied.add(req);
+            } else if (req) {
+                bumped = true;
+                for (let i = 1; i <= 16; i++) {
+                    if (!occupied.has(i)) {
+                        finalNum = i;
+                        occupied.add(i);
+                        break;
+                    }
+                }
+            }
+            assigned.set(entry.id, { requested: req, final: finalNum, bumped });
+        }
+        return assigned;
+    };
+
+    const lotteryAssignments = calculateLotteryNumbers(entries);
 
     if (isLoading) {
         return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white"><Loader2 className="animate-spin w-8 h-8 mr-3 text-indigo-500" /> <span className="text-lg">Loading Admin Data...</span></div>;
@@ -449,37 +491,49 @@ export default function AdminDashboard() {
 
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-slate-400">
-                                    <thead className="bg-slate-950 text-slate-200 uppercase font-medium">
+                                    <thead className="bg-slate-950 text-slate-200 uppercase font-medium text-xs">
                                         <tr>
-                                            <th className="px-6 py-4">チーム名</th>
-                                            <th className="px-6 py-4">代表者</th>
-                                            <th className="px-6 py-4">電話番号</th>
-                                            <th className="px-6 py-4">選手数 / 保険</th>
-                                            <th className="px-6 py-4">ステータス</th>
-                                            <th className="px-6 py-4">合計金額</th>
-                                            <th className="px-6 py-4">支払状況</th>
-                                            <th className="px-6 py-4 text-right">アクション</th>
+                                            <th className="px-4 py-3">チーム名</th>
+                                            <th className="px-4 py-3 text-center">予選番号</th>
+                                            <th className="px-4 py-3">代表者</th>
+                                            <th className="px-4 py-3">電話番号</th>
+                                            <th className="px-4 py-3">選手数 / 保険</th>
+                                            <th className="px-4 py-3">ステータス</th>
+                                            <th className="px-4 py-3">支払状況</th>
+                                            <th className="px-4 py-3 text-right">アクション</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800">
                                         {filteredEntries.map((entry) => (
-                                            <tr key={entry.id} className="hover:bg-slate-800/50 transition-colors">
-                                                <td className="px-6 py-4 font-medium text-white">{entry.teamName}</td>
-                                                <td className="px-6 py-4">{getRepName(entry.userId)}</td>
-                                                <td className="px-6 py-4">{getRepPhone(entry.userId)}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
-                                                    <span className="text-xs text-slate-500 ml-2">(保険: {entry.players ? entry.players.filter(p => p.insurance).length : 0}名)</span>
+                                            <tr key={entry.id} className="hover:bg-slate-800/50 transition-colors text-sm">
+                                                <td className="px-4 py-3 font-medium text-white">{entry.teamName}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    {(() => {
+                                                        const assign = lotteryAssignments.get(entry.id);
+                                                        if (!assign || !assign.final) return <span className="text-slate-500">-</span>;
+                                                        if (assign.bumped) {
+                                                            return (
+                                                                <div className="flex flex-col items-center">
+                                                                    <span className="font-black text-amber-400 text-lg border-b-2 border-amber-400/50 px-1">{assign.final}</span>
+                                                                    <span className="text-[10px] text-slate-500 line-through mt-0.5" title="衝突のため繰り上げ表示">希望: {assign.requested}</span>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return <span className="font-bold text-emerald-400 text-lg px-2 py-1 bg-emerald-500/10 rounded">{assign.final}</span>;
+                                                    })()}
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
+                                                <td className="px-4 py-3">{getRepName(entry.userId)}</td>
+                                                <td className="px-4 py-3">{getRepPhone(entry.userId)}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
+                                                    <span className="text-xs text-slate-500 ml-1">(保: {entry.players ? entry.players.filter(p => p.insurance).length : 0})</span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/20' : 'bg-amber-900/30 text-amber-400 border border-amber-500/20'}`}>
                                                         {entry.status === 'submitted' ? '確定済' : '下書き'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 font-mono text-emerald-400 font-bold tracking-wider">
-                                                    ¥{(Number(settings.participationFee || 0) + (entry.players ? entry.players.filter(p => p.insurance).length * Number(settings.insuranceFee || 0) : 0)).toLocaleString()}
-                                                </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-4 py-3">
                                                     <button
                                                         onClick={async () => {
                                                             const newStatus = !entry.isPaid;
@@ -507,8 +561,8 @@ export default function AdminDashboard() {
                                                         {entry.isPaid ? '支払い済' : '未払い'}
                                                     </button>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <Button size="sm" variant="outline" onClick={() => setSelectedEntry(entry)}>
+                                                <td className="px-4 py-3 text-right">
+                                                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedEntry(entry)}>
                                                         詳細
                                                     </Button>
                                                 </td>
@@ -910,7 +964,7 @@ export default function AdminDashboard() {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 mb-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 mb-6 border-b border-white/5 pb-6">
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">チーム基本参加費 (円)</label>
                                         <Input
@@ -928,6 +982,33 @@ export default function AdminDashboard() {
                                             onChange={(e) => setSettings({ ...settings, insuranceFee: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                                             className="bg-slate-950/80 border-slate-800 text-lg h-12 focus-visible:ring-indigo-500"
                                         />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-6 relative z-10 mb-6 border-b border-white/5 pb-6">
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">LINEオープンチャットの追加リンク</label>
+                                        <Input
+                                            type="url"
+                                            placeholder="https://line.me/ti/g2/..."
+                                            value={settings.lineOpenChatLink || ""}
+                                            onChange={(e) => setSettings({ ...settings, lineOpenChatLink: e.target.value })}
+                                            className="bg-slate-950/80 border-slate-800 text-sm h-12 focus-visible:ring-emerald-500"
+                                        />
+                                        <p className="text-xs text-slate-500">※登録完了画面で代表者向けに案内されます。</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 mb-6">
+                                    <div className="space-y-3 flex flex-col">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">エントリー締切日</label>
+                                        <div className="relative">
+                                            <input
+                                                type="datetime-local"
+                                                value={settings.entryDeadline ? new Date(settings.entryDeadline).toISOString().slice(0, 16) : ""}
+                                                onChange={(e) => setSettings({ ...settings, entryDeadline: e.target.value })}
+                                                className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 h-12 outline-none"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">※この時間を過ぎると編集や新規登録ができなくなります。</p>
                                     </div>
                                 </div>
                                 <div className="flex justify-end relative z-10 border-t border-white/5 pt-6 mt-2">

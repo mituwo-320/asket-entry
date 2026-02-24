@@ -2359,8 +2359,18 @@ export namespace Prisma {
 
   export type AggregateTeamEntry = {
     _count: TeamEntryCountAggregateOutputType | null
+    _avg: TeamEntryAvgAggregateOutputType | null
+    _sum: TeamEntrySumAggregateOutputType | null
     _min: TeamEntryMinAggregateOutputType | null
     _max: TeamEntryMaxAggregateOutputType | null
+  }
+
+  export type TeamEntryAvgAggregateOutputType = {
+    preliminaryNumber: number | null
+  }
+
+  export type TeamEntrySumAggregateOutputType = {
+    preliminaryNumber: number | null
   }
 
   export type TeamEntryMinAggregateOutputType = {
@@ -2374,6 +2384,7 @@ export namespace Prisma {
     isPaid: boolean | null
     status: string | null
     group: string | null
+    preliminaryNumber: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2389,6 +2400,7 @@ export namespace Prisma {
     isPaid: boolean | null
     status: string | null
     group: string | null
+    preliminaryNumber: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2404,11 +2416,20 @@ export namespace Prisma {
     isPaid: number
     status: number
     group: number
+    preliminaryNumber: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type TeamEntryAvgAggregateInputType = {
+    preliminaryNumber?: true
+  }
+
+  export type TeamEntrySumAggregateInputType = {
+    preliminaryNumber?: true
+  }
 
   export type TeamEntryMinAggregateInputType = {
     id?: true
@@ -2421,6 +2442,7 @@ export namespace Prisma {
     isPaid?: true
     status?: true
     group?: true
+    preliminaryNumber?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2436,6 +2458,7 @@ export namespace Prisma {
     isPaid?: true
     status?: true
     group?: true
+    preliminaryNumber?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2451,6 +2474,7 @@ export namespace Prisma {
     isPaid?: true
     status?: true
     group?: true
+    preliminaryNumber?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -2494,6 +2518,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: TeamEntryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TeamEntrySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: TeamEntryMinAggregateInputType
@@ -2524,6 +2560,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: TeamEntryCountAggregateInputType | true
+    _avg?: TeamEntryAvgAggregateInputType
+    _sum?: TeamEntrySumAggregateInputType
     _min?: TeamEntryMinAggregateInputType
     _max?: TeamEntryMaxAggregateInputType
   }
@@ -2539,9 +2577,12 @@ export namespace Prisma {
     isPaid: boolean
     status: string
     group: string | null
+    preliminaryNumber: number | null
     createdAt: Date
     updatedAt: Date
     _count: TeamEntryCountAggregateOutputType | null
+    _avg: TeamEntryAvgAggregateOutputType | null
+    _sum: TeamEntrySumAggregateOutputType | null
     _min: TeamEntryMinAggregateOutputType | null
     _max: TeamEntryMaxAggregateOutputType | null
   }
@@ -2571,6 +2612,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: boolean
     group?: boolean
+    preliminaryNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -2589,6 +2631,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: boolean
     group?: boolean
+    preliminaryNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -2605,6 +2648,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: boolean
     group?: boolean
+    preliminaryNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -2635,6 +2679,7 @@ export namespace Prisma {
       isPaid: boolean
       status: string
       group: string | null
+      preliminaryNumber: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["teamEntry"]>
@@ -3042,6 +3087,7 @@ export namespace Prisma {
     readonly isPaid: FieldRef<"TeamEntry", 'Boolean'>
     readonly status: FieldRef<"TeamEntry", 'String'>
     readonly group: FieldRef<"TeamEntry", 'String'>
+    readonly preliminaryNumber: FieldRef<"TeamEntry", 'Int'>
     readonly createdAt: FieldRef<"TeamEntry", 'DateTime'>
     readonly updatedAt: FieldRef<"TeamEntry", 'DateTime'>
   }
@@ -6381,6 +6427,8 @@ export namespace Prisma {
     id: string | null
     participationFee: number | null
     insuranceFee: number | null
+    lineOpenChatLink: string | null
+    entryDeadline: Date | null
     updatedAt: Date | null
   }
 
@@ -6388,6 +6436,8 @@ export namespace Prisma {
     id: string | null
     participationFee: number | null
     insuranceFee: number | null
+    lineOpenChatLink: string | null
+    entryDeadline: Date | null
     updatedAt: Date | null
   }
 
@@ -6395,6 +6445,8 @@ export namespace Prisma {
     id: number
     participationFee: number
     insuranceFee: number
+    lineOpenChatLink: number
+    entryDeadline: number
     updatedAt: number
     _all: number
   }
@@ -6414,6 +6466,8 @@ export namespace Prisma {
     id?: true
     participationFee?: true
     insuranceFee?: true
+    lineOpenChatLink?: true
+    entryDeadline?: true
     updatedAt?: true
   }
 
@@ -6421,6 +6475,8 @@ export namespace Prisma {
     id?: true
     participationFee?: true
     insuranceFee?: true
+    lineOpenChatLink?: true
+    entryDeadline?: true
     updatedAt?: true
   }
 
@@ -6428,6 +6484,8 @@ export namespace Prisma {
     id?: true
     participationFee?: true
     insuranceFee?: true
+    lineOpenChatLink?: true
+    entryDeadline?: true
     updatedAt?: true
     _all?: true
   }
@@ -6522,6 +6580,8 @@ export namespace Prisma {
     id: string
     participationFee: number
     insuranceFee: number
+    lineOpenChatLink: string | null
+    entryDeadline: Date | null
     updatedAt: Date
     _count: SettingCountAggregateOutputType | null
     _avg: SettingAvgAggregateOutputType | null
@@ -6548,6 +6608,8 @@ export namespace Prisma {
     id?: boolean
     participationFee?: boolean
     insuranceFee?: boolean
+    lineOpenChatLink?: boolean
+    entryDeadline?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["setting"]>
 
@@ -6555,6 +6617,8 @@ export namespace Prisma {
     id?: boolean
     participationFee?: boolean
     insuranceFee?: boolean
+    lineOpenChatLink?: boolean
+    entryDeadline?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["setting"]>
 
@@ -6562,6 +6626,8 @@ export namespace Prisma {
     id?: boolean
     participationFee?: boolean
     insuranceFee?: boolean
+    lineOpenChatLink?: boolean
+    entryDeadline?: boolean
     updatedAt?: boolean
   }
 
@@ -6573,6 +6639,8 @@ export namespace Prisma {
       id: string
       participationFee: number
       insuranceFee: number
+      lineOpenChatLink: string | null
+      entryDeadline: Date | null
       updatedAt: Date
     }, ExtArgs["result"]["setting"]>
     composites: {}
@@ -6970,6 +7038,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Setting", 'String'>
     readonly participationFee: FieldRef<"Setting", 'Int'>
     readonly insuranceFee: FieldRef<"Setting", 'Int'>
+    readonly lineOpenChatLink: FieldRef<"Setting", 'String'>
+    readonly entryDeadline: FieldRef<"Setting", 'DateTime'>
     readonly updatedAt: FieldRef<"Setting", 'DateTime'>
   }
     
@@ -7301,6 +7371,7 @@ export namespace Prisma {
     isPaid: 'isPaid',
     status: 'status',
     group: 'group',
+    preliminaryNumber: 'preliminaryNumber',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -7364,6 +7435,8 @@ export namespace Prisma {
     id: 'id',
     participationFee: 'participationFee',
     insuranceFee: 'insuranceFee',
+    lineOpenChatLink: 'lineOpenChatLink',
+    entryDeadline: 'entryDeadline',
     updatedAt: 'updatedAt'
   };
 
@@ -7564,6 +7637,7 @@ export namespace Prisma {
     isPaid?: BoolFilter<"TeamEntry"> | boolean
     status?: StringFilter<"TeamEntry"> | string
     group?: StringNullableFilter<"TeamEntry"> | string | null
+    preliminaryNumber?: IntNullableFilter<"TeamEntry"> | number | null
     createdAt?: DateTimeFilter<"TeamEntry"> | Date | string
     updatedAt?: DateTimeFilter<"TeamEntry"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -7581,6 +7655,7 @@ export namespace Prisma {
     isPaid?: SortOrder
     status?: SortOrder
     group?: SortOrderInput | SortOrder
+    preliminaryNumber?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -7601,6 +7676,7 @@ export namespace Prisma {
     isPaid?: BoolFilter<"TeamEntry"> | boolean
     status?: StringFilter<"TeamEntry"> | string
     group?: StringNullableFilter<"TeamEntry"> | string | null
+    preliminaryNumber?: IntNullableFilter<"TeamEntry"> | number | null
     createdAt?: DateTimeFilter<"TeamEntry"> | Date | string
     updatedAt?: DateTimeFilter<"TeamEntry"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -7618,11 +7694,14 @@ export namespace Prisma {
     isPaid?: SortOrder
     status?: SortOrder
     group?: SortOrderInput | SortOrder
+    preliminaryNumber?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TeamEntryCountOrderByAggregateInput
+    _avg?: TeamEntryAvgOrderByAggregateInput
     _max?: TeamEntryMaxOrderByAggregateInput
     _min?: TeamEntryMinOrderByAggregateInput
+    _sum?: TeamEntrySumOrderByAggregateInput
   }
 
   export type TeamEntryScalarWhereWithAggregatesInput = {
@@ -7639,6 +7718,7 @@ export namespace Prisma {
     isPaid?: BoolWithAggregatesFilter<"TeamEntry"> | boolean
     status?: StringWithAggregatesFilter<"TeamEntry"> | string
     group?: StringNullableWithAggregatesFilter<"TeamEntry"> | string | null
+    preliminaryNumber?: IntNullableWithAggregatesFilter<"TeamEntry"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"TeamEntry"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"TeamEntry"> | Date | string
   }
@@ -7906,6 +7986,8 @@ export namespace Prisma {
     id?: StringFilter<"Setting"> | string
     participationFee?: IntFilter<"Setting"> | number
     insuranceFee?: IntFilter<"Setting"> | number
+    lineOpenChatLink?: StringNullableFilter<"Setting"> | string | null
+    entryDeadline?: DateTimeNullableFilter<"Setting"> | Date | string | null
     updatedAt?: DateTimeFilter<"Setting"> | Date | string
   }
 
@@ -7913,6 +7995,8 @@ export namespace Prisma {
     id?: SortOrder
     participationFee?: SortOrder
     insuranceFee?: SortOrder
+    lineOpenChatLink?: SortOrderInput | SortOrder
+    entryDeadline?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
   }
 
@@ -7923,6 +8007,8 @@ export namespace Prisma {
     NOT?: SettingWhereInput | SettingWhereInput[]
     participationFee?: IntFilter<"Setting"> | number
     insuranceFee?: IntFilter<"Setting"> | number
+    lineOpenChatLink?: StringNullableFilter<"Setting"> | string | null
+    entryDeadline?: DateTimeNullableFilter<"Setting"> | Date | string | null
     updatedAt?: DateTimeFilter<"Setting"> | Date | string
   }, "id">
 
@@ -7930,6 +8016,8 @@ export namespace Prisma {
     id?: SortOrder
     participationFee?: SortOrder
     insuranceFee?: SortOrder
+    lineOpenChatLink?: SortOrderInput | SortOrder
+    entryDeadline?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     _count?: SettingCountOrderByAggregateInput
     _avg?: SettingAvgOrderByAggregateInput
@@ -7945,6 +8033,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Setting"> | string
     participationFee?: IntWithAggregatesFilter<"Setting"> | number
     insuranceFee?: IntWithAggregatesFilter<"Setting"> | number
+    lineOpenChatLink?: StringNullableWithAggregatesFilter<"Setting"> | string | null
+    entryDeadline?: DateTimeNullableWithAggregatesFilter<"Setting"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"Setting"> | Date | string
   }
 
@@ -8060,6 +8150,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTeamEntriesInput
@@ -8077,6 +8168,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     players?: PlayerUncheckedCreateNestedManyWithoutTeamEntryInput
@@ -8092,6 +8184,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTeamEntriesNestedInput
@@ -8109,6 +8202,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     players?: PlayerUncheckedUpdateManyWithoutTeamEntryNestedInput
@@ -8125,6 +8219,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -8139,6 +8234,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8154,6 +8250,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8462,6 +8559,8 @@ export namespace Prisma {
     id?: string
     participationFee?: number
     insuranceFee?: number
+    lineOpenChatLink?: string | null
+    entryDeadline?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -8469,6 +8568,8 @@ export namespace Prisma {
     id?: string
     participationFee?: number
     insuranceFee?: number
+    lineOpenChatLink?: string | null
+    entryDeadline?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -8476,6 +8577,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     participationFee?: IntFieldUpdateOperationsInput | number
     insuranceFee?: IntFieldUpdateOperationsInput | number
+    lineOpenChatLink?: NullableStringFieldUpdateOperationsInput | string | null
+    entryDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8483,6 +8586,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     participationFee?: IntFieldUpdateOperationsInput | number
     insuranceFee?: IntFieldUpdateOperationsInput | number
+    lineOpenChatLink?: NullableStringFieldUpdateOperationsInput | string | null
+    entryDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8490,6 +8595,8 @@ export namespace Prisma {
     id?: string
     participationFee?: number
     insuranceFee?: number
+    lineOpenChatLink?: string | null
+    entryDeadline?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -8497,6 +8604,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     participationFee?: IntFieldUpdateOperationsInput | number
     insuranceFee?: IntFieldUpdateOperationsInput | number
+    lineOpenChatLink?: NullableStringFieldUpdateOperationsInput | string | null
+    entryDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8504,6 +8613,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     participationFee?: IntFieldUpdateOperationsInput | number
     insuranceFee?: IntFieldUpdateOperationsInput | number
+    lineOpenChatLink?: NullableStringFieldUpdateOperationsInput | string | null
+    entryDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8660,6 +8771,17 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
@@ -8686,8 +8808,13 @@ export namespace Prisma {
     isPaid?: SortOrder
     status?: SortOrder
     group?: SortOrder
+    preliminaryNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type TeamEntryAvgOrderByAggregateInput = {
+    preliminaryNumber?: SortOrder
   }
 
   export type TeamEntryMaxOrderByAggregateInput = {
@@ -8701,6 +8828,7 @@ export namespace Prisma {
     isPaid?: SortOrder
     status?: SortOrder
     group?: SortOrder
+    preliminaryNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -8716,8 +8844,13 @@ export namespace Prisma {
     isPaid?: SortOrder
     status?: SortOrder
     group?: SortOrder
+    preliminaryNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type TeamEntrySumOrderByAggregateInput = {
+    preliminaryNumber?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -8726,6 +8859,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type TeamEntryScalarRelationFilter = {
@@ -8767,17 +8916,6 @@ export namespace Prisma {
     wristbandColor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type MatchCountOrderByAggregateInput = {
@@ -8849,22 +8987,6 @@ export namespace Prisma {
     scoreB?: SortOrder
   }
 
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
   export type EventCountOrderByAggregateInput = {
     id?: SortOrder
     tournamentId?: SortOrder
@@ -8912,10 +9034,23 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type SettingCountOrderByAggregateInput = {
     id?: SortOrder
     participationFee?: SortOrder
     insuranceFee?: SortOrder
+    lineOpenChatLink?: SortOrder
+    entryDeadline?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -8928,6 +9063,8 @@ export namespace Prisma {
     id?: SortOrder
     participationFee?: SortOrder
     insuranceFee?: SortOrder
+    lineOpenChatLink?: SortOrder
+    entryDeadline?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -8935,6 +9072,8 @@ export namespace Prisma {
     id?: SortOrder
     participationFee?: SortOrder
     insuranceFee?: SortOrder
+    lineOpenChatLink?: SortOrder
+    entryDeadline?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -8957,6 +9096,20 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type TeamEntryCreateNestedManyWithoutUserInput = {
@@ -9037,6 +9190,14 @@ export namespace Prisma {
     set?: boolean
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type UserUpdateOneRequiredWithoutTeamEntriesNestedInput = {
     create?: XOR<UserCreateWithoutTeamEntriesInput, UserUncheckedCreateWithoutTeamEntriesInput>
     connectOrCreate?: UserCreateOrConnectWithoutTeamEntriesInput
@@ -9087,20 +9248,16 @@ export namespace Prisma {
     update?: XOR<XOR<TeamEntryUpdateToOneWithWhereWithoutPlayersInput, TeamEntryUpdateWithoutPlayersInput>, TeamEntryUncheckedUpdateWithoutPlayersInput>
   }
 
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -9252,6 +9409,17 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -9279,6 +9447,20 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type TeamEntryCreateWithoutUserInput = {
     id?: string
     tournamentId?: string
@@ -9289,6 +9471,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     players?: PlayerCreateNestedManyWithoutTeamEntryInput
@@ -9304,6 +9487,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     players?: PlayerUncheckedCreateNestedManyWithoutTeamEntryInput
@@ -9349,6 +9533,7 @@ export namespace Prisma {
     isPaid?: BoolFilter<"TeamEntry"> | boolean
     status?: StringFilter<"TeamEntry"> | string
     group?: StringNullableFilter<"TeamEntry"> | string | null
+    preliminaryNumber?: IntNullableFilter<"TeamEntry"> | number | null
     createdAt?: DateTimeFilter<"TeamEntry"> | Date | string
     updatedAt?: DateTimeFilter<"TeamEntry"> | Date | string
   }
@@ -9498,6 +9683,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTeamEntriesInput
@@ -9514,6 +9700,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9544,6 +9731,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTeamEntriesNestedInput
@@ -9560,6 +9748,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -9574,6 +9763,7 @@ export namespace Prisma {
     isPaid?: boolean
     status?: string
     group?: string | null
+    preliminaryNumber?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9588,6 +9778,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     players?: PlayerUpdateManyWithoutTeamEntryNestedInput
@@ -9603,6 +9794,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     players?: PlayerUncheckedUpdateManyWithoutTeamEntryNestedInput
@@ -9618,6 +9810,7 @@ export namespace Prisma {
     isPaid?: BoolFieldUpdateOperationsInput | boolean
     status?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
+    preliminaryNumber?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

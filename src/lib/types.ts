@@ -14,8 +14,8 @@ export interface User {
     password?: string;
     name: string; // Representative Name
     phone: string;
-    postalCode?: string;
-    address?: string;
+    postalCode?: string; // Opting to keep optional to not break user code completely yet
+    address?: string; // Opting to keep optional
     wristbandColor?: string; // Rep's wristband color
 }
 
@@ -32,6 +32,7 @@ export interface TeamEntry {
     status: 'draft' | 'submitted';
     isPaid?: boolean; // NEW: Payment Status
     group?: string; // NEW: Group assignment (e.g. "A", "B")
+    preliminaryNumber?: number; // NEW: Lottery selection 1-16
     createdAt: string;
 }
 
@@ -63,3 +64,12 @@ export interface ScheduleEvent {
 
 // Legacy Team interface for compatibility (Deprecated)
 // export interface Team { ... }
+
+// Settings
+export interface Setting {
+    id: string;
+    participationFee: number;
+    insuranceFee: number;
+    lineOpenChatLink?: string;
+    entryDeadline?: string;
+}
