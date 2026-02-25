@@ -444,6 +444,21 @@ export default function AdminDashboard() {
             </header>
 
             <main className="container mx-auto px-4 py-8 max-w-[95%]">
+                {/* Mobile Project Selector */}
+                <div className="md:hidden mb-6 bg-slate-900/50 border border-slate-800 rounded-xl p-4 shadow-lg backdrop-blur-sm">
+                    <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-widest pl-1">対象日程</label>
+                    <select
+                        value={selectedProjectId}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        className="w-full bg-slate-950/80 border border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 outline-none h-12 px-3 transition-colors"
+                    >
+                        <option value="" disabled>プロジェクトを選択...</option>
+                        {projects.map(p => (
+                            <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                        ))}
+                    </select>
+                </div>
+
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
