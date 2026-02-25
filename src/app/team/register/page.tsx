@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -15,6 +15,8 @@ export default function RegisterPage() {
     const [teamId, setTeamId] = useState<string | null>(null);
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
+    const [copiedEmail, setCopiedEmail] = useState(false);
+    const [copiedPassword, setCopiedPassword] = useState(false);
     const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
     const [settings, setSettings] = useState<any>(null);
     const [projects, setProjects] = useState<any[]>([]);
@@ -139,6 +141,17 @@ export default function RegisterPage() {
         }
     };
 
+    const handleCopy = (text: string, type: 'email' | 'password') => {
+        navigator.clipboard.writeText(text);
+        if (type === 'email') {
+            setCopiedEmail(true);
+            setTimeout(() => setCopiedEmail(false), 2000);
+        } else {
+            setCopiedPassword(true);
+            setTimeout(() => setCopiedPassword(false), 2000);
+        }
+    };
+
     if (!isSettingsLoaded) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
@@ -187,11 +200,21 @@ export default function RegisterPage() {
                         <div className="bg-slate-950 rounded-lg p-6 border border-slate-800 space-y-4">
                             <div>
                                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインメールアドレス</p>
-                                <p className="text-lg font-mono font-bold text-indigo-400 tracking-wider bg-slate-900 rounded p-2 select-all break-all">{registeredEmail}</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="flex-1 text-lg font-mono font-bold text-indigo-400 tracking-wider bg-slate-900 rounded p-2 select-all break-all m-0">{registeredEmail}</p>
+                                    <Button size="icon" variant="outline" className="shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
+                                        {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                                    </Button>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインパスワード</p>
-                                <p className="text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all">{registeredPassword}</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="flex-1 text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all m-0">{registeredPassword}</p>
+                                    <Button size="icon" variant="outline" className="shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredPassword && handleCopy(registeredPassword, 'password')}>
+                                        {copiedPassword ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 

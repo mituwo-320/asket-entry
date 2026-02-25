@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { saveTeamEntry, saveUser } from '@/lib/sheets';
 import { TeamEntry, User, Player } from '@/lib/types';
+import { sendAdminNotificationEmail } from '@/lib/mail';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: Request) {
@@ -66,6 +67,14 @@ export async function POST(request: Request) {
         const success = await saveTeamEntry(newEntry);
 
         if (success) {
+            // Trigger admin notification email asynchronously (do not await to speed up response)
+            sendAdminNotificationEmail({
+                teamName: body.name,
+                representative: userName,
+                email: userEmail,
+                projectId: body.tournamentId,
+            }).catch(console.error);
+
             return NextResponse.json({
                 success: true,
                 teamId: newEntry.id,

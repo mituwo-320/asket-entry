@@ -433,11 +433,11 @@ export default function AdminDashboard() {
                         <span className="text-xs text-slate-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 hidden lg:inline-block tracking-wide">
                             v1.0.0 (Beta)
                         </span>
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white" onClick={async () => {
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white flex items-center gap-1 sm:gap-2" onClick={async () => {
                             await fetch('/api/admin/auth/logout', { method: 'POST' });
                             window.location.href = '/';
                         }}>
-                            ログアウト
+                            <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline text-xs sm:text-sm font-medium">トップへ戻る</span>
                         </Button>
                     </div>
                 </div>

@@ -6,7 +6,7 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion } from "framer-motion";
@@ -90,8 +90,8 @@ export default function UserDashboard() {
                         <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">BasketEntry</h1>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
-                        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400">
-                            <LogOut className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">ログアウト</span>
+                        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors">
+                            <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm font-medium">トップへ戻る</span>
                         </Button>
                     </div>
                 </div>
@@ -239,8 +239,8 @@ export default function UserDashboard() {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="px-6 pb-6 sm:p-6 flex items-center justify-end sm:border-l border-white/5 bg-white/[0.02]">
-                                                                <div className="flex items-center gap-2 text-sm font-medium text-indigo-400 group-hover:text-indigo-300">
+                                                            <div className="px-4 pb-4 sm:p-6 flex items-center justify-center sm:justify-end sm:border-l border-white/5 bg-white/[0.02] mt-2 sm:mt-0">
+                                                                <div className="w-full sm:w-auto bg-indigo-500/10 sm:bg-transparent border border-indigo-500/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-medium text-indigo-400 group-hover:text-indigo-300 transition-colors">
                                                                     詳細を確認 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                                 </div>
                                                             </div>
