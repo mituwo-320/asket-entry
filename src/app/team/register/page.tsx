@@ -202,7 +202,7 @@ export default function RegisterPage() {
                                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインメールアドレス</p>
                                 <div className="flex items-center gap-2">
                                     <p className="flex-1 text-lg font-mono font-bold text-indigo-400 tracking-wider bg-slate-900 rounded p-2 select-all break-all m-0">{registeredEmail}</p>
-                                    <Button size="icon" variant="outline" className="shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
+                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
                                         {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
                                     </Button>
                                 </div>
@@ -211,7 +211,7 @@ export default function RegisterPage() {
                                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインパスワード</p>
                                 <div className="flex items-center gap-2">
                                     <p className="flex-1 text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all m-0">{registeredPassword}</p>
-                                    <Button size="icon" variant="outline" className="shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredPassword && handleCopy(registeredPassword, 'password')}>
+                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredPassword && handleCopy(registeredPassword, 'password')}>
                                         {copiedPassword ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
                                     </Button>
                                 </div>
