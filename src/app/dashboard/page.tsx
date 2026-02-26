@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
-import { User, TeamEntry } from "@/lib/types";
+import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion } from "framer-motion";
@@ -15,6 +15,8 @@ export default function UserDashboard() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [entries, setEntries] = useState<TeamEntry[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [settings, setSettings] = useState<Setting | any>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
@@ -36,21 +38,28 @@ export default function UserDashboard() {
             return;
         }
 
-        // 2. Fetch Entries
-        const fetchEntries = async () => {
+        // 2. Fetch Data
+        const fetchData = async () => {
             try {
-                const res = await fetch(`/api/user/entries?userId=${parsedUser.id}`);
-                const data = await res.json();
-                if (data.entries) {
-                    setEntries(data.entries);
-                }
+                const [entriesRes, projectsRes, settingsRes] = await Promise.all([
+                    fetch(`/api/user/entries?userId=${parsedUser.id}`),
+                    fetch('/api/projects/active'),
+                    fetch('/api/settings')
+                ]);
+                const entriesData = await entriesRes.json();
+                const projectsData = await projectsRes.json();
+                const settingsData = await settingsRes.json();
+
+                if (entriesData.entries) setEntries(entriesData.entries);
+                if (projectsData.projects) setProjects(projectsData.projects);
+                if (settingsData) setSettings(settingsData);
             } catch (e) {
-                console.error("Failed to fetch entries", e);
+                console.error("Failed to fetch data", e);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchEntries();
+        fetchData();
     }, [router]);
 
     const handleLogout = () => {
@@ -87,7 +96,7 @@ export default function UserDashboard() {
                         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/20">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
-                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">BasketEntry</h1>
+                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">vankycup</h1>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors">
@@ -145,19 +154,38 @@ export default function UserDashboard() {
                                 </Card>
                             </motion.div>
 
-                            <motion.div variants={itemVariants}>
-                                <div className="bg-gradient-to-br from-indigo-900/40 to-purple-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl">
-                                    <h4 className="font-bold text-indigo-300 mb-2 flex items-center gap-2">
-                                        <Target className="w-5 h-5" /> お困りですか？
-                                    </h4>
-                                    <p className="text-sm text-indigo-200/70 mb-5 leading-relaxed">
-                                        登録内容の変更や、大会に関するご質問は運営事務局までお問い合わせください。
-                                    </p>
-                                    <button className="text-sm font-medium text-indigo-300 hover:text-white transition-colors flex items-center gap-1 group">
-                                        お問い合わせフォーム <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                </div>
-                            </motion.div>
+                            {(() => {
+                                const userProjectsWithChat = projects.filter(p => p.lineOpenChatLink && entries.some(e => e.tournamentId === p.id));
+                                if (userProjectsWithChat.length === 0 && settings.lineOpenChatLink) {
+                                    // Fallback to global setting if no specific project links are found but a global one exists
+                                    userProjectsWithChat.push({ id: 'global', name: '大会オープンチャット', lineOpenChatLink: settings.lineOpenChatLink } as any);
+                                }
+
+                                return userProjectsWithChat.length > 0 && (
+                                    <motion.div variants={itemVariants}>
+                                        <div className="bg-gradient-to-br from-indigo-900/40 to-purple-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl space-y-4">
+                                            <h4 className="font-bold text-emerald-300 mb-2 flex items-center gap-2">
+                                                <MessageCircle className="w-5 h-5" /> LINEオープンチャット (必須)
+                                            </h4>
+                                            <p className="text-sm text-emerald-100/70 leading-relaxed">
+                                                リーダーの方へ、大会の集合時間や重要な連絡を配信します。参加する大会のチャットに必ず参加してください。
+                                            </p>
+                                            <div className="space-y-2 mt-4">
+                                                {userProjectsWithChat.map(p => (
+                                                    <a key={p.id} href={p.lineOpenChatLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-700/50 transition-colors group">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-sm font-medium text-slate-200">{p.name}</span>
+                                                            <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                                                参加する <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })()}
                         </div>
 
                         {/* Right Column: Entries */}

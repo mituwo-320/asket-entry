@@ -22,8 +22,8 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "BasketEntry - バスケットボール大会エントリー",
-  description: "Next-gen Basketball Tournament Management System",
+  title: "vankycup - ヴァンキーカップエントリー",
+  description: "チームエントリー、メンバーの登録などスムーズに登録できます",
 };
 
 export const viewport: Viewport = {

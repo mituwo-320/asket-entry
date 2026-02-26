@@ -29,9 +29,10 @@ model Project {
   name           String // "1日目", "4月10日大会", etc.
   isActive       Boolean   @default(true) // Open for general registration
   entryStartDate DateTime?
-  entryEndDate   DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  entryEndDate     DateTime?
+  lineOpenChatLink String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model TeamEntry {

@@ -34,10 +34,10 @@ export async function sendAdminNotificationEmail(teamData: {
 
     try {
         await transporter.sendMail({
-            from: `"BasketEntry System" <${process.env.SMTP_USER}>`,
+            from: `"vankycup System" <${process.env.SMTP_USER}>`,
             to: adminEmail,
             subject: `【新規エントリー通知】チーム「${teamData.teamName}」が登録されました`,
-            text: `管理者様\n\n新しいチームのエントリーがありました。\n\n【チーム詳細】\nチーム名: ${teamData.teamName}\n代表者名: ${teamData.representative}\n連絡先メール: ${teamData.email}\n大会ID: ${teamData.projectId || '不明'}\n\nBasketEntry管理画面から詳細をご確認ください。\n${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin`,
+            text: `管理者様\n\n新しいチームのエントリーがありました。\n\n【チーム詳細】\nチーム名: ${teamData.teamName}\n代表者名: ${teamData.representative}\n連絡先メール: ${teamData.email}\n大会ID: ${teamData.projectId || '不明'}\n\nvankycup管理画面から詳細をご確認ください。\n${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin`,
             html: `
                 <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
                     <h2 style="color: #4f46e5;">新規エントリー通知</h2>
@@ -49,7 +49,7 @@ export async function sendAdminNotificationEmail(teamData: {
                         <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">メールアドレス</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.email}</td></tr>
                         <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">大会ID</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.projectId || '不明'}</td></tr>
                     </table>
-                    <p>詳細は<a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin" style="color: #4f46e5; text-decoration: none; font-weight: bold;">BasketEntry管理画面</a>からご確認ください。</p>
+                    <p>詳細は<a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin" style="color: #4f46e5; text-decoration: none; font-weight: bold;">vankycup管理画面</a>からご確認ください。</p>
                 </div>
             `,
         });
@@ -77,9 +77,9 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
         const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}&email=${encodeURIComponent(toEmail)}`;
 
         await transporter.sendMail({
-            from: `"BasketEntry Support" <${process.env.SMTP_USER}>`,
+            from: `"vankycup Support" <${process.env.SMTP_USER}>`,
             to: toEmail,
-            subject: `【BasketEntry】パスワードの再設定`,
+            subject: `【vankycup】パスワードの再設定`,
             text: `以下のリンクから新しいパスワードを再設定してください。\n\n${resetUrl}\n\nこのリンクの有効期限は現在から24時間です。\nお心当たりがない場合は、このメールを破棄してください。`,
             html: `
                 <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -91,7 +91,7 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
                     <p style="font-size: 0.9em; color: #666;">※このリンクの有効期限は発行から24時間です。</p>
                     <p style="font-size: 0.9em; color: #666;">※お心当たりがない場合は、このメールを破棄してください。</p>
                     <hr style="border: none; border-top: 1px solid #ddd; margin-top: 30px;" />
-                    <p style="font-size: 0.8em; color: #999; text-align: center;">BasketEntry</p>
+                    <p style="font-size: 0.8em; color: #999; text-align: center;">vankycup</p>
                 </div>
             `,
         });

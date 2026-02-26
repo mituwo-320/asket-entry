@@ -169,6 +169,21 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                         />
                                                     </div>
 
+                                                    <div className="space-y-1 sm:col-span-2">
+                                                        <label className="text-[10px] text-slate-400 uppercase tracking-widest">LINEオープンチャットURL</label>
+                                                        <Input
+                                                            type="url"
+                                                            placeholder="https://line.me/ti/g2/..."
+                                                            value={p.lineOpenChatLink || ''}
+                                                            onChange={(e) => {
+                                                                const updated = [...localProjects];
+                                                                updated[index].lineOpenChatLink = e.target.value;
+                                                                setLocalProjects(updated);
+                                                            }}
+                                                            className="h-9 bg-slate-900 border-slate-700 font-mono text-sm"
+                                                        />
+                                                    </div>
+
                                                     <div className="col-span-full flex justify-end gap-2 mt-2">
                                                         {p.id !== '' && (
                                                             <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>キャンセル</Button>

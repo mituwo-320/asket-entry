@@ -14,16 +14,16 @@ export default function Home() {
 
       <div className="text-center max-w-2xl mb-12">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-slate-300 text-sm mb-6 backdrop-blur-md">
-          <Trophy className="w-4 h-4 text-yellow-500" />
-          <span>BasketEntry</span>
+          <Trophy className="w-4 h-4 text-emerald-500" />
+          <span className="font-bold tracking-wider">vankycup</span>
         </div>
         <h1 className="text-5xl md:text-7xl font-bold font-heading mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">
-          バスケットボール<br />
-          大会管理システム
+          ヴァンキーカップ<br />
+          エントリー
         </h1>
         <p className="text-lg text-slate-400 max-w-lg mx-auto leading-relaxed">
-          次世代の大会運営プラットフォームへようこそ。<br />
-          チーム登録、スケジュール確認、保険手続きをこれまで以上にスムーズに。
+          チームエントリー、メンバーの登録など<br />
+          スムーズに登録できます。
         </p>
       </div>
 
@@ -67,8 +67,8 @@ export default function Home() {
         </Link>
       </div>
 
-      <footer className="absolute bottom-6 text-slate-600 text-sm">
-        &copy; 2025 BasketEntry
+      <footer className="mt-20 border-t border-slate-800/50 pt-8 pb-4 w-full flex justify-center text-sm text-slate-500 relative z-10 font-mono">
+        &copy; 2026 vankycup
       </footer>
     </main>
   );

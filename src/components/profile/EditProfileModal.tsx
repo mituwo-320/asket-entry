@@ -106,22 +106,6 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
                                         onChange={handleChange}
                                         required
                                     />
-                                    <Input
-                                        id="postalCode"
-                                        name="postalCode"
-                                        label="郵便番号"
-                                        value={formData.postalCode || ""}
-                                        onChange={handleChange}
-                                        placeholder="例: 123-4567"
-                                    />
-                                    <Input
-                                        id="address"
-                                        name="address"
-                                        label="住所"
-                                        value={formData.address || ""}
-                                        onChange={handleChange}
-                                        placeholder="例: 東京都渋谷区..."
-                                    />
                                 </div>
 
                                 <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-white/5">

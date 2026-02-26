@@ -133,8 +133,8 @@ export default function LoginPage() {
                 </Card>
             </motion.div>
 
-            <div className="mt-12 text-center text-xs text-slate-500 font-medium">
-                &copy; {new Date().getFullYear()} BasketEntry. All rights reserved.
+            <div className="mt-12 text-center text-xs text-slate-500 font-medium font-mono">
+                &copy; {new Date().getFullYear()} vankycup. All rights reserved.
             </div>
         </div>
     );

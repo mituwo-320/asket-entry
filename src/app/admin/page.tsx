@@ -404,7 +404,7 @@ export default function AdminDashboard() {
                         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/20">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
-                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">BasketEntry Admin</h1>
+                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">vankycup Admin</h1>
                     </div>
                     {/* Project Selector section in header */}
                     <div className="flex items-center gap-4">
@@ -668,7 +668,7 @@ export default function AdminDashboard() {
                                     <div className="p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
                                         <div>
                                             <h2 className="text-2xl font-bold text-white tracking-tight">{selectedEntry.teamName}</h2>
-                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{getTournamentName(selectedEntry.tournamentId)}</p>
+                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{(selectedEntry as any).projectName || selectedEntry.tournamentId}</p>
                                         </div>
                                         <button
                                             onClick={() => setSelectedEntry(null)}
@@ -687,15 +687,6 @@ export default function AdminDashboard() {
                                             <div className="p-4 rounded-xl bg-slate-800/30 border border-white/5">
                                                 <p className="text-slate-500 text-xs font-bold mb-1 uppercase tracking-wider">連絡先</p>
                                                 <p className="text-white font-mono text-base">{getRepPhone(selectedEntry.userId)}</p>
-                                            </div>
-                                            <div className="p-4 rounded-xl bg-slate-800/30 border border-white/5 sm:col-span-2">
-                                                <p className="text-slate-500 text-xs font-bold mb-1 uppercase tracking-wider">住所</p>
-                                                <p className="text-white font-medium">
-                                                    <span className="text-sm text-slate-500 mr-2 font-mono">
-                                                        〒{users.find(u => u.id === selectedEntry.userId)?.postalCode || "--- - ----"}
-                                                    </span>
-                                                    {users.find(u => u.id === selectedEntry.userId)?.address || "未登録"}
-                                                </p>
                                             </div>
                                         </div>
 

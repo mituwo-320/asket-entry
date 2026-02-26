@@ -152,6 +152,8 @@ export default function RegisterPage() {
         }
     };
 
+    const activeProject = projects.find(p => p.id === formData.projectId);
+
     if (!isSettingsLoaded) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
@@ -210,15 +212,23 @@ export default function RegisterPage() {
                             <div>
                                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">ログインパスワード</p>
                                 <div className="flex items-center gap-2">
-                                    <p className="flex-1 text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 select-all m-0">{registeredPassword}</p>
-                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => registeredPassword && handleCopy(registeredPassword, 'password')}>
-                                        {copiedPassword ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
-                                    </Button>
+                                    <p className="flex-1 text-lg font-mono font-bold text-emerald-400 tracking-wider bg-slate-900 rounded p-2 m-0">
+                                        {registeredPassword ? (
+                                            <span className="select-all">{registeredPassword}</span>
+                                        ) : (
+                                            <span className="text-sm font-sans tracking-normal font-normal text-slate-400">登録済みのパスワードをご利用ください</span>
+                                        )}
+                                    </p>
+                                    {registeredPassword && (
+                                        <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-slate-900 border-slate-800 hover:bg-slate-800 hover:text-white" onClick={() => handleCopy(registeredPassword, 'password')}>
+                                            {copiedPassword ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        {settings?.lineOpenChatLink && (
+                        {(activeProject?.lineOpenChatLink || settings?.lineOpenChatLink) && (
                             <div className="bg-emerald-500/10 border-emerald-500/20 border rounded-lg p-6 text-left space-y-4">
                                 <div className="flex items-center gap-2 text-emerald-400 font-bold">
                                     <MessageCircle className="w-5 h-5" />
@@ -228,7 +238,7 @@ export default function RegisterPage() {
                                     リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
                                 </p>
                                 <a
-                                    href={settings.lineOpenChatLink}
+                                    href={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="block text-center w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-4 rounded transition-colors"

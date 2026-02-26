@@ -92,8 +92,8 @@ export default function LotteryPrintPage() {
                             )}
                         </div>
                         <div className="mt-8 pt-4 border-t-2 border-dashed border-slate-300 print:border-black flex items-center justify-between text-xs text-slate-400 print:text-black font-medium">
-                            <span>BasketEntry</span>
-                            <span>2025 Season</span>
+                            <span>vankycup</span>
+                            <span>2026 Season</span>
                         </div>
                     </motion.div>
                 ))}

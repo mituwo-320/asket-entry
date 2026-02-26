@@ -15,6 +15,7 @@ export async function getProjects(): Promise<Project[]> {
             isActive: p.isActive,
             entryStartDate: p.entryStartDate ? p.entryStartDate.toISOString() : undefined,
             entryEndDate: p.entryEndDate ? p.entryEndDate.toISOString() : undefined,
+            lineOpenChatLink: p.lineOpenChatLink || undefined,
             createdAt: p.createdAt.toISOString()
         }));
     } catch (e) {
@@ -31,14 +32,16 @@ export async function saveProject(project: Project): Promise<boolean> {
                 name: project.name,
                 isActive: project.isActive,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
-                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null
+                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
+                lineOpenChatLink: project.lineOpenChatLink || null
             },
             create: {
                 id: project.id,
                 name: project.name,
                 isActive: project.isActive,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
-                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null
+                entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
+                lineOpenChatLink: project.lineOpenChatLink || null
             }
         });
         return true;

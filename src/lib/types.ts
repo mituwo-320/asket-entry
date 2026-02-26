@@ -26,6 +26,7 @@ export interface Project {
     isActive: boolean;
     entryStartDate?: string;
     entryEndDate?: string;
+    lineOpenChatLink?: string;
     createdAt?: string;
 }
 

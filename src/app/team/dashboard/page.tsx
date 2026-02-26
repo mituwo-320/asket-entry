@@ -107,7 +107,6 @@ function DashboardContent() {
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right">
-                            <p className="text-xs text-slate-400">Representative</p>
                             <Link href={`/team/edit?id=${entryId}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 justify-end">
                                 チーム設定
                             </Link>

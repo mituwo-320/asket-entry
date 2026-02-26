@@ -82,6 +82,7 @@ export async function POST(request: Request) {
                     id: userId,
                     email: userEmail,
                     name: userName,
+                    phone: body.phone,
                     furigana: body.furigana || "",
                     role: 'user'
                 }
