@@ -155,10 +155,39 @@ export default function UserDashboard() {
                             </motion.div>
 
                             {(() => {
-                                const userProjectsWithChat = projects.filter(p => p.lineOpenChatLink && entries.some(e => e.tournamentId === p.id));
+                                const userProjectsWithChat = projects.filter(p => {
+                                    if (!p.lineOpenChatLink) return false;
+                                    if (!entries.some(e => e.tournamentId === p.id)) return false;
+
+                                    // エントリー終了日から1ヶ月（30日）経過している場合は非表示にする
+                                    if (p.entryEndDate) {
+                                        const endDate = new Date(p.entryEndDate);
+                                        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+                                        const now = new Date();
+                                        if (now.getTime() - endDate.getTime() > thirtyDaysMs) {
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                });
+
                                 if (userProjectsWithChat.length === 0 && settings.lineOpenChatLink) {
                                     // Fallback to global setting if no specific project links are found but a global one exists
-                                    userProjectsWithChat.push({ id: 'global', name: '大会オープンチャット', lineOpenChatLink: settings.lineOpenChatLink } as any);
+                                    // Make sure we only show global fallback if they have an active entry (not older than 30 days past deadline)
+                                    const hasActiveEntry = projects.some(p => {
+                                        if (!entries.some(e => e.tournamentId === p.id)) return false;
+                                        if (p.entryEndDate) {
+                                            const endDate = new Date(p.entryEndDate);
+                                            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+                                            if (new Date().getTime() - endDate.getTime() > thirtyDaysMs) {
+                                                return false;
+                                            }
+                                        }
+                                        return true;
+                                    });
+                                    if (hasActiveEntry) {
+                                        userProjectsWithChat.push({ id: 'global', name: '大会オープンチャット', lineOpenChatLink: settings.lineOpenChatLink } as any);
+                                    }
                                 }
 
                                 return userProjectsWithChat.length > 0 && (
