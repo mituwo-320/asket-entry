@@ -74,7 +74,7 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
     }
 
     try {
-        const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}&email=${encodeURIComponent(toEmail)}`;
+        const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login/reset?token=${resetToken}&email=${encodeURIComponent(toEmail)}`;
 
         await transporter.sendMail({
             from: `"vankycup Support" <${process.env.SMTP_USER}>`,

@@ -16,14 +16,17 @@ export async function POST(request: Request) {
             where: { email }
         });
 
-        // Always return success to prevent email enumeration attacks
+        // We await the sending process because Vercel/serverless environments might silently kill background unresolved promises.
+        // Return success regardless of whether the user exists, to prevent email enumeration attacks.
         if (user) {
             const token = createResetToken(user.id, user.password);
-
-            // Fire and forget, don't await to speed up the response
-            sendPasswordResetEmail(user.email, token).catch(e => {
-                console.error('Failed to send reset email in background:', e);
-            });
+            try {
+                await sendPasswordResetEmail(user.email, token);
+            } catch (e) {
+                console.error('Failed to send reset email:', e);
+                // Optionally throw to return a 500 error if email definitely failed to send
+                // but usually better to mask it to the frontend
+            }
         }
 
         return NextResponse.json({ success: true, message: 'パスワード再設定のメールを送信しました' });
