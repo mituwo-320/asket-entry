@@ -155,40 +155,28 @@ export default function UserDashboard() {
                             </motion.div>
 
                             {(() => {
-                                const userProjectsWithChat = projects.filter(p => {
-                                    if (!p.lineOpenChatLink) return false;
-                                    if (!entries.some(e => e.tournamentId === p.id)) return false;
-
-                                    // エントリー終了日から1ヶ月（30日）経過している場合は非表示にする
-                                    if (p.entryEndDate) {
-                                        const endDate = new Date(p.entryEndDate);
-                                        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-                                        const now = new Date();
-                                        if (now.getTime() - endDate.getTime() > thirtyDaysMs) {
-                                            return false;
-                                        }
-                                    }
-                                    return true;
-                                });
-
-                                if (userProjectsWithChat.length === 0 && settings.lineOpenChatLink) {
-                                    // Fallback to global setting if no specific project links are found but a global one exists
-                                    // Make sure we only show global fallback if they have an active entry (not older than 30 days past deadline)
-                                    const hasActiveEntry = projects.some(p => {
+                                const userProjectsWithChat = projects
+                                    .filter(p => {
+                                        // エントリーしていない大会は除外
                                         if (!entries.some(e => e.tournamentId === p.id)) return false;
+
+                                        // エントリー終了日から1ヶ月（30日）経過している場合は非表示にする
                                         if (p.entryEndDate) {
                                             const endDate = new Date(p.entryEndDate);
                                             const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-                                            if (new Date().getTime() - endDate.getTime() > thirtyDaysMs) {
+                                            const now = new Date();
+                                            if (now.getTime() - endDate.getTime() > thirtyDaysMs) {
                                                 return false;
                                             }
                                         }
-                                        return true;
-                                    });
-                                    if (hasActiveEntry) {
-                                        userProjectsWithChat.push({ id: 'global', name: '大会オープンチャット', lineOpenChatLink: settings.lineOpenChatLink } as any);
-                                    }
-                                }
+
+                                        // 個別のリンクがあるか、共通のリンクがあれば表示対象とする
+                                        return !!p.lineOpenChatLink || !!settings.lineOpenChatLink;
+                                    })
+                                    .map(p => ({
+                                        ...p,
+                                        displayLink: p.lineOpenChatLink || settings.lineOpenChatLink
+                                    }));
 
                                 return userProjectsWithChat.length > 0 && (
                                     <motion.div variants={itemVariants}>
@@ -201,7 +189,7 @@ export default function UserDashboard() {
                                             </p>
                                             <div className="space-y-2 mt-4">
                                                 {userProjectsWithChat.map(p => (
-                                                    <a key={p.id} href={p.lineOpenChatLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-700/50 transition-colors group">
+                                                    <a key={p.id} href={p.displayLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-700/50 transition-colors group">
                                                         <div className="flex items-center justify-between">
                                                             <span className="text-sm font-medium text-slate-200">{p.name}</span>
                                                             <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
