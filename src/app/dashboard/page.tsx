@@ -43,7 +43,7 @@ export default function UserDashboard() {
             try {
                 const [entriesRes, projectsRes, settingsRes] = await Promise.all([
                     fetch(`/api/user/entries?userId=${parsedUser.id}`),
-                    fetch('/api/projects/active'),
+                    fetch('/api/admin/projects'),
                     fetch('/api/settings')
                 ]);
                 const entriesData = await entriesRes.json();
