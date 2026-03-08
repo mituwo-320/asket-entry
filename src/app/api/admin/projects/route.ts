@@ -36,7 +36,8 @@ export async function POST(request: Request) {
             isActive: body.isActive !== undefined ? body.isActive : true,
             entryStartDate: body.entryStartDate ? new Date(body.entryStartDate).toISOString() : undefined,
             entryEndDate: body.entryEndDate ? new Date(body.entryEndDate).toISOString() : undefined,
-            lineOpenChatLink: body.lineOpenChatLink || undefined
+            lineOpenChatLink: body.lineOpenChatLink || undefined,
+            maxTeams: body.maxTeams ? parseInt(body.maxTeams.toString(), 10) : undefined
         };
 
         const success = await saveProject(project);
