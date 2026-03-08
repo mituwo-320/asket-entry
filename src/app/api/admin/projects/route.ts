@@ -3,6 +3,8 @@ import { getProjects, saveProject } from '@/lib/sheets';
 import { Project } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         let projects = await getProjects();

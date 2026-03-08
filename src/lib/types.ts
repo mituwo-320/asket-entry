@@ -40,7 +40,7 @@ export interface TeamEntry {
     teamIntroduction: string; // NEW: Team Introduction
     isBeginnerFriendlyAccepted: boolean; // NEW: Agreement
     players: Player[];
-    status: 'draft' | 'submitted';
+    status: 'draft' | 'submitted' | 'cancelled';
     isPaid?: boolean; // NEW: Payment Status
     group?: string; // NEW: Group assignment (e.g. "A", "B")
     preliminaryNumber?: number; // NEW: Lottery selection 1-16

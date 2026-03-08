@@ -1,15 +1,21 @@
 import { PrismaClient } from '@prisma/client'
+
 const prisma = new PrismaClient()
+
 async function main() {
-  try {
-    const projects = await prisma.project.findMany()
-    console.log('Projects:', projects)
-    const users = await prisma.user.findMany()
-    console.log('Users count:', users.length)
-  } catch (e) {
-    console.error('DB Error:', e)
-  } finally {
-    await prisma.$disconnect()
-  }
+  const projects = await prisma.project.findMany()
+  console.log('Projects:', projects)
+  const entries = await prisma.teamEntry.findMany({
+      where: { status: { not: 'cancelled' } }
+  })
+  console.log('Active Entries count:', entries.length)
 }
+
 main()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

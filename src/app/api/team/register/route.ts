@@ -76,6 +76,7 @@ export async function POST(request: Request) {
             // Fetch project to get name, and calculate current count (we add 1 to current count to signify this new team)
             let projectName = body.tournamentId;
             let currentTeamCountStr = '';
+            let isWaitlist = false;
 
             try {
                 const p = await db.project.findUnique({ where: { id: body.tournamentId } });
@@ -83,6 +84,10 @@ export async function POST(request: Request) {
                 const count = await db.teamEntry.count({ where: { tournamentId: body.tournamentId } });
                 if (p && p.maxTeams) {
                     currentTeamCountStr = `現在 ${count}チーム目 / 上限 ${p.maxTeams}チーム`;
+                    if (count > p.maxTeams) {
+                        isWaitlist = true;
+                        currentTeamCountStr += " (キャンセル待ち)";
+                    }
                 } else {
                     currentTeamCountStr = `現在 ${count}チーム目`;
                 }
@@ -111,6 +116,7 @@ export async function POST(request: Request) {
             return NextResponse.json({
                 success: true,
                 teamId: newEntry.id,
+                isWaitlist: isWaitlist,
                 user: {
                     id: userId,
                     email: userEmail,

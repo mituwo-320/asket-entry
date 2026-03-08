@@ -101,7 +101,14 @@ function DashboardContent() {
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-bold text-white leading-tight">{teamEntry.teamName}</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl font-bold text-white leading-tight">{teamEntry.teamName}</h1>
+                                {(teamEntry as any).isWaitlist && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                                        キャンセル待ち
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-xs text-indigo-400">{(teamEntry as any).projectName || teamEntry.tournamentId}</p>
                         </div>
                     </div>

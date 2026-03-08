@@ -177,15 +177,34 @@ export default function AdminDashboard() {
     const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId);
     const activeMatches = matches.filter(m => m.tournamentId === selectedProjectId);
 
-    // Stats Calculation using ONLY activeEntries
-    const totalEntries = activeEntries.length;
-    const totalPlayers = activeEntries.reduce((acc, entry) => acc + (entry.players ? entry.players.length : 0), 0);
-    const insuranceNeeded = activeEntries.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
+    const activeProjectData = projects.find(p => p.id === selectedProjectId);
+
+    // Calculate Waitlist & Confirmed
+    const validEntriesForWaitlist = activeEntries.filter(e => e.status !== 'cancelled');
+    const sortedForWaitlist = [...validEntriesForWaitlist].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const waitlistedTeamIds = new Set<string>();
+    let confirmedCount = 0;
+
+    if (activeProjectData?.maxTeams) {
+        sortedForWaitlist.forEach((entry, index) => {
+            if (index >= activeProjectData.maxTeams!) {
+                waitlistedTeamIds.add(entry.id);
+            } else {
+                confirmedCount++;
+            }
+        });
+    } else {
+        confirmedCount = validEntriesForWaitlist.length;
+    }
+
+    // Stats Calculation using ONLY valid activeEntries (excluding cancelled from main stats)
+    const totalEntries = validEntriesForWaitlist.length;
+    const totalWaitlist = waitlistedTeamIds.size;
+    const totalPlayers = validEntriesForWaitlist.reduce((acc, entry) => acc + (entry.players ? entry.players.length : 0), 0);
+    const insuranceNeeded = validEntriesForWaitlist.reduce((acc, entry) => acc + (entry.players ? entry.players.filter(p => p.insurance).length : 0), 0);
 
     // Settings & Project State Logic
     const expectedRevenue = totalEntries * Number(settings.participationFee || 0) + insuranceNeeded * Number(settings.insuranceFee || 0);
-
-    const activeProjectData = projects.find(p => p.id === selectedProjectId);
     const now = new Date();
     let daysRemaining = -1;
     let isAccepting = false;
@@ -362,7 +381,8 @@ export default function AdminDashboard() {
     });
 
     const calculateLotteryNumbers = (entriesList: TeamEntry[]) => {
-        const sorted = [...entriesList].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const validEntries = entriesList.filter(e => e.status !== 'cancelled');
+        const sorted = [...validEntries].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         const occupied = new Set<number>();
         const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
 
@@ -488,6 +508,14 @@ export default function AdminDashboard() {
                             <Trophy className="w-8 h-8 text-indigo-400 mb-3" />
                             <p className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-1">Total Teams</p>
                             <h3 className="text-4xl font-black text-white">{totalEntries}<span className="text-xl text-slate-500 ml-1 font-medium">チーム</span></h3>
+                            {activeProjectData?.maxTeams ? (
+                                <div className="mt-2 text-xs flex gap-2">
+                                    <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">正規 {confirmedCount}</span>
+                                    {totalWaitlist > 0 && (
+                                        <span className="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">C待ち {totalWaitlist}</span>
+                                    )}
+                                </div>
+                            ) : null}
                         </Card>
                         <Card className="bg-gradient-to-br from-indigo-900/40 to-slate-900/40 border-indigo-500/30 p-6 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
@@ -570,70 +598,84 @@ export default function AdminDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800">
-                                        {filteredEntries.map((entry) => (
-                                            <tr key={entry.id} className="hover:bg-slate-800/50 transition-colors text-sm">
-                                                <td className="px-4 py-3 font-medium text-white">{entry.teamName}</td>
-                                                <td className="px-4 py-3 text-center">
-                                                    {(() => {
-                                                        const assign = lotteryAssignments.get(entry.id);
-                                                        if (!assign || !assign.final) return <span className="text-slate-500">-</span>;
-                                                        if (assign.bumped) {
-                                                            return (
-                                                                <div className="flex flex-col items-center">
-                                                                    <span className="font-black text-amber-400 text-lg border-b-2 border-amber-400/50 px-1">{assign.final}</span>
-                                                                    <span className="text-[10px] text-slate-500 line-through mt-0.5" title="衝突のため繰り上げ表示">希望: {assign.requested}</span>
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return <span className="font-bold text-emerald-400 text-lg px-2 py-1 bg-emerald-500/10 rounded">{assign.final}</span>;
-                                                    })()}
-                                                </td>
-                                                <td className="px-4 py-3">{getRepName(entry.userId)}</td>
-                                                <td className="px-4 py-3">{getRepPhone(entry.userId)}</td>
-                                                <td className="px-4 py-3">
-                                                    <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
-                                                    <span className="text-xs text-slate-500 ml-1">(保: {entry.players ? entry.players.filter(p => p.insurance).length : 0})</span>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/20' : 'bg-amber-900/30 text-amber-400 border border-amber-500/20'}`}>
-                                                        {entry.status === 'submitted' ? '確定済' : '下書き'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            const newStatus = !entry.isPaid;
-                                                            // Optimistic Update
-                                                            setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: newStatus } : e));
-
-                                                            try {
-                                                                await fetch('/api/admin/entry/update', {
-                                                                    method: 'POST',
-                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                    body: JSON.stringify({ entryId: entry.id, updates: { isPaid: newStatus } })
-                                                                });
-                                                            } catch (e) {
-                                                                alert("更新に失敗しました");
-                                                                // Revert
-                                                                setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: !newStatus } : e));
+                                        {filteredEntries.map((entry) => {
+                                            const isWaitlisted = waitlistedTeamIds.has(entry.id);
+                                            return (
+                                                <tr key={entry.id} className="hover:bg-slate-800/50 transition-colors text-sm">
+                                                    <td className="px-4 py-3 font-medium text-white">
+                                                        <div className="flex items-center gap-2">
+                                                            {entry.teamName}
+                                                            {isWaitlisted && (
+                                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                                                                    C待ち
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {(() => {
+                                                            const assign = lotteryAssignments.get(entry.id);
+                                                            if (!assign || !assign.final) return <span className="text-slate-500">-</span>;
+                                                            if (assign.bumped) {
+                                                                return (
+                                                                    <div className="flex flex-col items-center">
+                                                                        <span className="font-black text-amber-400 text-lg border-b-2 border-amber-400/50 px-1">{assign.final}</span>
+                                                                        <span className="text-[10px] text-slate-500 line-through mt-0.5" title="衝突のため繰り上げ表示">希望: {assign.requested}</span>
+                                                                    </div>
+                                                                );
                                                             }
-                                                        }}
-                                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${entry.isPaid
-                                                            ? 'bg-blue-900/30 text-blue-400 border border-blue-800 hover:bg-blue-900/50'
-                                                            : 'bg-slate-800 text-slate-500 border border-slate-700 hover:bg-slate-700'
-                                                            }`}
-                                                    >
-                                                        {entry.isPaid ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
-                                                        {entry.isPaid ? '支払い済' : '未払い'}
-                                                    </button>
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedEntry(entry)}>
-                                                        詳細
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                            return <span className="font-bold text-emerald-400 text-lg px-2 py-1 bg-emerald-500/10 rounded">{assign.final}</span>;
+                                                        })()}
+                                                    </td>
+                                                    <td className="px-4 py-3">{getRepName(entry.userId)}</td>
+                                                    <td className="px-4 py-3">{getRepPhone(entry.userId)}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
+                                                        <span className="text-xs text-slate-500 ml-1">(保: {entry.players ? entry.players.filter(p => p.insurance).length : 0})</span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/20' :
+                                                            entry.status === 'cancelled' ? 'bg-slate-900/30 text-slate-400 border border-slate-500/20' :
+                                                                'bg-amber-900/30 text-amber-400 border border-amber-500/20'}`}>
+                                                            {entry.status === 'submitted' ? '確定済' : entry.status === 'cancelled' ? 'キャンセル' : '下書き'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const newStatus = !entry.isPaid;
+                                                                // Optimistic Update
+                                                                setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: newStatus } : e));
+
+                                                                try {
+                                                                    await fetch('/api/admin/entry/update', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ entryId: entry.id, updates: { isPaid: newStatus } })
+                                                                    });
+                                                                } catch (e) {
+                                                                    alert("更新に失敗しました");
+                                                                    // Revert
+                                                                    setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: !newStatus } : e));
+                                                                }
+                                                            }}
+                                                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${entry.isPaid
+                                                                ? 'bg-blue-900/30 text-blue-400 border border-blue-800 hover:bg-blue-900/50'
+                                                                : 'bg-slate-800 text-slate-500 border border-slate-700 hover:bg-slate-700'
+                                                                }`}
+                                                        >
+                                                            {entry.isPaid ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
+                                                            {entry.isPaid ? '支払い済' : '未払い'}
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedEntry(entry)}>
+                                                            詳細
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                         {filteredEntries.length === 0 && (
                                             <tr>
                                                 <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
@@ -735,6 +777,54 @@ export default function AdminDashboard() {
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+                                    <div className="p-6 border-t border-white/5 bg-slate-900 mt-auto flex flex-col sm:flex-row justify-between items-center gap-4 rounded-b-2xl">
+                                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm(selectedEntry.status === 'cancelled' ? "このチームのキャンセルを取り消し、通常エントリーに戻しますか？" : "このチームをキャンセル状態にしますか？(キャンセル待ちのチームが自動的に繰り上がります)")) return;
+                                                    const newStatus = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
+
+                                                    try {
+                                                        const res = await fetch('/api/admin/entry/update', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: newStatus } })
+                                                        });
+                                                        if (res.ok) {
+                                                            const updatedEntry = { ...selectedEntry, status: newStatus as any };
+                                                            setSelectedEntry(updatedEntry);
+                                                            setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
+                                                        } else {
+                                                            alert("更新に失敗しました");
+                                                        }
+                                                    } catch (e) {
+                                                        alert("エラーが発生しました");
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                {selectedEntry.status === 'cancelled' ? (
+                                                    <><CheckCircle2 className="w-4 h-4" /> キャンセルを取り消す</>
+                                                ) : (
+                                                    <><X className="w-4 h-4" /> このチームをキャンセルにする</>
+                                                )}
+                                            </button>
+                                            <a
+                                                href={`/team/dashboard?id=${selectedEntry.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-sm font-medium border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                チーム情報を編集 (別画面)
+                                            </a>
+                                        </div>
+                                        <button
+                                            onClick={() => setSelectedEntry(null)}
+                                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-md transition-colors rounded-lg w-full sm:w-auto"
+                                        >
+                                            閉じる
+                                        </button>
                                     </div>
                                 </motion.div>
                             </div>

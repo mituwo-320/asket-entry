@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getProjects, getProjectEntryCount } from '@/lib/sheets';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const allProjects = await getProjects();

@@ -13,6 +13,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [teamId, setTeamId] = useState<string | null>(null);
+    const [isWaitlist, setIsWaitlist] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
     const [copiedEmail, setCopiedEmail] = useState(false);
@@ -131,6 +132,7 @@ export default function RegisterPage() {
             }
 
             setTeamId(data.teamId);
+            setIsWaitlist(data.isWaitlist || false);
             setRegisteredEmail(formData.email);
             setRegisteredPassword(formData.password);
 
@@ -190,12 +192,19 @@ export default function RegisterPage() {
 
                 <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 backdrop-blur-xl relative z-10 shadow-2xl">
                     <div className="text-center space-y-6">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-emerald-500/20">
-                            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ring-1 ${isWaitlist ? 'bg-amber-500/10 ring-amber-500/20' : 'bg-emerald-500/10 ring-emerald-500/20'}`}>
+                            {isWaitlist ? <AlertCircle className="w-8 h-8 text-amber-500" /> : <CheckCircle2 className="w-8 h-8 text-emerald-400" />}
                         </div>
 
                         <div>
-                            <h2 className="text-2xl font-bold text-white mb-2">登録完了！</h2>
+                            <h2 className="text-2xl font-bold text-white mb-2">
+                                {isWaitlist ? "キャンセル待ち受付完了" : "登録完了！"}
+                            </h2>
+                            {isWaitlist && (
+                                <p className="text-amber-400 font-bold mb-4 text-sm bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
+                                    この大会は満員のため、<br />キャンセル待ち枠として受け付けました。<br />空きが出た場合は管理者よりご連絡いたします。
+                                </p>
+                            )}
                             <p className="text-slate-400">アカウントが作成され、自動的にログインしました。<br />次回ログインのために以下の情報は必ず保存しておいてください。</p>
                         </div>
 

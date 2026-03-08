@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { findTeamEntry, findUserById, getProjects } from '@/lib/sheets';
+import { db } from '@/lib/db';
 
 export async function GET(request: Request) {
-    const entryId = request.headers.get('x-team-id'); // We'll keep the header name generic or change to x-entry-id later
+    const entryId = request.headers.get('x-team-id');
 
     if (!entryId) {
         return NextResponse.json({ error: 'Entry ID required' }, { status: 400 });
@@ -13,9 +14,24 @@ export async function GET(request: Request) {
     if (entry) {
         const user = await findUserById(entry.userId);
         const projects = await getProjects();
-        const projectName = projects.find(p => p.id === entry.tournamentId)?.name || '不明な大会';
+        const project = projects.find(p => p.id === entry.tournamentId);
+        const projectName = project?.name || '不明な大会';
+
+        let isWaitlist = false;
+        if (project && project.maxTeams) {
+            const allEntries = await db.teamEntry.findMany({
+                where: { tournamentId: entry.tournamentId, status: { not: 'cancelled' } },
+                orderBy: { createdAt: 'asc' },
+                select: { id: true }
+            });
+            const index = allEntries.findIndex((e: { id: string }) => e.id === entry.id);
+            if (index !== -1 && index >= project.maxTeams) {
+                isWaitlist = true;
+            }
+        }
+
         return NextResponse.json({
-            teamEntry: { ...entry, projectName },
+            teamEntry: { ...entry, projectName, isWaitlist },
             user
         });
     } else {

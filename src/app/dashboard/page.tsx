@@ -264,17 +264,19 @@ export default function UserDashboard() {
                                                                     <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/10">
                                                                         {(entry as any).projectName || entry.tournamentId}
                                                                     </div>
-                                                                    <div className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted'
-                                                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                                                    <div className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !(entry as any).isWaitlist
+                                                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                                            : (entry as any).isWaitlist
+                                                                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                                                                : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                                                                         }`}>
-                                                                        {entry.status === 'submitted' ? (
+                                                                        {entry.status === 'submitted' && !(entry as any).isWaitlist ? (
                                                                             <span className="relative flex h-2 w-2">
                                                                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                                                             </span>
                                                                         ) : null}
-                                                                        {entry.status === 'submitted' ? '登録完了' : '下書き'}
+                                                                        {(entry as any).isWaitlist ? 'キャンセル待ち' : (entry.status === 'submitted' ? '登録完了' : '下書き')}
                                                                     </div>
                                                                 </div>
 

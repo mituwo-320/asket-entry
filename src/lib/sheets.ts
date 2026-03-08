@@ -448,7 +448,7 @@ export async function getAllAdminData() {
             teamNameKana: e.teamNameKana,
             teamIntroduction: e.teamIntroduction,
             isBeginnerFriendlyAccepted: e.isBeginnerFriendlyAccepted,
-            status: e.status as 'draft' | 'submitted',
+            status: e.status as 'draft' | 'submitted' | 'cancelled',
             isPaid: e.isPaid,
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
