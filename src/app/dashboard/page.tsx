@@ -6,7 +6,7 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion } from "framer-motion";
@@ -215,9 +215,17 @@ export default function UserDashboard() {
                                 </h3>
                                 <Link href="/team/register" className="w-full sm:w-auto">
                                     <Button variant="primary" className="w-full sm:w-auto">
-                                        <Plus className="w-5 h-5 mr-2" /> 新規エントリー
+                                        <Plus className="w-5 h-5 mr-2" /> 他の大会に新規エントリー
                                     </Button>
                                 </Link>
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-amber-400/90 text-sm">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-amber-400 mb-1">【重要】メンバー登録のお願い</p>
+                                    <p>以下の大会へのエントリーは完了していますが、まだメンバー登録が終わっていません。<br className="hidden sm:block" />各大会の<strong className="text-amber-300">エントリー期限を過ぎると、メンバーの追加や内容の編集ができなくなります</strong>ので、お早めに「チーム編集・メンバー追加」からご登録ください。</p>
+                                </div>
                             </motion.div>
 
                             {/* Active Entries Section */}
@@ -285,8 +293,8 @@ export default function UserDashboard() {
                                                             </div>
 
                                                             <div className="px-4 pb-4 sm:p-6 flex items-center justify-center sm:justify-end sm:border-l border-white/5 bg-white/[0.02] mt-2 sm:mt-0">
-                                                                <div className="w-full sm:w-auto bg-indigo-500/10 sm:bg-transparent border border-indigo-500/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-medium text-indigo-400 group-hover:text-indigo-300 transition-colors">
-                                                                    詳細を確認 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                <div className="w-full sm:w-auto bg-indigo-500/10 sm:bg-transparent border border-indigo-500/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                                                                    チーム編集・メンバー追加 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                                 </div>
                                                             </div>
                                                         </div>

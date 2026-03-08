@@ -352,29 +352,51 @@ export default function RegisterPage() {
                                 required
                                 className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                             />
-                            {formData.existingUserId ? (
-                                <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm mt-2">
-                                    <p className="text-xs text-slate-500 mb-1">リーダー (連絡担当者) 氏名</p>
-                                    <p>{formData.representative}</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <Input
-                                        placeholder="リーダー (連絡担当者) 氏名"
-                                        value={formData.representative}
-                                        onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
-                                        required
-                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                                    />
-                                    <Input
-                                        placeholder="リーダー (連絡担当者) 氏名 (フリガナ)"
-                                        value={formData.furigana}
-                                        onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
-                                        required
-                                        className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
-                                    />
-                                </>
-                            )}
+                        </div>
+
+                        {/* --- NEW: Section Break for Leader Info --- */}
+                        <div className="relative py-4">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-slate-800"></div>
+                            </div>
+                            <div className="relative flex justify-center">
+                                <span className="bg-slate-900 px-3 text-xs font-medium text-emerald-400 border border-slate-800 rounded-full flex items-center gap-1.5 shadow-sm">
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                    ここからはあなた自身（リーダー）の登録です
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 bg-slate-950/30 border border-slate-800/50 rounded-xl p-5">
+                            <h3 className="text-sm font-bold text-slate-200 mb-2">1人目のメンバー（リーダー情報）</h3>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">氏名 <span className="text-red-400 ml-1">*必須</span></label>
+                                {formData.existingUserId ? (
+                                    <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm mt-2">
+                                        <p className="text-xs text-slate-500 mb-1">リーダー (連絡担当者) 氏名</p>
+                                        <p>{formData.representative}</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Input
+                                            placeholder="リーダー (連絡担当者) 氏名"
+                                            value={formData.representative}
+                                            onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
+                                            required
+                                            className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                        />
+                                        <Input
+                                            placeholder="リーダー (連絡担当者) 氏名 (フリガナ)"
+                                            value={formData.furigana}
+                                            onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
+                                            required
+                                            className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                        />
+                                    </>
+                                )}
+                            </div>
+
                         </div>
 
                         {!formData.existingUserId ? (
@@ -399,7 +421,7 @@ export default function RegisterPage() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">リーダー連絡先</label>
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">連絡先</label>
                                 <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm">
                                     <p className="text-xs text-slate-500 mb-1">ログイン中のアカウントのアドレスを使用します</p>
                                     <p>{formData.email}</p>
@@ -407,26 +429,7 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-400 ml-1">*必須</span></label>
-                            <p className="text-[10px] text-slate-500 px-1 mb-1">※ 1〜16の枠から好きな数字を選択してください。重複した場合はエントリー順により繰り上がりとなります。</p>
-                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                                {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
-                                    <div
-                                        key={num}
-                                        onClick={() => setFormData({ ...formData, preliminaryNumber: num.toString() })}
-                                        className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.preliminaryNumber === num.toString()
-                                            ? "border-amber-500 bg-amber-500/20 text-amber-400 font-bold"
-                                            : "border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
-                                            }`}
-                                    >
-                                        {num}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
+                        <div className="space-y-3 pt-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">スポーツ保険の加入状況 <span className="text-red-400 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Option 1: Join Insurance */}

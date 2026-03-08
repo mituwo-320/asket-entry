@@ -125,15 +125,25 @@ function DashboardContent() {
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                         return (
-                            <div className={`p-4 rounded-xl border flex items-center gap-3 ${diffTime > 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
-                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <div className={`p-5 rounded-xl border flex items-start gap-4 ${diffTime > 0 ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
+                                <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <h3 className="font-bold text-sm">
-                                        {diffTime > 0 ? "エントリー・編集締切まで" : "エントリー受付期間終了"}
+                                    <h3 className="font-bold text-lg mb-1">
+                                        {diffTime > 0 ? "⚠️ エントリー期限についてのお知らせ" : "❌ エントリー受付期間終了"}
                                     </h3>
-                                    <p className="text-xs opacity-80 mt-1">
-                                        {diffTime > 0 ? `残り ${diffDays} 日 (${deadline.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })})` : "参加内容の編集はできません。"}
-                                    </p>
+                                    {diffTime > 0 ? (
+                                        <div className="space-y-2 text-sm text-amber-400/90">
+                                            <p className="font-bold">
+                                                メンバー登録締切まで残り <span className="text-xl text-amber-300 mx-1">{diffDays}</span> 日
+                                                <span className="text-xs ml-2 opacity-80">({deadline.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</span>
+                                            </p>
+                                            <p>期限を過ぎると、追加メンバーの登録や情報変更ができなくなります。<br className="hidden sm:block" />必ず期限内に、すべての出場メンバーの「選手を追加」登録を完了させてください。</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm">
+                                            参加内容の編集期限を過ぎたため、現在メンバーの登録や変更はできません。<br />変更が必要な場合は運営にお問い合わせください。
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         );
