@@ -354,6 +354,25 @@ export default function RegisterPage() {
                             />
                         </div>
 
+                        <div className="space-y-2 pt-2 pb-2">
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-400 ml-1">*必須</span></label>
+                            <p className="text-[10px] text-slate-500 px-1 mb-1">※ 1〜{activeProject?.maxTeams || 16}の枠から好きな数字を選択してください。重複した場合はエントリー順により繰り上がりとなります。</p>
+                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                                {Array.from({ length: activeProject?.maxTeams || 16 }, (_, i) => i + 1).map(num => (
+                                    <div
+                                        key={num}
+                                        onClick={() => setFormData({ ...formData, preliminaryNumber: num.toString() })}
+                                        className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.preliminaryNumber === num.toString()
+                                            ? "border-amber-500 bg-amber-500/20 text-amber-400 font-bold"
+                                            : "border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
+                                            }`}
+                                    >
+                                        {num}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* --- NEW: Section Break for Leader Info --- */}
                         <div className="relative py-4">
                             <div className="absolute inset-0 flex items-center">
