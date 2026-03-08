@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle, Copy, Check } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle, Copy, Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -321,6 +321,30 @@ export default function RegisterPage() {
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">参加する大会日程 <span className="text-red-400 ml-1">*必須</span></label>
+
+                            {formData.projectId && (() => {
+                                const selectedProject = projects.find(p => p.id === formData.projectId);
+                                if (selectedProject && selectedProject.maxTeams) {
+                                    const isFull = (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
+                                    return (
+                                        <div className={`p-3 rounded-lg border flex items-center gap-3 text-sm font-medium mb-3 transition-colors ${isFull ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'}`}>
+                                            <div className="flex-1">
+                                                {isFull ? (
+                                                    <span className="flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />大変申し訳ありません。現在満員枠となっております。（キャンセル待ちとして登録されます）</span>
+                                                ) : (
+                                                    <span>現在のエントリー状況：</span>
+                                                )}
+                                            </div>
+                                            <div className="text-lg tabular-nums tracking-tighter shrink-0 flex items-baseline gap-1 bg-slate-900/50 px-3 py-1 rounded-md border border-slate-800/50">
+                                                <span className={isFull ? 'text-red-300' : 'text-white'}>{selectedProject.currentEntryCount || 0}</span>
+                                                <span className="text-xs text-slate-500 font-normal">/ {selectedProject.maxTeams} チーム</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
                             <select
                                 value={formData.projectId}
                                 onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
@@ -328,9 +352,14 @@ export default function RegisterPage() {
                                 className="bg-slate-950/50 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 h-11 outline-none"
                             >
                                 <option value="" disabled>選択してください</option>
-                                {projects.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
+                                {projects.map(p => {
+                                    const isFull = p.maxTeams && (p.currentEntryCount || 0) >= p.maxTeams;
+                                    return (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name} {isFull ? '(キャンセル待ち)' : ''}
+                                        </option>
+                                    );
+                                })}
                             </select>
                             <p className="text-[10px] text-slate-500 px-1">募集中の日程から選択してください。</p>
                         </div>
@@ -598,14 +627,26 @@ export default function RegisterPage() {
 
                     <Button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
-                        disabled={isLoading}
+                        className={`w-full font-medium py-6 transition-all duration-300 ${(() => {
+                                const selectedProject = projects.find(p => p.id === formData.projectId);
+                                const isFull = selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
+                                return isFull
+                                    ? "bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700"
+                                    : "bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-500/20"
+                            })()
+                            }`}
+                        disabled={isLoading || (() => {
+                            const selectedProject = projects.find(p => p.id === formData.projectId);
+                            return selectedProject?.maxTeams ? (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams : false;
+                        })()}
                     >
                         {isLoading ? (
                             <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> 登録中...</>
-                        ) : (
-                            "上記の内容でエントリーする"
-                        )}
+                        ) : (() => {
+                            const selectedProject = projects.find(p => p.id === formData.projectId);
+                            const isFull = selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
+                            return isFull ? "この日程は満員のためエントリーできません" : "上記の内容でエントリーする";
+                        })()}
                     </Button>
                 </form>
             </Card>

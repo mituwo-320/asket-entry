@@ -25,6 +25,18 @@ export async function getProjects(): Promise<Project[]> {
     }
 }
 
+export async function getProjectEntryCount(projectId: string): Promise<number> {
+    try {
+        const count = await db.teamEntry.count({
+            where: { tournamentId: projectId }
+        });
+        return count;
+    } catch (e) {
+        console.error('getProjectEntryCount error:', e);
+        return 0;
+    }
+}
+
 export async function saveProject(project: Project): Promise<boolean> {
     try {
         await db.project.upsert({

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProjects } from '@/lib/sheets';
+import { getProjects, getProjectEntryCount } from '@/lib/sheets';
 
 export async function GET() {
     try {
@@ -13,7 +13,12 @@ export async function GET() {
             return true;
         });
 
-        return NextResponse.json({ projects: activeProjects });
+        const activeProjectsWithCounts = await Promise.all(activeProjects.map(async (p) => {
+            const count = await getProjectEntryCount(p.id);
+            return { ...p, currentEntryCount: count };
+        }));
+
+        return NextResponse.json({ projects: activeProjectsWithCounts });
     } catch (e) {
         return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
     }
