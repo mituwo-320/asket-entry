@@ -12,10 +12,14 @@ export async function GET(request: Request) {
     const projects = await getProjects();
     const entries = await getUserEntries(userId);
 
-    const entriesWithProjectName = entries.map(entry => ({
-        ...entry,
-        projectName: projects.find(p => p.id === entry.tournamentId)?.name || '不明な大会'
-    }));
+    const entriesWithProjectName = entries.map(entry => {
+        const project = projects.find(p => p.id === entry.tournamentId);
+        return {
+            ...entry,
+            projectName: project?.name || '不明な大会',
+            projectEndDate: project?.entryEndDate || null
+        };
+    });
 
     return NextResponse.json({ entries: entriesWithProjectName });
 }

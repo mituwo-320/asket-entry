@@ -292,7 +292,21 @@ export default function UserDashboard() {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="px-4 pb-4 sm:p-6 flex items-center justify-center sm:justify-end sm:border-l border-white/5 bg-white/[0.02] mt-2 sm:mt-0">
+                                                            <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 bg-white/[0.02] mt-2 sm:mt-0">
+                                                                {(entry as any).projectEndDate && (() => {
+                                                                    const deadline = new Date((entry as any).projectEndDate);
+                                                                    const diffTime = deadline.getTime() - new Date().getTime();
+                                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                                    return (
+                                                                        <div className={`text-xs mb-3 font-medium text-center sm:text-right ${diffTime > 0 ? "text-amber-400" : "text-red-400"}`}>
+                                                                            {diffTime > 0 ? (
+                                                                                <>締切まであと <span className="text-base font-bold text-amber-300">{diffDays}</span> 日<br /><span className="opacity-80 text-[10px]">({deadline.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })})</span></>
+                                                                            ) : (
+                                                                                <>募集終了<br /><span className="opacity-80 text-[10px]">編集できません</span></>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })()}
                                                                 <div className="w-full sm:w-auto bg-indigo-500/10 sm:bg-transparent border border-indigo-500/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors">
                                                                     チーム編集・メンバー追加 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                                 </div>
