@@ -15,23 +15,8 @@ export async function POST(request: Request) {
         let userWristband = body.wristbandColor;
         const tournamentId = body.tournamentId;
 
-        // --- NEW: Check Team Limits First ---
-        if (tournamentId) {
-            const project = await db.project.findUnique({
-                where: { id: tournamentId }
-            });
-
-            if (project && project.maxTeams) {
-                // Count existing entries for this project
-                const currentCount = await db.teamEntry.count({
-                    where: { tournamentId: tournamentId }
-                });
-
-                if (currentCount >= project.maxTeams) {
-                    return NextResponse.json({ error: `大変申し訳ありません。この大会は定員（${project.maxTeams}チーム）に達したため、現在キャンセル待ちまたは受付終了となっております。` }, { status: 400 });
-                }
-            }
-        }
+        // --- Waitlist Logic ---
+        // Capacity limit checked for UI display, but backend allows registration (acts as waitlist)
         // ------------------------------------
 
         if (body.existingUserId) {
