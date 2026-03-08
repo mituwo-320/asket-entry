@@ -9,8 +9,7 @@
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "vercel-build": "prisma generate && next build",
-    "postinstall": "prisma generate"
+    "postinstall": "rm -rf node_modules/.prisma node_modules/@prisma/client && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
