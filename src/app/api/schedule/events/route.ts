@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getScheduleEvents, saveScheduleEvents } from '@/lib/sheets';
+import { getScheduleEvents, saveScheduleEvents, deleteScheduleEvent } from '@/lib/sheets';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -33,6 +33,29 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true });
         } else {
             return NextResponse.json({ error: 'Failed to save events' }, { status: 500 });
+        }
+
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const eventId = searchParams.get('id');
+
+        if (!eventId) {
+            return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
+        }
+
+        const success = await deleteScheduleEvent(eventId);
+
+        if (success) {
+            return NextResponse.json({ success: true });
+        } else {
+            return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
         }
     } catch (e) {
         console.error(e);

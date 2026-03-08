@@ -1,0 +1,15 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.7.0
+2 info using node@v20.14.0
+3 silly config:load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config:load:file:/Users/kousei/antigravity/test1/tournament-manager/.npmrc
+5 silly config:load:file:/Users/kousei/.npmrc
+6 silly config:load:file:/Users/kousei/.npm-global/etc/npmrc
+7 verbose title npm cache clean
+8 verbose argv "cache" "clean" "--force" "--cache" "./_npmcache"
+9 verbose logfile logs-max:10 dir:/Users/kousei/antigravity/test1/tournament-manager/_prisma_temp/_npmcache/_logs/2026-02-26T21_20_05_602Z-
+10 verbose logfile /Users/kousei/antigravity/test1/tournament-manager/_prisma_temp/_npmcache/_logs/2026-02-26T21_20_05_602Z-debug-0.log
+11 warn using --force Recommended protections disabled.
+12 silly logfile done cleaning log files
+13 verbose exit 0
+14 info ok

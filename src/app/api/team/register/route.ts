@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { saveTeamEntry, saveUser } from '@/lib/sheets';
 import { TeamEntry, User, Player } from '@/lib/types';
-import { sendAdminNotificationEmail } from '@/lib/mail';
+import { sendAdminNotificationEmail, sendUserRegistrationEmail } from '@/lib/mail';
+import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: Request) {
@@ -12,6 +13,26 @@ export async function POST(request: Request) {
         let userName = body.representative;
         let userEmail = body.email;
         let userWristband = body.wristbandColor;
+        const tournamentId = body.tournamentId;
+
+        // --- NEW: Check Team Limits First ---
+        if (tournamentId) {
+            const project = await db.project.findUnique({
+                where: { id: tournamentId }
+            });
+
+            if (project && project.maxTeams) {
+                // Count existing entries for this project
+                const currentCount = await db.teamEntry.count({
+                    where: { tournamentId: tournamentId }
+                });
+
+                if (currentCount >= project.maxTeams) {
+                    return NextResponse.json({ error: `大変申し訳ありません。この大会は定員（${project.maxTeams}チーム）に達したため、現在キャンセル待ちまたは受付終了となっております。` }, { status: 400 });
+                }
+            }
+        }
+        // ------------------------------------
 
         if (body.existingUserId) {
             userId = body.existingUserId;
@@ -67,12 +88,39 @@ export async function POST(request: Request) {
         const success = await saveTeamEntry(newEntry);
 
         if (success) {
-            // Trigger admin notification email asynchronously (do not await to speed up response)
+            // Fetch project to get name, and calculate current count (we add 1 to current count to signify this new team)
+            let projectName = body.tournamentId;
+            let currentTeamCountStr = '';
+
+            try {
+                const p = await db.project.findUnique({ where: { id: body.tournamentId } });
+                if (p) projectName = p.name;
+                const count = await db.teamEntry.count({ where: { tournamentId: body.tournamentId } });
+                if (p && p.maxTeams) {
+                    currentTeamCountStr = `現在 ${count}チーム目 / 上限 ${p.maxTeams}チーム`;
+                } else {
+                    currentTeamCountStr = `現在 ${count}チーム目`;
+                }
+            } catch (e) {
+                console.error("Failed to fetch project details for email", e);
+            }
+
+            // Trigger admin notification email asynchronously
             sendAdminNotificationEmail({
                 teamName: body.name,
                 representative: userName,
                 email: userEmail,
                 projectId: body.tournamentId,
+                projectName: projectName,
+                teamCountString: currentTeamCountStr
+            }).catch(console.error);
+
+            // Trigger User confirmation email asynchronously
+            sendUserRegistrationEmail({
+                teamName: body.name,
+                representative: userName,
+                email: userEmail,
+                projectName: projectName
             }).catch(console.error);
 
             return NextResponse.json({

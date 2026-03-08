@@ -31,6 +31,7 @@ model Project {
   entryStartDate DateTime?
   entryEndDate     DateTime?
   lineOpenChatLink String?
+  maxTeams         Int?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }

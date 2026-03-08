@@ -282,10 +282,34 @@ export default function RegisterPage() {
                             新規エントリー
                         </h1>
                     </div>
-                    <p className="text-slate-400 text-sm pl-11">
+                    <p className="text-slate-400 text-sm pl-11 mb-6">
                         大会への参加申し込みを行います。<br />
                         登録後、すぐにマイページをご利用いただけます。
                     </p>
+
+                    {/* NEW: Registration Flow Guide */}
+                    <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-5 mb-8">
+                        <h3 className="font-bold text-indigo-400 mb-4 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5" />
+                            まずはリーダーのエントリーから
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold">1</div>
+                                <div>
+                                    <p className="font-medium text-slate-200">リーダー（連絡担当者）がエントリー</p>
+                                    <p className="text-sm text-slate-400 mt-1">この画面でチーム情報と、リーダーご自身の情報を「1人目のメンバー」として登録します。</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center justify-center font-bold">2</div>
+                                <div>
+                                    <p className="font-medium text-slate-200">他のメンバーを追加登録</p>
+                                    <p className="text-sm text-slate-400 mt-1">エントリー完了後に画面が切り替わります。<br />マイページから他のメンバーの情報を追加してください。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {formData.projectId && projects.find(p => p.id === formData.projectId)?.entryEndDate && (
                         <div className="mt-4 pl-11 text-amber-400 text-sm font-medium">
                             締切: {new Date(projects.find(p => p.id === formData.projectId)!.entryEndDate!).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -330,20 +354,20 @@ export default function RegisterPage() {
                             />
                             {formData.existingUserId ? (
                                 <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm mt-2">
-                                    <p className="text-xs text-slate-500 mb-1">代表者氏名</p>
+                                    <p className="text-xs text-slate-500 mb-1">リーダー (連絡担当者) 氏名</p>
                                     <p>{formData.representative}</p>
                                 </div>
                             ) : (
                                 <>
                                     <Input
-                                        placeholder="代表者氏名"
+                                        placeholder="リーダー (連絡担当者) 氏名"
                                         value={formData.representative}
                                         onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
                                         required
                                         className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
                                     />
                                     <Input
-                                        placeholder="代表者氏名 (フリガナ)"
+                                        placeholder="リーダー (連絡担当者) 氏名 (フリガナ)"
                                         value={formData.furigana}
                                         onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
                                         required
@@ -375,7 +399,7 @@ export default function RegisterPage() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">代表者連絡先</label>
+                                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">リーダー連絡先</label>
                                 <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-md text-slate-300 text-sm">
                                     <p className="text-xs text-slate-500 mb-1">ログイン中のアカウントのアドレスを使用します</p>
                                     <p>{formData.email}</p>
@@ -424,7 +448,8 @@ export default function RegisterPage() {
                                         </div>
                                         <div>
                                             <h3 className={`font-bold ${formData.insurance ? "text-emerald-400" : "text-slate-300"}`}>大会保険に加入</h3>
-                                            <p className="text-xs text-slate-400 mt-1">大会が指定するスポ―ツ保険に加入します (推奨)</p>
+                                            <p className="text-xs text-slate-400 mt-1">大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</p>
+                                            <p className="text-xs text-amber-500/80 mt-1">※腰痛や鞭打ちなどは対象外</p>
                                             <p className="text-xs font-bold text-emerald-400 mt-1">※ 別途{settings?.insuranceFee || 150}円が必要です</p>
                                         </div>
                                     </div>
@@ -457,7 +482,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">代表者のリストバンド色 <span className="text-red-400 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">リーダーのリストバンド色 <span className="text-red-400 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 gap-2">
                                 <p className="text-xs text-slate-500 mb-1">
                                     ※ 試合中の識別に使用します。ご自身の経験に合わせて選択してください。

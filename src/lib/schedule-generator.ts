@@ -1,73 +1,61 @@
 import { TeamEntry, Match } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
-export function generateTournamentSchedule(teams: TeamEntry[], tournamentId: string): Match[] {
+export function generateTournamentSchedule(
+    teams: TeamEntry[],
+    tournamentId: string,
+    config?: {
+        startTime: string;
+        courts: number;
+        matchDuration: number;
+        interval: number;
+        slotsPerCourt: number; // Added new config parameter
+    }
+): Match[] {
     const matches: Match[] = [];
 
-    // 1. Group Teams
-    const groupedTeams: { [group: string]: TeamEntry[] } = {};
-    const ungroupedTeams: TeamEntry[] = [];
+    if (!config) return matches;
 
-    teams.forEach(team => {
-        if (team.group) {
-            if (!groupedTeams[team.group]) groupedTeams[team.group] = [];
-            groupedTeams[team.group].push(team);
-        } else {
-            ungroupedTeams.push(team);
-        }
-    });
+    const { startTime, courts, matchDuration, interval, slotsPerCourt } = config;
+    let currentTime = parseTime(startTime);
+    const courtNames = ['A', 'B'];
 
-    // 2. Generate Round Robin for each Group
-    Object.entries(groupedTeams).forEach(([groupName, groupTeams]) => {
-        // Simple Round Robin
-        for (let i = 0; i < groupTeams.length; i++) {
-            for (let j = i + 1; j < groupTeams.length; j++) {
-                matches.push({
-                    id: "m_" + uuidv4(),
-                    tournamentId: tournamentId,
-                    teamIdA: groupTeams[i].id,
-                    teamIdB: groupTeams[j].id,
-                    status: 'scheduled',
-                    round: 1, // Preliminary
-                    time: "10:00", // Default
-                    court: "A",     // Default
-                    matchNumber: `${groupName}-${matches.length + 1}` // e.g. A-1, A-2... (Wait, this counter is global to loop? No, global to matches array. Suffix might be confusing. Let's make it simpler)
-                });
-            }
-        }
-    });
+    // Generate empty slots for each time period
+    for (let i = 0; i < slotsPerCourt; i++) {
+        const timeString = formatTime(currentTime);
 
-    // 3. Improve Match Numbering (Optional post-processing)
-    // Let's re-map matchNumbers to be Group-Index based
-    let groupCounters: { [key: string]: number } = {};
-    matches.forEach(m => {
-        // Find group of teamA
-        const teamA = teams.find(t => t.id === m.teamIdA);
-        const group = teamA?.group || 'U'; // U for Unknown/Ungrouped
-
-        if (!groupCounters[group]) groupCounters[group] = 0;
-        groupCounters[group]++;
-        m.matchNumber = `${group}-${groupCounters[group]}`;
-    });
-
-
-    // 4. Handle Ungrouped Teams (Fallback to simple pairing if any)
-    if (ungroupedTeams.length > 0) {
-        const shuffled = [...ungroupedTeams].sort(() => Math.random() - 0.5);
-        for (let i = 0; i < Math.floor(shuffled.length / 2); i++) {
+        // Generate a match for each court in this time slot
+        for (let c = 0; c < courts; c++) {
+            const courtName = courtNames[c] || `Court ${c + 1}`;
             matches.push({
                 id: "m_" + uuidv4(),
                 tournamentId: tournamentId,
-                teamIdA: shuffled[i * 2].id,
-                teamIdB: shuffled[i * 2 + 1].id,
+                teamIdA: "", // Empty!
+                teamIdB: "", // Empty!
                 status: 'scheduled',
-                round: 1,
-                time: "10:00",
-                court: "B",
-                matchNumber: `Ex-${i + 1}`
+                time: timeString,
+                court: courtName,
+                matchNumber: `${courtName}-${i + 1}`
             });
         }
+
+        // Advance time for the next slot
+        currentTime += matchDuration + interval;
     }
 
+
     return matches;
+}
+
+// Helper to convert "10:00" to minutes since midnight
+function parseTime(timeStr: string): number {
+    const [hours, mins] = timeStr.split(':').map(Number);
+    return (hours * 60) + (mins || 0);
+}
+
+// Helper to convert minutes to "HH:MM"
+function formatTime(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }

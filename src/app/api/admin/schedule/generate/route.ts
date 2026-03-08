@@ -6,19 +6,18 @@ import { TeamEntry } from '@/lib/types';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { tournamentId } = body;
+        const { tournamentId, config } = body;
+
+        console.log("Generating schedule for", tournamentId, "with config:", config);
 
         if (!tournamentId) {
             return NextResponse.json({ error: 'Tournament ID is required' }, { status: 400 });
         }
 
-        // 1. Fetch all entries
+        // We no longer strictly need validEntries to be > 2 to generate empty slots
+        // But we can still fetch them so `generateTournamentSchedule` signature doesn't break
         const { entries } = await getAllAdminData();
         const validEntries = (entries as unknown as TeamEntry[]).filter(e => e.status === 'submitted' && e.tournamentId === tournamentId);
-
-        if (validEntries.length < 2) {
-            return NextResponse.json({ error: 'Not enough teams to generate a schedule' }, { status: 400 });
-        }
 
         // 2. Check if schedule already exists
         const existingMatches = await getMatches(tournamentId);
@@ -33,7 +32,7 @@ export async function POST(request: Request) {
         }
 
         // 3. Generate Schedule
-        const newMatches = generateTournamentSchedule(validEntries, tournamentId);
+        const newMatches = generateTournamentSchedule(validEntries, tournamentId, config);
 
         // 4. Save
         const success = await saveMatches(newMatches);

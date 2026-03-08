@@ -20,6 +20,8 @@ export async function sendAdminNotificationEmail(teamData: {
     representative: string;
     email: string;
     projectId?: string;
+    projectName?: string;
+    teamCountString?: string;
 }) {
     const adminEmail = process.env.ADMIN_EMAIL;
 
@@ -48,6 +50,8 @@ export async function sendAdminNotificationEmail(teamData: {
                         <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">代表者名</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.representative}</td></tr>
                         <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">メールアドレス</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.email}</td></tr>
                         <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">大会ID</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.projectId || '不明'}</td></tr>
+                        <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">大会名</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.projectName || '不明'}</td></tr>
+                        <tr><th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">エントリー状況</th><td style="padding: 8px; border-bottom: 1px solid #ddd;">${teamData.teamCountString || '不明'}</td></tr>
                     </table>
                     <p>詳細は<a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin" style="color: #4f46e5; text-decoration: none; font-weight: bold;">vankycup管理画面</a>からご確認ください。</p>
                 </div>
@@ -56,6 +60,55 @@ export async function sendAdminNotificationEmail(teamData: {
         return true;
     } catch (error) {
         console.error('Failed to send admin notification email:', error);
+        return false;
+    }
+}
+
+/**
+ * Sends a confirmation email to the user when they register a new team.
+ */
+export async function sendUserRegistrationEmail(teamData: {
+    teamName: string;
+    representative: string;
+    email: string;
+    projectName?: string;
+}) {
+    // If SMTP is not configured, just log to console
+    if (!process.env.SMTP_USER) {
+        console.log('--- Email Setup Missing ---');
+        console.log('Would have sent User Registration Email:');
+        console.log(`To: ${teamData.email}`);
+        console.log(`Team: ${teamData.teamName} (${teamData.representative})`);
+        return true; // Simulate success
+    }
+
+    try {
+        await transporter.sendMail({
+            from: `"vankycup" <${process.env.SMTP_USER}>`,
+            to: teamData.email,
+            subject: `【vankycup】エントリー受付完了のお知らせ (${teamData.projectName || '大会'})`,
+            text: `${teamData.representative} 様\n\nこの度は、vankycup (${teamData.projectName || '大会'}) に「${teamData.teamName}」としてエントリーいただき、誠にありがとうございます。\n\nリーダーとしてのエントリーが完了いたしました。\n他のメンバーの登録については、ログイン後マイページより追加登録を行ってください。\n\n引き続きよろしくお願いいたします。\n\n${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}`,
+            html: `
+                <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #4f46e5; border-bottom: 2px solid #4f46e5; padding-bottom: 10px;">エントリー受付完了のお知らせ</h2>
+                    <p>${teamData.representative} 様</p>
+                    <p>この度は、<strong>vankycup (${teamData.projectName || '大会'})</strong> に「${teamData.teamName}」としてエントリーいただき、誠にありがとうございます。</p>
+                    <p>リーダーとしてのエントリーが正常に完了いたしました。</p>
+                    <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 15px; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">今後の手順（メンバー追加について）</h3>
+                        <p style="margin-bottom: 0;">リーダー以外のメンバー情報は、マイページより個別に追加登録していただく必要があります。大会当日までにメンバーの追加と保険加入（任意）の手続きをお済ませください。</p>
+                    </div>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">マイページにログインする</a>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin-top: 30px;" />
+                    <p style="font-size: 0.8em; color: #999; text-align: center;">vankycup 運営事務局</p>
+                </div>
+            `,
+        });
+        return true;
+    } catch (error) {
+        console.error('Failed to send user registration email:', error);
         return false;
     }
 }

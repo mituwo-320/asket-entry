@@ -9,13 +9,14 @@ export async function getProjects(): Promise<Project[]> {
         const projects = await db.project.findMany({
             orderBy: { createdAt: 'asc' }
         });
-        return projects.map(p => ({
+        return projects.map((p: any) => ({
             id: p.id,
             name: p.name,
             isActive: p.isActive,
             entryStartDate: p.entryStartDate ? p.entryStartDate.toISOString() : undefined,
             entryEndDate: p.entryEndDate ? p.entryEndDate.toISOString() : undefined,
             lineOpenChatLink: p.lineOpenChatLink || undefined,
+            maxTeams: p.maxTeams || undefined,
             createdAt: p.createdAt.toISOString()
         }));
     } catch (e) {
@@ -33,7 +34,8 @@ export async function saveProject(project: Project): Promise<boolean> {
                 isActive: project.isActive,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
-                lineOpenChatLink: project.lineOpenChatLink || null
+                lineOpenChatLink: project.lineOpenChatLink || null,
+                maxTeams: project.maxTeams || null
             },
             create: {
                 id: project.id,
@@ -41,7 +43,8 @@ export async function saveProject(project: Project): Promise<boolean> {
                 isActive: project.isActive,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
-                lineOpenChatLink: project.lineOpenChatLink || null
+                lineOpenChatLink: project.lineOpenChatLink || null,
+                maxTeams: project.maxTeams || null
             }
         });
         return true;
@@ -186,7 +189,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             include: { players: true }
         });
 
-        return entries.map(e => ({
+        return entries.map((e: any) => ({
             id: e.id,
             userId: e.userId,
             tournamentId: e.tournamentId,
@@ -199,7 +202,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map(p => ({
+            players: e.players.map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -235,7 +238,7 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map(p => ({
+            players: e.players.map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -330,7 +333,7 @@ export async function getMatches(tournamentId: string): Promise<Match[]> {
         const matches = await db.match.findMany({
             where: { tournamentId }
         });
-        return matches.map(m => ({
+        return matches.map((m: any) => ({
             id: m.id,
             tournamentId: m.tournamentId,
             teamIdA: m.teamIdA || '',
@@ -389,7 +392,7 @@ export async function getScheduleEvents(tournamentId: string): Promise<ScheduleE
         const events = await db.event.findMany({
             where: { tournamentId }
         });
-        return events.map(e => ({
+        return events.map((e: any) => ({
             id: e.id,
             tournamentId: e.tournamentId,
             type: e.type as 'match' | 'ceremony' | 'break' | 'other',
@@ -404,6 +407,18 @@ export async function getScheduleEvents(tournamentId: string): Promise<ScheduleE
     }
 }
 
+export async function deleteScheduleEvent(eventId: string): Promise<boolean> {
+    try {
+        await db.event.delete({
+            where: { id: eventId }
+        });
+        return true;
+    } catch (e) {
+        console.error('deleteScheduleEvent error:', e);
+        return false;
+    }
+}
+
 // --- Admin Helpers ---
 
 export async function getAllAdminData() {
@@ -413,7 +428,7 @@ export async function getAllAdminData() {
             include: { players: true }
         });
 
-        const formattedEntries = entries.map(e => ({
+        const formattedEntries = entries.map((e: any) => ({
             id: e.id,
             userId: e.userId,
             tournamentId: e.tournamentId,
@@ -426,7 +441,7 @@ export async function getAllAdminData() {
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map(p => ({
+            players: e.players.map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -436,7 +451,7 @@ export async function getAllAdminData() {
             }))
         }));
 
-        const formattedUsers = users.map(u => ({
+        const formattedUsers = users.map((u: any) => ({
             id: u.id,
             email: u.email,
             name: u.name,

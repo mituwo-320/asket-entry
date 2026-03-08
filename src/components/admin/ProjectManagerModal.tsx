@@ -170,6 +170,22 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
 
                                                     <div className="space-y-1 sm:col-span-2">
+                                                        <label className="text-[10px] text-slate-400 uppercase tracking-widest">エントリー上限チーム数</label>
+                                                        <Input
+                                                            type="number"
+                                                            min="1"
+                                                            placeholder="例: 12"
+                                                            value={p.maxTeams || ''}
+                                                            onChange={(e) => {
+                                                                const updated = [...localProjects];
+                                                                updated[index].maxTeams = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                                                                setLocalProjects(updated);
+                                                            }}
+                                                            className="h-9 bg-slate-900 border-slate-700"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">LINEオープンチャットURL</label>
                                                         <Input
                                                             type="url"
@@ -209,6 +225,8 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             <span>開始: {p.entryStartDate ? new Date(p.entryStartDate).toLocaleString('ja-JP') : '未設定'}</span>
                                                             <span className="hidden sm:inline">|</span>
                                                             <span>終了: {p.entryEndDate ? new Date(p.entryEndDate).toLocaleString('ja-JP') : '未設定'}</span>
+                                                            <span className="hidden sm:inline">|</span>
+                                                            <span>上限: {p.maxTeams ? `${p.maxTeams}チーム` : 'なし'}</span>
                                                         </p>
                                                     </div>
                                                     <Button variant="ghost" size="sm" onClick={() => setEditingId(p.id)} className="h-8">

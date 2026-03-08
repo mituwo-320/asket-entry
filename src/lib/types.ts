@@ -27,6 +27,7 @@ export interface Project {
     entryStartDate?: string;
     entryEndDate?: string;
     lineOpenChatLink?: string;
+    maxTeams?: number; // NEW: Maximum number of teams allowed
     createdAt?: string;
 }
 
