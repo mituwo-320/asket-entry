@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  // Ensure we suppress turbopack related build errors on Vercel
+  // when custom webpack config is used.
+  turbopack: {},
 };
 
 export default nextConfig;
