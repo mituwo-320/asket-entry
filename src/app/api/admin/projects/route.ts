@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProjects, saveProject } from '@/lib/sheets';
+import { getProjects, saveProject, deleteProject } from '@/lib/sheets';
 import { Project } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -51,6 +51,28 @@ export async function POST(request: Request) {
         }
     } catch (e) {
         console.error('Project Update Error:', e);
+        return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const projectId = searchParams.get('id');
+
+        if (!projectId) {
+            return NextResponse.json({ error: 'プロジェクトIDが必要です' }, { status: 400 });
+        }
+
+        const success = await deleteProject(projectId);
+
+        if (success) {
+            return NextResponse.json({ success: true });
+        } else {
+            return NextResponse.json({ error: 'プロジェクトの削除に失敗しました' }, { status: 500 });
+        }
+    } catch (e) {
+        console.error('Project Delete Error:', e);
         return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
     }
 }

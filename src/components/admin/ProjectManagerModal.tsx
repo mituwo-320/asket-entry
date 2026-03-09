@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Project } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Calendar, Save, Trash2, CheckCircle } from 'lucide-react';
+import { X, Plus, Calendar, Save, Trash2, CheckCircle, Edit2 } from 'lucide-react';
 
 interface ProjectManagerModalProps {
     isOpen: boolean;
@@ -55,6 +55,31 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                 setTimeout(() => setSaveMessage(null), 3000);
             } else {
                 setSaveMessage({ type: 'error', text: data.error || '保存に失敗しました。' });
+            }
+        } catch (e) {
+            setSaveMessage({ type: 'error', text: '通信エラーが発生しました。' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async (projectId: string) => {
+        if (!confirm("本当にこのプロジェクトを削除しますか？\n（関連するすべてのエントリー、試合、イベントデータが完全に削除されます！）")) return;
+
+        setIsLoading(true);
+        setSaveMessage(null);
+        try {
+            const res = await fetch(`/api/admin/projects?id=${projectId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                const updatedList = localProjects.filter(p => p.id !== projectId);
+                setLocalProjects(updatedList);
+                onProjectsUpdate(updatedList);
+                setEditingId(null);
+                setSaveMessage({ type: 'success', text: 'プロジェクトを削除しました。' });
+                setTimeout(() => setSaveMessage(null), 3000);
+            } else {
+                setSaveMessage({ type: 'error', text: data.error || '削除に失敗しました。' });
             }
         } catch (e) {
             setSaveMessage({ type: 'error', text: '通信エラーが発生しました。' });
@@ -229,10 +254,15 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             <span>上限: {p.maxTeams ? `${p.maxTeams}チーム` : 'なし'}</span>
                                                         </p>
                                                     </div>
-                                                    <Button variant="ghost" size="sm" onClick={() => setEditingId(p.id)} className="h-8">
-                                                        <Save className="w-4 h-4 mr-1" />
-                                                        編集
-                                                    </Button>
+                                                    <div className="flex gap-2">
+                                                        <Button variant="ghost" size="sm" onClick={() => setEditingId(p.id)} className="h-8 text-slate-300 hover:text-white">
+                                                            <Edit2 className="w-4 h-4 mr-1" />
+                                                            編集
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)} disabled={isLoading} className="h-8 text-red-500 hover:bg-red-500/20 hover:text-red-400">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

@@ -5,8 +5,8 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { password } = body;
 
-        // Use environment variable or fallback to 2026
-        const adminPassword = process.env.ADMIN_PASSWORD || '2026';
+        // Use environment variable or fallback to requested production password
+        const adminPassword = process.env.ADMIN_PASSWORD || 'gyopai2026';
 
         if (password === adminPassword) {
             // Set cookie

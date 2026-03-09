@@ -66,6 +66,22 @@ export async function saveProject(project: Project): Promise<boolean> {
     }
 }
 
+export async function deleteProject(projectId: string): Promise<boolean> {
+    try {
+        // Run as a transaction to ensure all related data is deleted
+        await db.$transaction([
+            db.event.deleteMany({ where: { tournamentId: projectId } }),
+            db.match.deleteMany({ where: { tournamentId: projectId } }),
+            db.teamEntry.deleteMany({ where: { tournamentId: projectId } }),
+            db.project.delete({ where: { id: projectId } })
+        ]);
+        return true;
+    } catch (e) {
+        console.error('deleteProject error:', e);
+        return false;
+    }
+}
+
 // --- Users ---
 
 export async function saveUser(user: User): Promise<boolean> {
