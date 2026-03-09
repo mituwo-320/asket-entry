@@ -174,7 +174,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             value={p.entryStartDate ? new Date(new Date(p.entryStartDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
-                                                                updated[index].entryStartDate = e.target.value; // Server expects ISO String or parses it
+                                                                updated[index].entryStartDate = e.target.value ? new Date(e.target.value).toISOString() : undefined;
                                                                 setLocalProjects(updated);
                                                             }}
                                                             className="h-9 bg-slate-900 border-slate-700"
@@ -187,7 +187,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             value={p.entryEndDate ? new Date(new Date(p.entryEndDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
-                                                                updated[index].entryEndDate = e.target.value;
+                                                                updated[index].entryEndDate = e.target.value ? new Date(e.target.value).toISOString() : undefined;
                                                                 setLocalProjects(updated);
                                                             }}
                                                             className="h-9 bg-slate-900 border-slate-700"

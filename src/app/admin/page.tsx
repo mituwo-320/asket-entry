@@ -500,7 +500,7 @@ export default function AdminDashboard() {
                     </motion.div>
 
                     {/* Stats Grid */}
-                    <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
                         <Card className="p-6 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Users className="w-16 h-16 text-white" />
@@ -529,6 +529,17 @@ export default function AdminDashboard() {
                             <div className="text-4xl font-black text-white relative z-10">{insuranceNeeded}</div>
                             <div className="text-xs text-pink-400/80 mt-2 font-medium relative z-10">
                                 見積: ¥{(insuranceNeeded * Number(settings.insuranceFee || 0)).toLocaleString()}
+                            </div>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-amber-900/40 to-slate-900/40 border-amber-500/30 p-6 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                            <div className="text-amber-300 text-sm font-bold tracking-wider mb-2 relative z-10">全体見込収益額</div>
+                            <div className="text-2xl sm:text-3xl font-black text-white relative z-10">
+                                ¥{expectedRevenue.toLocaleString()}
+                            </div>
+                            <div className="text-[10px] text-amber-400/80 mt-2 font-medium relative z-10 leading-tight">
+                                参加費: ¥{(totalEntries * Number(settings.participationFee || 0)).toLocaleString()}<br />
+                                保険代: ¥{(insuranceNeeded * Number(settings.insuranceFee || 0)).toLocaleString()}
                             </div>
                         </Card>
                         <Card className="bg-gradient-to-br from-emerald-900/40 to-slate-900/40 border-emerald-500/30 p-6 relative overflow-hidden">
@@ -592,6 +603,7 @@ export default function AdminDashboard() {
                                             <th className="px-4 py-3">代表者</th>
                                             <th className="px-4 py-3">電話番号</th>
                                             <th className="px-4 py-3">選手数 / 保険</th>
+                                            <th className="px-4 py-3 text-right">請求額 (内訳)</th>
                                             <th className="px-4 py-3">ステータス</th>
                                             <th className="px-4 py-3">支払状況</th>
                                             <th className="px-4 py-3 text-right">アクション</th>
@@ -632,6 +644,23 @@ export default function AdminDashboard() {
                                                     <td className="px-4 py-3">
                                                         <span className="font-bold text-white mr-1">{entry.players ? entry.players.length : 0}</span>名
                                                         <span className="text-xs text-slate-500 ml-1">(保: {entry.players ? entry.players.filter(p => p.insurance).length : 0})</span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {(() => {
+                                                            const pFee = Number(settings.participationFee || 0);
+                                                            const iFee = Number(settings.insuranceFee || 0);
+                                                            const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
+                                                            const total = pFee + (insCount * iFee);
+                                                            return (
+                                                                <div className="flex flex-col items-end">
+                                                                    <span className="font-bold text-emerald-400 text-sm">¥{total.toLocaleString()}</span>
+                                                                    <span className="text-[9px] text-slate-500 leading-tight text-right mt-1">
+                                                                        参: ¥{pFee.toLocaleString()}<br />
+                                                                        保: ¥{(insCount * iFee).toLocaleString()}
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${entry.status === 'submitted' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/20' :
