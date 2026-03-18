@@ -111,7 +111,7 @@ function MatchCard({
                             <Settings className="w-3 h-3" />
                         </button>
                     )}
-                    {onUndo && (match.status === 'completed' || match.slotA.teamId || match.slotB.teamId) && (
+                    {onUndo && (
                         <button onClick={() => onUndo(match.matchId)} className="text-slate-500 hover:text-rose-400 p-0.5 transition-colors" title="リセット">
                             <RotateCcw className="w-3 h-3" />
                         </button>
@@ -562,6 +562,7 @@ export default function TournamentBracket({
                             side="left"
                             onWin={handleWin}
                             onUndo={handleUndo}
+                            onEdit={setEditingMatch}
                             onDrop={handleDrop}
                         />
                     )}
@@ -581,6 +582,7 @@ export default function TournamentBracket({
                         side="center"
                         onWin={handleWin}
                         onUndo={handleUndo}
+                        onEdit={setEditingMatch}
                         onDrop={handleDrop}
                     />
 
@@ -599,6 +601,8 @@ export default function TournamentBracket({
                             matches={bracketData.winnersMatches}
                             side="right"
                             onWin={handleWin}
+                            onUndo={handleUndo}
+                            onEdit={setEditingMatch}
                             onDrop={handleDrop}
                         />
                     )}
