@@ -325,6 +325,41 @@ export default function RegisterPage() {
                         </div>
                     )}
                 </div>
+                    {formData.existingUserId && (
+                        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+                                    <UserCheck className="w-5 h-5 text-slate-300" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-xs text-slate-400 mb-0.5">現在ログイン中のアカウント</p>
+                                    <p className="font-bold text-white truncate">{formData.representative} <span className="text-xs font-normal text-slate-400">({formData.email})</span></p>
+                                </div>
+                            </div>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                    if (confirm("現在のアカウントからログアウトし、別のアカウントで登録しますか？")) {
+                                        localStorage.removeItem('currentUser');
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            existingUserId: "",
+                                            email: "",
+                                            representative: "",
+                                            furigana: "",
+                                            password: "",
+                                            confirmPassword: ""
+                                        }));
+                                    }
+                                }}
+                                className="text-xs border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 shrink-0"
+                            >
+                                別のアカウントで登録
+                            </Button>
+                        </div>
+                    )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
