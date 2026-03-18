@@ -932,6 +932,23 @@ export default function AdminDashboard() {
                             </Button>
                         </Card>
 
+                        {/* Tournament Bracket Link */}
+                        <Card className="p-6 bg-gradient-to-br from-emerald-600 to-teal-700 border-none shadow-xl shadow-emerald-500/20 flex flex-col justify-center relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-3 mb-2 relative z-10">
+                                <Trophy className="w-6 h-6 text-white" />
+                                <h3 className="text-xl font-bold text-white tracking-tight">トーナメント表</h3>
+                            </div>
+                            <p className="text-emerald-100/80 text-sm mb-6 relative z-10 leading-relaxed">
+                                ダブルエリミネーション方式のトーナメント表を作成・管理し、プロジェクター投影にも対応。
+                            </p>
+                            <Link href="/admin/tournament-bracket">
+                                <Button className="w-full bg-white text-emerald-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10">
+                                    トーナメント表を管理
+                                </Button>
+                            </Link>
+                        </Card>
+
                         {/* Injury Check */}
                         <Card className="p-6 bg-slate-900/40 border-white/5">
                             <div className="flex items-center gap-2 mb-4">

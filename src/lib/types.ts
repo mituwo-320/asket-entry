@@ -84,3 +84,36 @@ export interface Setting {
     lineOpenChatLink?: string;
     entryDeadline?: string;
 }
+
+// ========== Tournament Bracket Types ==========
+
+export interface BracketSlot {
+    slotId: string;          // Unique identifier e.g. "W-R1-M1-A"
+    teamId?: string;         // Team ID if assigned
+    teamName?: string;       // Cached team name for display
+    seedNumber?: number;     // Random draw number (抽選番号)
+    isBye?: boolean;         // BYE slot
+}
+
+export interface BracketMatch {
+    matchId: string;         // e.g. "W-R1-M1"
+    round: number;           // Round number (1-based)
+    bracket: 'winners' | 'losers' | 'initial'; // Which bracket
+    slotA: BracketSlot;      // Top/Left team
+    slotB: BracketSlot;      // Bottom/Right team
+    winnerId?: string;       // Winner team ID
+    loserId?: string;        // Loser team ID
+    status: 'pending' | 'ready' | 'completed';
+    nextWinMatchId?: string; // Where winner goes
+    nextLoseMatchId?: string;// Where loser goes (for winners bracket)
+}
+
+export interface TournamentBracketData {
+    teamCount: number;
+    initialMatches: BracketMatch[];  // First round (center)
+    winnersMatches: BracketMatch[];  // Winners bracket (right)
+    losersMatches: BracketMatch[];   // Losers bracket (left)
+    eliminatedTeams: string[];       // Teams that lost in losers bracket
+    champion?: string;               // Final champion team ID
+}
+

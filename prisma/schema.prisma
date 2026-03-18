@@ -106,3 +106,13 @@ model Setting {
   entryDeadline    DateTime?
   updatedAt        DateTime  @updatedAt
 }
+
+model TournamentBracket {
+  id           String   @id @default(cuid())
+  tournamentId String
+  teamCount    Int
+  brackets     Json     // Full bracket structure stored as JSON
+  status       String   @default("setup") // setup | in_progress | completed
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
