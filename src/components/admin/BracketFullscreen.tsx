@@ -347,34 +347,32 @@ export default function BracketFullscreen({
     // Auto-scale to fit viewport
     useEffect(() => {
         const recalc = () => {
-            if (!contentRef.current) return;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const cw = contentRef.current.scrollWidth;
-            const ch = contentRef.current.scrollHeight;
-            const sx = vw / cw;
-            const sy = vh / ch;
-            setScale(Math.min(sx, sy, 1));
-        };
-        recalc();
-        window.addEventListener('resize', recalc);
-        return () => window.removeEventListener('resize', recalc);
-    }, [bracketData, isOpen]);
-
-    // Recalculate scale when bracket changes
-    useEffect(() => {
-        const t = setTimeout(() => {
-            if (!contentRef.current) return;
-            const vw = window.innerWidth - 16;
+            if (!contentRef.current || !containerRef.current) return;
+            const vw = window.innerWidth - 32;
             const vh = window.innerHeight - 80; // account for header
-            const cw = contentRef.current.scrollWidth;
-            const ch = contentRef.current.scrollHeight;
-            const sx = vw / cw;
-            const sy = vh / ch;
-            setScale(Math.min(sx, sy, 1));
-        }, 100);
-        return () => clearTimeout(t);
-    }, [bracketData]);
+
+            const parentNode = contentRef.current.parentElement;
+            if (parentNode) {
+                const oldTransform = parentNode.style.transform;
+                parentNode.style.transform = 'none';
+                const cw = contentRef.current.scrollWidth;
+                const ch = contentRef.current.scrollHeight;
+                parentNode.style.transform = oldTransform;
+
+                if (cw > 0 && ch > 0) {
+                    const sx = vw / cw;
+                    const sy = vh / ch;
+                    setScale(Math.min(sx, sy, 1));
+                }
+            }
+        };
+        const t = setTimeout(recalc, 100);
+        window.addEventListener('resize', recalc);
+        return () => {
+            clearTimeout(t);
+            window.removeEventListener('resize', recalc);
+        }
+    }, [bracketData, isOpen]);
 
     const enterFullscreen = useCallback(() => {
         if (containerRef.current) {
@@ -440,10 +438,10 @@ export default function BracketFullscreen({
             </div>
 
             {/* Bracket area — auto-scaled */}
-            <div className="flex-1 overflow-hidden flex items-center justify-center">
+            <div className="flex-1 overflow-hidden flex items-center justify-center relative">
                 <div
-                    style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
-                    className="flex items-start gap-0 px-4 pt-4"
+                    style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+                    className="flex items-start gap-0 px-4 pt-4 absolute"
                 >
                     <LayoutGroup>
                         <div ref={contentRef} className="flex items-start gap-0">
@@ -529,10 +527,10 @@ export default function BracketFullscreen({
             </div>
 
             {/* Eliminated bar */}
-            {bracketData.eliminatedTeams.length > 0 && (
+            {(bracketData.eliminatedTeams || []).length > 0 && (
                 <div className="flex-shrink-0 border-t border-white/5 bg-slate-950/80 px-5 py-2 flex items-center gap-3 overflow-x-auto">
                     <span className="text-[11px] font-black text-slate-500 tracking-widest uppercase flex-shrink-0">敗退</span>
-                    {bracketData.eliminatedTeams.map(id => {
+                    {(bracketData.eliminatedTeams || []).map(id => {
                         const e = entries.find(x => x.id === id);
                         return (
                             <span key={id} className="text-xs text-slate-600 bg-slate-900 px-3 py-1 rounded-full border border-slate-800 flex-shrink-0">

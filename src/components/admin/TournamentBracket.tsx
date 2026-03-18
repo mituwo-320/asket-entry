@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { TeamEntry, BracketMatch, TournamentBracketData } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -22,11 +22,13 @@ interface TournamentBracketProps {
 function MatchCard({
     match,
     onWin,
+    onUndo,
     onDrop,
     side,
 }: {
     match: BracketMatch;
     onWin: (matchId: string, winnerId: string) => void;
+    onUndo?: (matchId: string) => void;
     onDrop: (slotId: string, teamId: string, teamName: string) => void;
     side: 'left' | 'center' | 'right';
 }) {
@@ -82,9 +84,16 @@ function MatchCard({
                     {matchLabel}
                 </span>
                 {isCompleted && (
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        完了
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            完了
+                        </span>
+                        {onUndo && (
+                            <button onClick={() => onUndo(match.matchId)} className="text-slate-400 hover:text-rose-400 p-0.5 transition-colors" title="結果を取り消す">
+                                <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
                 )}
                 {isReady && !isCompleted && (
                     <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 animate-pulse">
@@ -264,12 +273,14 @@ function RoundColumn({
     matches,
     side,
     onWin,
+    onUndo,
     onDrop,
 }: {
     title: string;
     matches: BracketMatch[];
     side: 'left' | 'center' | 'right';
     onWin: (matchId: string, winnerId: string) => void;
+    onUndo?: (matchId: string) => void;
     onDrop: (slotId: string, teamId: string, teamName: string) => void;
 }) {
     // Group matches by round
@@ -301,6 +312,7 @@ function RoundColumn({
                                 key={match.matchId}
                                 match={match}
                                 onWin={onWin}
+                                onUndo={onUndo}
                                 onDrop={onDrop}
                                 side={side}
                             />
@@ -322,6 +334,32 @@ export default function TournamentBracket({
 }: TournamentBracketProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
+    const realContainerRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+
+    // Auto-scale to fit available width
+    useEffect(() => {
+        const updateScale = () => {
+            if (!realContainerRef.current || !contentRef.current) return;
+            const containerWidth = realContainerRef.current.clientWidth;
+            
+            // Measure unscaled width
+            const oldTransform = contentRef.current.style.transform;
+            contentRef.current.style.transform = 'none';
+            const contentWidth = contentRef.current.scrollWidth;
+            contentRef.current.style.transform = oldTransform;
+
+            if (contentWidth > containerWidth && containerWidth > 0) {
+                setScale((containerWidth - 32) / contentWidth); // 32px padding/margin
+            } else {
+                setScale(1);
+            }
+        };
+        updateScale();
+        window.addEventListener('resize', updateScale);
+        return () => window.removeEventListener('resize', updateScale);
+    }, [bracketData]);
 
     const handleWin = useCallback((matchId: string, winnerId: string) => {
         // Import dynamically to avoid circular deps
@@ -331,6 +369,23 @@ export default function TournamentBracket({
             setHasChanges(true);
         });
     }, [bracketData, onBracketUpdate]);
+
+    const handleUndo = useCallback((matchId: string) => {
+        import('@/lib/bracket-generator').then(({ undoMatchResult }) => {
+            const updated = undoMatchResult(bracketData, matchId);
+            onBracketUpdate(updated);
+            setHasChanges(true);
+        });
+    }, [bracketData, onBracketUpdate]);
+
+    const handleRandomize = useCallback(() => {
+        if (!confirm("現在の配置をすべてクリアして、ランダムに初戦を配置します。よろしいですか？")) return;
+        import('@/lib/bracket-generator').then(({ randomizeFirstRound }) => {
+            const updated = randomizeFirstRound(bracketData, entries);
+            onBracketUpdate(updated);
+            setHasChanges(true);
+        });
+    }, [bracketData, entries, onBracketUpdate]);
 
     const handleDrop = useCallback((slotId: string, teamId: string, teamName: string) => {
         import('@/lib/bracket-generator').then(({ placeTeamInSlot, removeTeamFromSlots }) => {
@@ -382,6 +437,17 @@ export default function TournamentBracket({
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    {availableEntries.length > 0 && (
+                        <Button
+                            onClick={handleRandomize}
+                            variant="outline"
+                            className="bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                            size="sm"
+                        >
+                            <Zap className="w-4 h-4 mr-1.5" />
+                            おまかせ自動配置
+                        </Button>
+                    )}
                     <Button
                         onClick={handleSave}
                         disabled={!hasChanges || isSaving}
@@ -414,8 +480,12 @@ export default function TournamentBracket({
             )}
 
             {/* Bracket Display - 3 column layout */}
-            <div className="overflow-x-auto pb-4">
-                <div className="flex gap-8 items-start min-w-max px-2">
+            <div className="w-full overflow-x-auto pb-4" ref={realContainerRef}>
+                <div 
+                    ref={contentRef} 
+                    className="flex gap-8 items-start min-w-max px-2 origin-top-left transition-transform duration-300"
+                    style={{ transform: `scale(${scale})` }}
+                >
                     {/* Losers Bracket (Left) */}
                     {bracketData.losersMatches.length > 0 && (
                         <RoundColumn
@@ -423,6 +493,7 @@ export default function TournamentBracket({
                             matches={bracketData.losersMatches}
                             side="left"
                             onWin={handleWin}
+                            onUndo={handleUndo}
                             onDrop={handleDrop}
                         />
                     )}
@@ -441,6 +512,7 @@ export default function TournamentBracket({
                         matches={bracketData.initialMatches}
                         side="center"
                         onWin={handleWin}
+                        onUndo={handleUndo}
                         onDrop={handleDrop}
                     />
 
