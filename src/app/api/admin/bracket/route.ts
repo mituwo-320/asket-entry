@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { generateBracket } from '@/lib/bracket-generator';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch bracket data for a tournament
 export async function GET(req: Request) {
     try {

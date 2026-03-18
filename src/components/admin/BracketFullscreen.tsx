@@ -299,8 +299,8 @@ function RoundGroup({
     scale: number;
 }) {
     return (
-        <div className="flex flex-col gap-3 justify-center">
-            <div className="text-center text-[10px] font-black tracking-[0.3em] text-slate-600 uppercase mb-1">
+        <div className="flex flex-col gap-4 justify-around py-2 h-full">
+            <div className="text-center text-[10px] font-black tracking-[0.3em] text-slate-600 uppercase mb-1 shrink-0">
                 Round {roundNum}
             </div>
             {matches.map(m => (
@@ -454,7 +454,7 @@ export default function BracketFullscreen({
                                         label="サバイバル"
                                         colorClass="text-blue-400"
                                     />
-                                    <div className="flex gap-4 flex-row-reverse">
+                                    <div className="flex gap-6 items-stretch flex-row-reverse h-full">
                                         {groupByRound(bracketData.losersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="left"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
@@ -512,7 +512,7 @@ export default function BracketFullscreen({
                                         label="チャンピオン"
                                         colorClass="text-emerald-400"
                                     />
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-6 items-stretch h-full">
                                         {groupByRound(bracketData.winnersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="right"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
