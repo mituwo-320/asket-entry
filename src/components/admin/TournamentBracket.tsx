@@ -51,7 +51,7 @@ function MatchCard({
         setDragOverSlot(null);
     };
 
-    const isReady = match.status === 'ready' && match.slotA.teamId && match.slotB.teamId;
+    const isReady = match.status === 'ready' && !!match.slotA.teamId && !!match.slotB.teamId;
     const isCompleted = match.status === 'completed';
 
     // Color coding based on bracket side
@@ -98,7 +98,7 @@ function MatchCard({
                 slot={match.slotA}
                 isWinner={match.winnerId === match.slotA.teamId}
                 isLoser={isCompleted && match.winnerId !== match.slotA.teamId}
-                canDecide={isReady && !isCompleted}
+                canDecide={!!isReady && !isCompleted}
                 onWin={() => match.slotA.teamId && onWin(match.matchId, match.slotA.teamId)}
                 onDrop={(e) => handleDrop(e, match.slotA.slotId)}
                 onDragOver={(e) => handleDragOver(e, match.slotA.slotId)}
@@ -117,7 +117,7 @@ function MatchCard({
                 slot={match.slotB}
                 isWinner={match.winnerId === match.slotB.teamId}
                 isLoser={isCompleted && match.winnerId !== match.slotB.teamId}
-                canDecide={isReady && !isCompleted}
+                canDecide={!!isReady && !isCompleted}
                 onWin={() => match.slotB.teamId && onWin(match.matchId, match.slotB.teamId)}
                 onDrop={(e) => handleDrop(e, match.slotB.slotId)}
                 onDragOver={(e) => handleDragOver(e, match.slotB.slotId)}
