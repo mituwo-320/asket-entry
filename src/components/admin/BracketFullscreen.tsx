@@ -239,19 +239,30 @@ function ProjectionMatch({
         >
             {/* Header */}
             <div className={`px-3 py-1.5 flex items-center justify-between ${headerCls} border-b border-white/5`}>
-                <span className="text-[11px] font-black tracking-[0.2em] uppercase opacity-60">
-                    {match.matchId.split('-').slice(1).join('-')}
-                </span>
-                {isCompleted && <span className="text-[11px] font-bold text-emerald-400/70">✓</span>}
-                {isReady && !isCompleted && (
-                    <motion.span
-                        animate={{ opacity: [1, 0.4, 1] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="text-[11px] font-bold text-amber-400"
-                    >
-                        LIVE
-                    </motion.span>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black tracking-[0.2em] uppercase opacity-60">
+                        {match.matchId.split('-').slice(1).join('-')}
+                    </span>
+                    {(match.court || match.referee) && (
+                        <div className="flex items-center gap-1.5 text-[9px] text-white/50 font-bold bg-black/20 px-2 py-0.5 rounded truncate max-w-[150px]">
+                            {match.court && <span>{match.court}</span>}
+                            {match.court && match.referee && <span>/</span>}
+                            {match.referee && <span>審:{match.referee}</span>}
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    {isCompleted && <span className="text-[11px] font-bold text-emerald-400/70">✓</span>}
+                    {isReady && !isCompleted && (
+                        <motion.span
+                            animate={{ opacity: [1, 0.4, 1] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                            className="text-[11px] font-bold text-amber-400"
+                        >
+                            LIVE
+                        </motion.span>
+                    )}
+                </div>
             </div>
 
             {/* Team A */}

@@ -106,6 +106,8 @@ export interface BracketMatch {
     status: 'pending' | 'ready' | 'completed';
     nextWinMatchId?: string; // Where winner goes
     nextLoseMatchId?: string;// Where loser goes (for winners bracket)
+    court?: string;          // NEW: Court name (e.g. "Aコート")
+    referee?: string;        // NEW: Referee team/person
 }
 
 export interface TournamentBracketData {

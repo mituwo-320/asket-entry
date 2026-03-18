@@ -315,48 +315,85 @@ export function undoMatchResult(
     ];
 
     const match = allMatches.find(m => m.matchId === matchId);
-    if (!match || match.status !== 'completed' || !match.winnerId || !match.loserId) return result;
+    if (!match) return result;
 
-    const winnerId = match.winnerId;
-    const loserId = match.loserId;
+    if (match.status === 'completed' && match.winnerId && match.loserId) {
+        const winnerId = match.winnerId;
+        const loserId = match.loserId;
 
-    // Reset this match
+        // Reset this match
+        const updateMatch = (m: BracketMatch): BracketMatch => {
+            if (m.matchId !== matchId) return m;
+            return { ...m, winnerId: undefined, loserId: undefined, status: 'ready' };
+        };
+
+        result.initialMatches = result.initialMatches.map(updateMatch);
+        result.winnersMatches = result.winnersMatches.map(updateMatch);
+        result.losersMatches = result.losersMatches.map(updateMatch);
+
+        // Helper to remove team from a future match slot
+        const removeSlot = (targetMatchId: string, teamId: string) => {
+            const clearSlot = (m: BracketMatch): BracketMatch => {
+                if (m.matchId !== targetMatchId) return m;
+                const newM = { ...m };
+                if (newM.slotA.teamId === teamId) {
+                    newM.slotA = { ...newM.slotA, teamId: undefined, teamName: undefined };
+                    newM.status = 'pending';
+                } else if (newM.slotB.teamId === teamId) {
+                    newM.slotB = { ...newM.slotB, teamId: undefined, teamName: undefined };
+                    newM.status = 'pending';
+                }
+                return newM;
+            };
+            result.initialMatches = result.initialMatches.map(clearSlot);
+            result.winnersMatches = result.winnersMatches.map(clearSlot);
+            result.losersMatches = result.losersMatches.map(clearSlot);
+        };
+
+        if (match.nextWinMatchId) removeSlot(match.nextWinMatchId, winnerId);
+        if (match.nextLoseMatchId) removeSlot(match.nextLoseMatchId, loserId);
+        
+        // If eliminated, remove from eliminated teams list
+        if (!match.nextLoseMatchId && match.bracket === 'losers') {
+            result.eliminatedTeams = result.eliminatedTeams.filter(id => id !== loserId);
+        }
+    } else {
+        // If not completed, and it's an initial match, Clear the slots
+        if (match.bracket === 'initial') {
+            const clearInitial = (m: BracketMatch): BracketMatch => {
+                if (m.matchId !== matchId) return m;
+                return {
+                    ...m,
+                    status: m.slotA.isBye && m.slotB.isBye ? 'ready' : 'pending',
+                    slotA: m.slotA.isBye ? m.slotA : { ...m.slotA, teamId: undefined, teamName: undefined },
+                    slotB: m.slotB.isBye ? m.slotB : { ...m.slotB, teamId: undefined, teamName: undefined }
+                };
+            };
+            result.initialMatches = result.initialMatches.map(clearInitial);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Update match metadata like court and referee.
+ */
+export function updateMatchInfo(
+    bracket: TournamentBracketData,
+    matchId: string,
+    court?: string,
+    referee?: string
+): TournamentBracketData {
+    let result = { ...bracket };
     const updateMatch = (m: BracketMatch): BracketMatch => {
         if (m.matchId !== matchId) return m;
-        return { ...m, winnerId: undefined, loserId: undefined, status: 'ready' };
+        return { ...m, court, referee };
     };
 
     result.initialMatches = result.initialMatches.map(updateMatch);
     result.winnersMatches = result.winnersMatches.map(updateMatch);
     result.losersMatches = result.losersMatches.map(updateMatch);
-
-    // Helper to remove team from a future match slot
-    const removeSlot = (targetMatchId: string, teamId: string) => {
-        const clearSlot = (m: BracketMatch): BracketMatch => {
-            if (m.matchId !== targetMatchId) return m;
-            const newM = { ...m };
-            if (newM.slotA.teamId === teamId) {
-                newM.slotA = { ...newM.slotA, teamId: undefined, teamName: undefined };
-                newM.status = 'pending';
-            } else if (newM.slotB.teamId === teamId) {
-                newM.slotB = { ...newM.slotB, teamId: undefined, teamName: undefined };
-                newM.status = 'pending';
-            }
-            return newM;
-        };
-        result.initialMatches = result.initialMatches.map(clearSlot);
-        result.winnersMatches = result.winnersMatches.map(clearSlot);
-        result.losersMatches = result.losersMatches.map(clearSlot);
-    };
-
-    if (match.nextWinMatchId) removeSlot(match.nextWinMatchId, winnerId);
-    if (match.nextLoseMatchId) removeSlot(match.nextLoseMatchId, loserId);
-    
-    // If eliminated, remove from eliminated teams list
-    if (!match.nextLoseMatchId && match.bracket === 'losers') {
-        result.eliminatedTeams = result.eliminatedTeams.filter(id => id !== loserId);
-    }
-
     return result;
 }
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
     Trophy, ChevronRight, ChevronLeft, Crown, Skull,
-    GripVertical, Users, Zap, RotateCcw, Save, Loader2
+    GripVertical, Users, Zap, RotateCcw, Save, Loader2, Settings, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,12 +23,14 @@ function MatchCard({
     match,
     onWin,
     onUndo,
+    onEdit,
     onDrop,
     side,
 }: {
     match: BracketMatch;
     onWin: (matchId: string, winnerId: string) => void;
     onUndo?: (matchId: string) => void;
+    onEdit?: (match: BracketMatch) => void;
     onDrop: (slotId: string, teamId: string, teamName: string) => void;
     side: 'left' | 'center' | 'right';
 }) {
@@ -80,19 +82,41 @@ function MatchCard({
         >
             {/* Match Header */}
             <div className={`px-3 py-1.5 ${headerBg} flex items-center justify-between`}>
-                <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
-                    {matchLabel}
-                </span>
-                {isCompleted && (
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        完了
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                        {matchLabel}
                     </span>
-                )}
-                {isReady && !isCompleted && (
-                    <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 animate-pulse">
-                        対戦可能
-                    </span>
-                )}
+                    {(match.court || match.referee) && (
+                        <div className="flex items-center gap-1.5 text-[8px] text-slate-500 font-bold bg-slate-950/40 px-1.5 py-0.5 rounded truncate max-w-[100px]">
+                            {match.court && <span>{match.court}</span>}
+                            {match.court && match.referee && <span>/</span>}
+                            {match.referee && <span>審:{match.referee}</span>}
+                        </div>
+                    )}
+                </div>
+                
+                <div className="flex items-center justify-end gap-1 min-w-[60px]">
+                    {isCompleted && (
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                            完了
+                        </span>
+                    )}
+                    {isReady && !isCompleted && (
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 animate-pulse">
+                            対戦
+                        </span>
+                    )}
+                    {onEdit && (
+                        <button onClick={() => onEdit(match)} className="text-slate-500 hover:text-indigo-400 p-0.5 transition-colors" title="設定">
+                            <Settings className="w-3 h-3" />
+                        </button>
+                    )}
+                    {onUndo && (match.status === 'completed' || match.slotA.teamId || match.slotB.teamId) && (
+                        <button onClick={() => onUndo(match.matchId)} className="text-slate-500 hover:text-rose-400 p-0.5 transition-colors" title="リセット">
+                            <RotateCcw className="w-3 h-3" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Slot A */}
@@ -127,20 +151,43 @@ function MatchCard({
                 isDragOver={dragOverSlot === match.slotB.slotId}
                 side={side}
             />
-
-            {/* Reset Button */}
-            {isCompleted && onUndo && (
-                <div className="px-2 pb-2 mt-1">
-                    <button 
-                        onClick={() => onUndo(match.matchId)} 
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-950/50 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 rounded border border-white/5 transition-colors text-[10px] font-bold tracking-wider"
-                    >
-                        <RotateCcw className="w-3 h-3" />
-                        勝敗をやり直す
-                    </button>
-                </div>
-            )}
         </motion.div>
+    );
+}
+
+// ===== Match Edit Dialog =====
+function MatchEditDialog({ 
+    match, 
+    onSave, 
+    onClose 
+}: { 
+    match: BracketMatch; 
+    onSave: (matchId: string, court: string, referee: string) => void; 
+    onClose: () => void; 
+}) {
+    const [court, setCourt] = useState(match.court || '');
+    const [referee, setReferee] = useState(match.referee || '');
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+            <div className="bg-slate-900 border border-white/10 rounded-xl p-5 w-full max-w-sm shadow-2xl">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-white font-bold">試合設定 ({match.matchId.split('-').slice(1).join('-')})</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-1 font-bold">コート名</label>
+                        <input type="text" value={court} onChange={e => setCourt(e.target.value)} placeholder="例: Aコート" className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-1 font-bold">審判チーム / 担当</label>
+                        <input type="text" value={referee} onChange={e => setReferee(e.target.value)} placeholder="例: 運営 / チームA" className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <Button onClick={() => onSave(match.matchId, court, referee)} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold">保存</Button>
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -280,6 +327,7 @@ function RoundColumn({
     side,
     onWin,
     onUndo,
+    onEdit,
     onDrop,
 }: {
     title: string;
@@ -287,6 +335,7 @@ function RoundColumn({
     side: 'left' | 'center' | 'right';
     onWin: (matchId: string, winnerId: string) => void;
     onUndo?: (matchId: string) => void;
+    onEdit?: (m: BracketMatch) => void;
     onDrop: (slotId: string, teamId: string, teamName: string) => void;
 }) {
     // Group matches by round
@@ -319,6 +368,7 @@ function RoundColumn({
                                 match={match}
                                 onWin={onWin}
                                 onUndo={onUndo}
+                                onEdit={onEdit}
                                 onDrop={onDrop}
                                 side={side}
                             />
@@ -343,6 +393,7 @@ export default function TournamentBracket({
     const realContainerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
+    const [editingMatch, setEditingMatch] = useState<BracketMatch | null>(null);
 
     // Auto-scale to fit available width
     useEffect(() => {
@@ -392,6 +443,15 @@ export default function TournamentBracket({
             setHasChanges(true);
         });
     }, [bracketData, entries, onBracketUpdate]);
+
+    const handleSaveMatchInfo = useCallback((matchId: string, court: string, referee: string) => {
+        import('@/lib/bracket-generator').then(({ updateMatchInfo }) => {
+            const updated = updateMatchInfo(bracketData, matchId, court, referee);
+            onBracketUpdate(updated);
+            setHasChanges(true);
+            setEditingMatch(null);
+        });
+    }, [bracketData, onBracketUpdate]);
 
     const handleDrop = useCallback((slotId: string, teamId: string, teamName: string) => {
         import('@/lib/bracket-generator').then(({ placeTeamInSlot, removeTeamFromSlots }) => {
