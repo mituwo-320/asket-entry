@@ -942,7 +942,7 @@ export default function AdminDashboard() {
                             <p className="text-emerald-100/80 text-sm mb-6 relative z-10 leading-relaxed">
                                 ダブルエリミネーション方式のトーナメント表を作成・管理し、プロジェクター投影にも対応。
                             </p>
-                            <Link href="/admin/tournament-bracket">
+                            <Link href="/admin/tournament-bracket" className="block w-full">
                                 <Button className="w-full bg-white text-emerald-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10">
                                     トーナメント表を管理
                                 </Button>
