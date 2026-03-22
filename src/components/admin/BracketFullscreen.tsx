@@ -278,7 +278,7 @@ function ProjectionMatch({
             animate={{ opacity: 1, y: 0 }}
             className={`rounded-xl border-2 ${borderCls} bg-white overflow-hidden z-10 relative
                         ${matchHighlight ? 'shadow-2xl ring-4 ring-amber-400/50' : 'shadow-lg shadow-black/5'}`}
-            style={{ width: Math.max(260, 260 * scale) }}
+            style={{ width: Math.max(300, 300 * scale) }}
         >
             <div className={`px-3 py-1.5 flex items-center justify-between ${headerCls} border-b-2 ${borderCls}`}>
                 <div className="flex items-center gap-1.5">
