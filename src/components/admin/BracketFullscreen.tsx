@@ -1,8 +1,6 @@
-"use client";
-
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, MutableRefObject } from "react";
 import { BracketMatch, TournamentBracketData, TeamEntry } from "@/lib/types";
-import { Trophy, Crown, X, Maximize2, Zap, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trophy, Crown, X, Maximize2, Zap, Star, ChevronLeft, ChevronRight, Skull } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 
 interface BracketFullscreenProps {
@@ -11,127 +9,145 @@ interface BracketFullscreenProps {
     bracketData: TournamentBracketData;
     entries: TeamEntry[];
     onWin: (matchId: string, winnerId: string) => void;
+    onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
     readOnly?: boolean; // display-only mode (no win buttons)
 }
 
-// ===== Victory Celebration =====
-function VictoryCelebration({ teamName, onDone }: { teamName: string; onDone: () => void }) {
+// NO-OP
+
+// ===== Bracket Lines (SVG Connectors) =====
+function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketData: TournamentBracketData, matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>, contentRef: React.RefObject<HTMLDivElement | null>, scale: number }) {
+    const [paths, setPaths] = useState<{ id: string, d: string, color: string, isLose: boolean }[]>([]);
+
     useEffect(() => {
-        const t = setTimeout(onDone, 3200);
+        const updatePaths = () => {
+            if (!contentRef.current) return;
+            const newPaths: { id: string, d: string, color: string, isLose: boolean }[] = [];
+            const allMatches = [...bracketData.initialMatches, ...bracketData.winnersMatches, ...bracketData.losersMatches];
+
+            const getPos = (id: string, side: 'left' | 'right') => {
+                const el = matchRefs.current[id];
+                if (!el || !contentRef.current) return null;
+                
+                // Get offset within contentRef
+                let node: HTMLElement | null = el;
+                let x = 0;
+                let y = 0;
+                while (node && node !== contentRef.current) {
+                    x += node.offsetLeft;
+                    y += node.offsetTop;
+                    node = node.offsetParent as HTMLElement;
+                }
+                
+                if (side === 'right') x += el.offsetWidth;
+                y += el.offsetHeight / 2;
+                return { x, y };
+            };
+
+            allMatches.forEach(m => {
+                const outWin = m.bracket === 'initial' || m.bracket === 'winners' ? 'left' : 'right';
+                const outLose = 'right';
+
+                // Win connection
+                if (m.nextWinMatchId) {
+                    const destM = allMatches.find(x => x.matchId === m.nextWinMatchId);
+                    if (destM) {
+                        const inSide = destM.bracket === 'winners' ? 'right' : 'left';
+                        const p1 = getPos(m.matchId, outWin);
+                        const p2 = getPos(destM.matchId, inSide);
+                        if (p1 && p2) {
+                            const midX = (p1.x + p2.x) / 2;
+                            newPaths.push({
+                                id: `${m.matchId}-win`,
+                                d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
+                                color: '#10b981', // emerald-500
+                                isLose: false
+                            });
+                        }
+                    }
+                }
+
+                // Lose connection
+                if (m.nextLoseMatchId) {
+                    const destM = allMatches.find(x => x.matchId === m.nextLoseMatchId);
+                    if (destM) {
+                        const inSide = destM.bracket === 'losers' ? 'left' : 'right';
+                        const p1 = getPos(m.matchId, outLose);
+                        const p2 = getPos(destM.matchId, inSide);
+                        
+                        if (p1 && p2) {
+                            const midX = p1.x + Math.abs(p2.x - p1.x) * 0.3;
+                            newPaths.push({
+                                id: `${m.matchId}-lose`,
+                                d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
+                                color: '#f43f5e', // rose-500
+                                isLose: true
+                            });
+                        }
+                    }
+                }
+            });
+
+            setPaths(newPaths);
+        };
+
+        // Delay to ensure layout is done
+        const t = setTimeout(updatePaths, 150);
         return () => clearTimeout(t);
-    }, [onDone]);
+    }, [bracketData, matchRefs, contentRef, scale]);
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={onDone}
-            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-xl cursor-pointer"
-        >
-            {/* Burst particles */}
-            {Array.from({ length: 16 }).map((_, i) => {
-                const angle = (i * 360) / 16;
-                const dist = 180 + Math.random() * 100;
-                return (
-                    <motion.div
-                        key={i}
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                        initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                        animate={{
-                            x: Math.cos((angle * Math.PI) / 180) * dist,
-                            y: Math.sin((angle * Math.PI) / 180) * dist,
-                            scale: [0, 1.5, 0],
-                            opacity: [1, 1, 0],
-                        }}
-                        transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-                    >
-                        <Star
-                            className="text-yellow-400"
-                            style={{ width: 20 + (i % 3) * 10, height: 20 + (i % 3) * 10 }}
-                            fill="currentColor"
-                        />
-                    </motion.div>
-                );
-            })}
-
-            <motion.div
-                initial={{ scale: 0, y: 60 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 220, damping: 18, delay: 0.1 }}
-                className="text-center px-12 py-10 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 
-                           border-2 border-yellow-400/40 shadow-[0_0_80px_rgba(234,179,8,0.3)]"
-            >
-                <motion.div
-                    animate={{ y: [0, -12, 0], rotate: [0, -8, 8, 0] }}
-                    transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-                    className="mb-6"
-                >
-                    <Trophy className="w-24 h-24 mx-auto text-yellow-400 drop-shadow-[0_0_30px_rgba(234,179,8,0.6)]" />
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r
-                               from-yellow-200 via-amber-400 to-yellow-200 mb-4 tracking-wide"
-                >
-                    勝　利
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7, type: "spring" }}
-                    className="text-4xl font-black text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] tracking-wider"
-                >
-                    {teamName}
-                </motion.div>
-
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    transition={{ delay: 1.8 }}
-                    className="text-slate-500 text-sm mt-6"
-                >
-                    タップで続ける
-                </motion.p>
-            </motion.div>
-        </motion.div>
+        <svg className="absolute inset-0 pointer-events-none z-0 overflow-visible" style={{ width: '100%', height: '100%' }}>
+            {paths.map(p => (
+                <path
+                    key={p.id}
+                    d={p.d}
+                    fill="none"
+                    stroke={p.color}
+                    strokeWidth={p.isLose ? "6" : "8"}
+                    strokeLinecap="square"
+                    strokeDasharray={p.isLose ? "12 8" : "none"}
+                    className="opacity-100"
+                />
+            ))}
+        </svg>
     );
 }
 
 // ===== Team Name Card (animatable) =====
 function TeamNameCard({
     slot,
+    score,
     isWinner,
     isLoser,
     canDecide,
     isHighlighted,
     onWin,
+    onScoreChange,
+    readOnly,
 }: {
     slot: { slotId: string; teamId?: string; teamName?: string; seedNumber?: number; isBye?: boolean };
+    score?: string | number;
     isWinner: boolean;
     isLoser: boolean;
     canDecide: boolean;
     isHighlighted: boolean;
     onWin: () => void;
+    onScoreChange?: (val: string) => void;
+    readOnly: boolean;
 }) {
     if (slot.isBye) {
         return (
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-900/30 min-h-[56px]">
-                <span className="text-slate-600 font-bold italic text-lg">BYE</span>
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 min-h-[48px] border-t border-slate-100">
+                <span className="text-slate-400 font-bold italic text-sm">BYE</span>
             </div>
         );
     }
 
     if (!slot.teamId) {
         return (
-            <div className="flex items-center justify-center px-4 py-3 min-h-[56px] border-2 border-dashed border-slate-800/60 rounded-lg mx-2 my-1">
-                <span className="text-slate-600 font-bold text-xl">
+            <div className="flex items-center justify-center px-3 py-2 min-h-[48px] border-2 border-dashed border-slate-300 rounded-lg mx-2 my-1 bg-slate-50/50">
+                <span className="text-slate-400 font-bold text-sm">
                     {slot.seedNumber ? `#${slot.seedNumber}` : '—'}
                 </span>
             </div>
@@ -142,17 +158,17 @@ function TeamNameCard({
         <motion.div
             layoutId={`team-${slot.teamId}`}
             layout
-            className={`flex items-center justify-between px-4 py-3 min-h-[56px] transition-colors duration-500 ${
+            className={`flex items-center justify-between px-3 py-2 min-h-[48px] transition-colors duration-500 border-t-2 border-slate-200 ${
                 isHighlighted
-                    ? 'bg-gradient-to-r from-yellow-500/25 to-amber-500/15'
+                    ? 'bg-amber-200'
                     : isWinner
-                        ? 'bg-emerald-500/10'
+                        ? 'bg-emerald-50'
                         : isLoser
-                            ? 'bg-slate-950/70'
-                            : 'bg-slate-900/20 hover:bg-slate-800/30'
+                            ? 'bg-slate-100 opacity-60'
+                            : 'bg-white hover:bg-slate-50'
             }`}
         >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
                 <AnimatePresence>
                     {isWinner && (
                         <motion.div
@@ -160,18 +176,18 @@ function TeamNameCard({
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
-                            <Crown className="w-6 h-6 text-yellow-400 flex-shrink-0 drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]" />
+                            <Crown className="w-5 h-5 text-amber-500 flex-shrink-0 drop-shadow-sm" />
                         </motion.div>
                     )}
                 </AnimatePresence>
                 <motion.span
                     layout
-                    className={`font-black truncate ${
+                    className={`font-black break-words leading-tight whitespace-normal ${
                         isWinner
-                            ? 'text-yellow-300 text-2xl drop-shadow-[0_0_15px_rgba(234,179,8,0.4)]'
+                            ? 'text-emerald-800 text-lg'
                             : isLoser
-                                ? 'text-slate-500 line-through text-xl opacity-50'
-                                : 'text-white text-2xl'
+                                ? 'text-slate-500 line-through text-base'
+                                : 'text-slate-900 text-lg'
                     }`}
                     animate={isHighlighted ? { scale: [1, 1.04, 1] } : { scale: 1 }}
                     transition={isHighlighted ? { repeat: 2, duration: 0.5 } : {}}
@@ -180,16 +196,38 @@ function TeamNameCard({
                 </motion.span>
             </div>
 
+            {(!readOnly && onScoreChange) ? (
+                <input
+                    type="number"
+                    value={score ?? ''}
+                    onChange={(e) => onScoreChange(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className={`w-14 font-black text-xl ml-2 px-2 py-0.5 rounded-lg border-2 focus:ring-2 outline-none transition-colors text-center ${
+                        isWinner 
+                            ? 'bg-emerald-100 border-emerald-500 text-emerald-900 focus:ring-emerald-500' 
+                            : 'bg-white border-slate-400 text-slate-900 focus:ring-indigo-500 hover:border-indigo-500'
+                    }`}
+                    placeholder="-"
+                />
+            ) : (
+                score !== undefined && score !== null && score !== '' && (
+                    <div className={`font-black text-xl ml-2 px-2 py-0.5 rounded-lg border-2 ${
+                        isWinner ? 'bg-emerald-100 border-emerald-500 text-emerald-900' : 'bg-slate-100 border-slate-300 text-slate-800'
+                    }`}>
+                        {score}
+                    </div>
+                )
+            )}
+
             {canDecide && (
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={onWin}
-                    className="flex-shrink-0 ml-3 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600
-                               hover:from-indigo-500 hover:to-purple-500 text-white font-black text-sm
-                               shadow-lg shadow-indigo-500/30"
+                    className="flex-shrink-0 ml-2 px-3 py-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-black text-xs border border-indigo-200"
                 >
-                    <Trophy className="w-5 h-5" />
+                    <Trophy className="w-4 h-4" />
                 </motion.button>
             )}
         </motion.div>
@@ -204,6 +242,8 @@ function ProjectionMatch({
     onWin,
     readOnly,
     scale,
+    matchRefs,
+    onScoreChange,
 }: {
     match: BracketMatch;
     side: 'left' | 'center' | 'right';
@@ -211,53 +251,55 @@ function ProjectionMatch({
     onWin: (matchId: string, winnerId: string) => void;
     readOnly: boolean;
     scale: number;
+    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
 }) {
     const isReady = match.status === 'ready' && match.slotA.teamId && match.slotB.teamId && !match.slotA.isBye && !match.slotB.isBye;
     const isCompleted = match.status === 'completed';
     const matchHighlight = recentWinnerId && match.winnerId === recentWinnerId;
 
-    const borderCls = side === 'right'
-        ? 'border-emerald-500/30'
-        : side === 'left'
-            ? 'border-blue-500/30'
-            : 'border-indigo-500/30';
+    const borderCls = side === 'right' // Losers
+        ? 'border-rose-500 border-[3px]'
+        : side === 'left' // Winners
+            ? 'border-emerald-500 border-[3px]'
+            : 'border-indigo-500 border-[3px]'; // Center
 
     const headerCls = side === 'right'
-        ? 'bg-emerald-900/20 text-emerald-500/60'
+        ? 'bg-rose-600 text-white'
         : side === 'left'
-            ? 'bg-blue-900/20 text-blue-500/60'
-            : 'bg-indigo-900/20 text-indigo-500/60';
+            ? 'bg-emerald-600 text-white'
+            : 'bg-indigo-600 text-white';
 
     return (
         <motion.div
+            ref={el => { matchRefs.current[match.matchId] = el; }}
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-2xl border-2 ${borderCls} bg-slate-900/70 backdrop-blur-sm overflow-hidden
-                        ${matchHighlight ? 'shadow-[0_0_30px_rgba(234,179,8,0.2)] ring-1 ring-yellow-400/30' : 'shadow-lg'}`}
-            style={{ minWidth: Math.max(180, 220 * scale) }}
+            className={`rounded-xl border-2 ${borderCls} bg-white overflow-hidden z-10 relative
+                        ${matchHighlight ? 'shadow-2xl ring-4 ring-amber-400/50' : 'shadow-lg shadow-black/5'}`}
+            style={{ width: Math.max(260, 260 * scale) }}
         >
-            {/* Header */}
-            <div className={`px-3 py-1.5 flex items-center justify-between ${headerCls} border-b border-white/5`}>
-                <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-black tracking-[0.2em] uppercase opacity-60">
+            <div className={`px-3 py-1.5 flex items-center justify-between ${headerCls} border-b-2 ${borderCls}`}>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black tracking-[0.2em] uppercase">
                         {match.matchId.split('-').slice(1).join('-')}
                     </span>
                     {(match.court || match.referee) && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-white/50 font-bold bg-black/20 px-2 py-0.5 rounded truncate max-w-[150px]">
+                        <div className="flex items-center gap-1 text-[9px] text-slate-700 font-bold bg-white/60 px-1.5 py-0.5 rounded truncate max-w-[120px]">
                             {match.court && <span>{match.court}</span>}
                             {match.court && match.referee && <span>/</span>}
                             {match.referee && <span>審:{match.referee}</span>}
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    {isCompleted && <span className="text-[11px] font-bold text-emerald-400/70">✓</span>}
+                <div className="flex items-center gap-1">
+                    {isCompleted && <span className="text-[10px] font-bold text-emerald-700">✓ 完了</span>}
                     {isReady && !isCompleted && (
                         <motion.span
                             animate={{ opacity: [1, 0.4, 1] }}
                             transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="text-[11px] font-bold text-amber-400"
+                            className="text-[10px] font-bold text-amber-600"
                         >
                             LIVE
                         </motion.span>
@@ -268,24 +310,30 @@ function ProjectionMatch({
             {/* Team A */}
             <TeamNameCard
                 slot={match.slotA}
+                score={match.scoreA}
                 isWinner={match.winnerId === match.slotA.teamId}
                 isLoser={isCompleted && !!match.slotA.teamId && match.winnerId !== match.slotA.teamId}
                 canDecide={!!isReady && !isCompleted && !readOnly}
                 isHighlighted={recentWinnerId === match.slotA.teamId && isCompleted}
                 onWin={() => match.slotA.teamId && onWin(match.matchId, match.slotA.teamId)}
+                onScoreChange={(val) => onScoreChange?.(match.matchId, true, val)}
+                readOnly={readOnly}
             />
 
             {/* VS divider */}
-            <div className="text-center py-1 bg-slate-950/50 text-slate-700 font-black text-xs tracking-[0.4em]">VS</div>
+            <div className="text-center py-0.5 bg-slate-50 text-slate-400 font-black text-[10px] tracking-[0.5em] border-y border-slate-100">VS</div>
 
             {/* Team B */}
             <TeamNameCard
                 slot={match.slotB}
+                score={match.scoreB}
                 isWinner={match.winnerId === match.slotB.teamId}
                 isLoser={isCompleted && !!match.slotB.teamId && match.winnerId !== match.slotB.teamId}
                 canDecide={!!isReady && !isCompleted && !readOnly}
                 isHighlighted={recentWinnerId === match.slotB.teamId && isCompleted}
                 onWin={() => match.slotB.teamId && onWin(match.matchId, match.slotB.teamId)}
+                onScoreChange={(val) => onScoreChange?.(match.matchId, false, val)}
+                readOnly={readOnly}
             />
         </motion.div>
     );
@@ -300,6 +348,8 @@ function RoundGroup({
     onWin,
     readOnly,
     scale,
+    matchRefs,
+    onScoreChange,
 }: {
     roundNum: number;
     matches: BracketMatch[];
@@ -308,11 +358,13 @@ function RoundGroup({
     onWin: (matchId: string, winnerId: string) => void;
     readOnly: boolean;
     scale: number;
+    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
 }) {
     return (
-        <div className="flex flex-col gap-4 justify-around py-2 h-full">
-            <div className="text-center text-[10px] font-black tracking-[0.3em] text-slate-600 uppercase mb-1 shrink-0">
-                Round {roundNum}
+        <div className="flex flex-col gap-8 justify-around h-full z-10 relative">
+            <div className="text-center text-xs font-black tracking-[0.3em] text-slate-500 uppercase shrink-0 absolute -top-8 left-0 right-0">
+                R{roundNum}
             </div>
             {matches.map(m => (
                 <ProjectionMatch
@@ -323,6 +375,8 @@ function RoundGroup({
                     onWin={onWin}
                     readOnly={readOnly}
                     scale={scale}
+                    matchRefs={matchRefs}
+                    onScoreChange={onScoreChange}
                 />
             ))}
         </div>
@@ -333,9 +387,9 @@ function RoundGroup({
 // ===== Section Label =====
 function SectionLabel({ icon, label, colorClass }: { icon: React.ReactNode; label: string; colorClass: string }) {
     return (
-        <div className={`flex items-center gap-2 mb-4 ${colorClass}`}>
+        <div className={`flex items-center gap-2 mb-8 mt-4 ${colorClass}`}>
             {icon}
-            <span className="text-sm font-black tracking-widest uppercase">{label}</span>
+            <span className="text-xl font-black tracking-widest uppercase">{label}</span>
         </div>
     );
 }
@@ -347,20 +401,24 @@ export default function BracketFullscreen({
     bracketData,
     entries,
     onWin,
+    onScoreChange,
     readOnly = false,
 }: BracketFullscreenProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const matchRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    
     const [recentWinnerId, setRecentWinnerId] = useState<string | null>(null);
-    const [celebration, setCelebration] = useState<string | null>(null);
     const [scale, setScale] = useState(1);
+    const [renderLinesTick, setRenderLinesTick] = useState(0);
 
     // Auto-scale to fit viewport
     useEffect(() => {
         const recalc = () => {
             if (!contentRef.current || !containerRef.current) return;
-            const vw = window.innerWidth - 32;
-            const vh = window.innerHeight - 80; // account for header
+            // Maximize available space
+            const vw = window.innerWidth - 64;
+            const vh = window.innerHeight - 64; 
 
             const parentNode = contentRef.current.parentElement;
             if (parentNode) {
@@ -373,7 +431,8 @@ export default function BracketFullscreen({
                 if (cw > 0 && ch > 0) {
                     const sx = vw / cw;
                     const sy = vh / ch;
-                    setScale(Math.min(sx, sy, 1));
+                    setScale(Math.min(sx, sy, 1.2)); // Allow slight upscale to fill
+                    setRenderLinesTick(t => t + 1); // trigger re-render of lines after scale fixes layout bounds
                 }
             }
         };
@@ -401,7 +460,6 @@ export default function BracketFullscreen({
         const teamName = match?.slotA.teamId === winnerId ? match?.slotA.teamName : match?.slotB.teamName;
 
         setRecentWinnerId(winnerId);
-        setCelebration(teamName || '');
         onWin(matchId, winnerId);
 
         setTimeout(() => setRecentWinnerId(null), 6000);
@@ -422,76 +480,76 @@ export default function BracketFullscreen({
     const hasWinners = bracketData.winnersMatches.length > 0;
 
     return (
-        <div ref={containerRef} className="fixed inset-0 z-[150] bg-slate-950 overflow-hidden flex flex-col">
-            {/* Top Bar */}
-            <div className="flex-shrink-0 bg-slate-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-3 flex items-center justify-between h-14">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-indigo-500/30">
-                        <Trophy className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-base font-black text-white tracking-tight leading-tight">決勝トーナメント</h1>
-                        <p className="text-[10px] text-slate-500 tracking-widest uppercase">
-                            {bracketData.teamCount} TEAMS  •  DOUBLE ELIMINATION
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={enterFullscreen}
-                        className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                        <Maximize2 className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => { document.exitFullscreen?.().catch(() => {}); onClose(); }}
-                        className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
+        <div ref={containerRef} className="fixed inset-0 z-[150] bg-white overflow-hidden flex flex-col font-sans px-8 py-8">
+            
+            {/* Minimal Absolute Controls */}
+            <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200">
+                <button onClick={enterFullscreen}
+                    className="p-2.5 bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all shadow-sm hover:shadow-md font-bold flex items-center justify-center">
+                    <Maximize2 className="w-5 h-5" />
+                </button>
+                <button onClick={() => { document.exitFullscreen?.().catch(() => {}); onClose(); }}
+                    className="p-2.5 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all shadow-sm hover:shadow-md font-bold flex items-center justify-center">
+                    <X className="w-5 h-5" />
+                </button>
             </div>
 
+            {/* Eliminated bar absolute bottom */}
+            {(bracketData.eliminatedTeams || []).length > 0 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-md px-6 py-2.5 rounded-3xl shadow-lg border border-slate-200 flex items-center gap-3 max-w-[90vw] shrink-0 overflow-x-auto custom-scrollbar">
+                    <span className="text-xs font-black text-rose-600 tracking-wider flex-shrink-0 flex items-center gap-1.5 uppercase">
+                        <Skull className="w-4 h-4" /> 敗退
+                    </span>
+                    {(bracketData.eliminatedTeams || []).map(id => {
+                        const e = entries.find(x => x.id === id);
+                        return (
+                            <span key={id} className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 flex-shrink-0 shadow-sm whitespace-nowrap">
+                                {e?.teamName || id}
+                            </span>
+                        );
+                    })}
+                </div>
+            )}
+
             {/* Bracket area — auto-scaled */}
-            <div className="flex-1 overflow-hidden flex items-center justify-center relative">
+            <div className="flex-1 w-full h-full overflow-auto flex items-center justify-center relative radial-grid">
                 <div
                     style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
-                    className="flex items-start gap-0 px-4 pt-4 absolute"
+                    className="flex items-start gap-0 relative"
                 >
                     <LayoutGroup>
-                        <div ref={contentRef} className="flex items-start gap-0">
+                        <div ref={contentRef} className="flex flex-row items-stretch gap-0 relative">
+                            {/* Connector Lines Layer */}
+                            {renderLinesTick === renderLinesTick && <BracketLines bracketData={bracketData} matchRefs={matchRefs} contentRef={contentRef} scale={scale} />}
 
-                            {/* === Left Bracket (サバイバル) === */}
-                            {hasLosers && (
-                                <div className="flex-shrink-0 px-4">
+                            {/* === Left Bracket (チャンピオン) === */}
+                            {hasWinners && (
+                                <div className="flex-shrink-0 px-8 z-10">
                                     <SectionLabel
-                                        icon={<div className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-md shadow-blue-400/50" />}
-                                        label="サバイバル"
-                                        colorClass="text-blue-400"
+                                        icon={<Crown className="w-6 h-6 text-emerald-500" />}
+                                        label="WINNERS"
+                                        colorClass="text-emerald-600 justify-center"
                                     />
-                                    <div className="flex gap-6 items-stretch flex-row-reverse h-full">
-                                        {groupByRound(bracketData.losersMatches).map(([rn, ms]) => (
+                                    <div className="flex gap-20 items-stretch flex-row-reverse h-full pt-8">
+                                        {groupByRound(bracketData.winnersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="left"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
-                                                readOnly={readOnly} scale={scale} />
+                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs} />
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Arrow left */}
-                            {hasLosers && (
-                                <div className="flex flex-col items-center self-center gap-1 px-1">
-                                    <motion.div animate={{ x: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-                                        <ChevronLeft className="w-7 h-7 text-blue-500/25" />
-                                    </motion.div>
-                                </div>
-                            )}
+                            {hasWinners && <div className="w-8 shrink-0" />}
 
                             {/* === Center — Initial Matches === */}
-                            <div className="flex-shrink-0 px-4">
+                            <div className="flex-shrink-0 px-8 z-10 border-x-2 border-dashed border-slate-300/40">
                                 <SectionLabel
-                                    icon={<Zap className="w-4 h-4 text-indigo-400" />}
-                                    label="初戦"
-                                    colorClass="text-indigo-400"
+                                    icon={<Zap className="w-6 h-6 text-indigo-500" />}
+                                    label="INITIAL"
+                                    colorClass="text-indigo-600 justify-center"
                                 />
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-10 pt-8 h-full justify-around">
                                     {bracketData.initialMatches.map(m => (
                                         <ProjectionMatch
                                             key={m.matchId}
@@ -501,33 +559,27 @@ export default function BracketFullscreen({
                                             onWin={handleWin}
                                             readOnly={readOnly}
                                             scale={scale}
+                                            matchRefs={matchRefs}
                                         />
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Arrow right */}
-                            {hasWinners && (
-                                <div className="flex flex-col items-center self-center gap-1 px-1">
-                                    <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-                                        <ChevronRight className="w-7 h-7 text-emerald-500/25" />
-                                    </motion.div>
-                                </div>
-                            )}
+                            {hasLosers && <div className="w-8 shrink-0" />}
 
-                            {/* === Right Bracket (チャンピオン) === */}
-                            {hasWinners && (
-                                <div className="flex-shrink-0 px-4">
+                            {/* === Right Bracket (サバイバル) === */}
+                            {hasLosers && (
+                                <div className="flex-shrink-0 px-8 z-10">
                                     <SectionLabel
-                                        icon={<div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/50" />}
-                                        label="チャンピオン"
-                                        colorClass="text-emerald-400"
+                                        icon={<Skull className="w-6 h-6 text-rose-500" />}
+                                        label="LOSERS"
+                                        colorClass="text-rose-600 justify-center"
                                     />
-                                    <div className="flex gap-6 items-stretch h-full">
-                                        {groupByRound(bracketData.winnersMatches).map(([rn, ms]) => (
+                                    <div className="flex gap-20 items-stretch h-full pt-8">
+                                        {groupByRound(bracketData.losersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="right"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
-                                                readOnly={readOnly} scale={scale} />
+                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs} />
                                         ))}
                                     </div>
                                 </div>
@@ -536,31 +588,6 @@ export default function BracketFullscreen({
                     </LayoutGroup>
                 </div>
             </div>
-
-            {/* Eliminated bar */}
-            {(bracketData.eliminatedTeams || []).length > 0 && (
-                <div className="flex-shrink-0 border-t border-white/5 bg-slate-950/80 px-5 py-2 flex items-center gap-3 overflow-x-auto">
-                    <span className="text-[11px] font-black text-slate-500 tracking-widest uppercase flex-shrink-0">敗退</span>
-                    {(bracketData.eliminatedTeams || []).map(id => {
-                        const e = entries.find(x => x.id === id);
-                        return (
-                            <span key={id} className="text-xs text-slate-600 bg-slate-900 px-3 py-1 rounded-full border border-slate-800 flex-shrink-0">
-                                {e?.teamName || id}
-                            </span>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* Victory Overlay */}
-            <AnimatePresence>
-                {celebration && (
-                    <VictoryCelebration
-                        teamName={celebration}
-                        onDone={() => setCelebration(null)}
-                    />
-                )}
-            </AnimatePresence>
         </div>
     );
 }

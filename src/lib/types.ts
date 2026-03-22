@@ -108,6 +108,8 @@ export interface BracketMatch {
     nextLoseMatchId?: string;// Where loser goes (for winners bracket)
     court?: string;          // NEW: Court name (e.g. "Aコート")
     referee?: string;        // NEW: Referee team/person
+    scoreA?: string | number;// NEW: Score for team A
+    scoreB?: string | number;// NEW: Score for team B
 }
 
 export interface TournamentBracketData {

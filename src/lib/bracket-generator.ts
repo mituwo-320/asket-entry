@@ -324,7 +324,7 @@ export function undoMatchResult(
         // Reset this match
         const updateMatch = (m: BracketMatch): BracketMatch => {
             if (m.matchId !== matchId) return m;
-            return { ...m, winnerId: undefined, loserId: undefined, status: 'ready' };
+            return { ...m, winnerId: undefined, loserId: undefined, status: 'ready', scoreA: undefined, scoreB: undefined };
         };
 
         result.initialMatches = result.initialMatches.map(updateMatch);
@@ -365,6 +365,8 @@ export function undoMatchResult(
                 return {
                     ...m,
                     status: m.slotA.isBye && m.slotB.isBye ? 'ready' : 'pending',
+                    scoreA: undefined,
+                    scoreB: undefined,
                     slotA: m.slotA.isBye ? m.slotA : { ...m.slotA, teamId: undefined, teamName: undefined },
                     slotB: m.slotB.isBye ? m.slotB : { ...m.slotB, teamId: undefined, teamName: undefined }
                 };
@@ -398,6 +400,27 @@ export function updateMatchInfo(
 }
 
 /**
+ * Update match scores.
+ */
+export function updateMatchScore(
+    bracket: TournamentBracketData,
+    matchId: string,
+    scoreA?: string | number,
+    scoreB?: string | number
+): TournamentBracketData {
+    let result = { ...bracket };
+    const updateMatch = (m: BracketMatch): BracketMatch => {
+        if (m.matchId !== matchId) return m;
+        return { ...m, scoreA, scoreB };
+    };
+
+    result.initialMatches = result.initialMatches.map(updateMatch);
+    result.winnersMatches = result.winnersMatches.map(updateMatch);
+    result.losersMatches = result.losersMatches.map(updateMatch);
+    return result;
+}
+
+/**
  * Randomize first round entries
  */
 export function randomizeFirstRound(
@@ -421,6 +444,8 @@ export function randomizeFirstRound(
                 status: m.slotA.isBye && m.slotB.isBye ? 'ready' : 'pending',
                 winnerId: undefined,
                 loserId: undefined,
+                scoreA: undefined,
+                scoreB: undefined,
                 slotA: m.slotA.isBye ? m.slotA : { ...m.slotA, teamId: undefined, teamName: undefined },
                 slotB: m.slotB.isBye ? m.slotB : { ...m.slotB, teamId: undefined, teamName: undefined }
             };
@@ -431,6 +456,8 @@ export function randomizeFirstRound(
             status: 'pending', 
             winnerId: undefined, 
             loserId: undefined, 
+            scoreA: undefined,
+            scoreB: undefined,
             slotA: { ...m.slotA, teamId: undefined, teamName: undefined }, 
             slotB: { ...m.slotB, teamId: undefined, teamName: undefined } 
         };

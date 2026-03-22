@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TeamEntry, TournamentBracketData, Project } from "@/lib/types";
 import TournamentBracket from "@/components/admin/TournamentBracket";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
-import { recordMatchResult } from "@/lib/bracket-generator";
+import { recordMatchResult, updateMatchScore } from "@/lib/bracket-generator";
 
 export default function TournamentBracketPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -152,6 +152,28 @@ export default function TournamentBracketPage() {
         }
     };
 
+    const handleFullscreenScoreChange = async (matchId: string, isSlotA: boolean, score: string) => {
+        if (!bracketData || !bracketId) return;
+        
+        // Find existing match to preserve the other score
+        const allMatches = [...bracketData.initialMatches, ...bracketData.winnersMatches, ...bracketData.losersMatches];
+        const match = allMatches.find(m => m.matchId === matchId);
+        if (!match) return;
+
+        const updated = updateMatchScore(
+            bracketData, 
+            matchId, 
+            isSlotA ? (score === '' ? undefined : Number(score)) : match.scoreA,
+            !isSlotA ? (score === '' ? undefined : Number(score)) : match.scoreB
+        );
+        setBracketData(updated);
+        fetch('/api/admin/bracket/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bracketId, brackets: updated }),
+        }).catch(console.error);
+    };
+
     const displayUrl = `/admin/tournament-bracket/display?id=${selectedProjectId}`;
     const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId && e.status !== 'cancelled');
 
@@ -165,23 +187,18 @@ export default function TournamentBracketPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950">
-            {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+        <div className="min-h-screen bg-slate-950 flex flex-col">
+            <main className="flex-1 flex flex-col p-2">
+                {/* Slim Header inside Main */}
+                <div className="flex items-center justify-between gap-4 mb-2 bg-slate-900/40 p-2 rounded-lg border border-white/5">
+                    <div className="flex items-center gap-3">
                         <Link href="/admin"
-                            className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+                            className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium">
                             <ArrowLeft className="w-4 h-4" />
-                            管理画面
+                            戻る
                         </Link>
-                        <div className="w-px h-6 bg-white/10" />
-                        <div className="flex items-center gap-2">
-                            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
-                                <Trophy className="w-5 h-5 text-white" />
-                            </div>
-                            <h1 className="text-base font-bold text-white tracking-tight">トーナメント表</h1>
-                        </div>
+                        <div className="w-px h-4 bg-white/10" />
+                        <h1 className="text-sm font-bold text-white flex items-center gap-1.5"><Trophy className="w-4 h-4 text-emerald-400"/> トーナメント表</h1>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* Project Selector */}
@@ -219,9 +236,7 @@ export default function TournamentBracketPage() {
                         )}
                     </div>
                 </div>
-            </header>
 
-            <main className="container mx-auto px-4 py-8 max-w-[98%]">
                 {/* Seed message toast */}
                 <AnimatePresence>
                     {seedMessage && (
@@ -229,7 +244,7 @@ export default function TournamentBracketPage() {
                             initial={{ opacity: 0, y: -16 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -16 }}
-                            className={`mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-sm ${
+                            className={`mb-2 flex items-center gap-2 px-3 py-2 rounded-lg border font-bold text-xs ${
                                 seedMessage.type === 'success'
                                     ? 'bg-emerald-900/20 border-emerald-500/30 text-emerald-300'
                                     : 'bg-rose-900/20 border-rose-500/30 text-rose-300'
@@ -313,26 +328,31 @@ export default function TournamentBracketPage() {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="space-y-6"
+                        className="flex flex-col flex-1 gap-2"
                     >
-                        <div className="flex items-center justify-between flex-wrap gap-3">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Trophy className="w-5 h-5 text-yellow-400" />
-                                ダブルエリミネーション トーナメント
-                            </h2>
+                        <div className="flex items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-lg border border-white/5">
+                            <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                                <span className="flex items-center gap-1.5 focus:outline-none">
+                                    <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                                    表示用URL:
+                                    <Link href={displayUrl} target="_blank"
+                                        className="text-indigo-400 hover:text-indigo-300 font-mono underline underline-offset-2">
+                                        {displayUrl}
+                                    </Link>
+                                </span>
+                                <span className="text-slate-700">•</span>
+                                <span>編集内容は自動で保存されます</span>
+                            </div>
                             <div className="flex items-center gap-2">
-                                {/* Test seeder shown here too when bracket exists */}
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={seedTestTeams}
                                     disabled={isSeedingTeams}
-                                    className="text-slate-500 hover:text-blue-300 hover:bg-blue-500/10 border border-slate-800 hover:border-blue-500/30"
+                                    className="h-7 text-xs text-slate-500 hover:text-blue-300 px-2"
                                 >
-                                    {isSeedingTeams
-                                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                                        : <FlaskConical className="w-4 h-4 mr-1" />}
-                                    テストチーム追加
+                                    <FlaskConical className="w-3 h-3 mr-1" />
+                                    テスト追加
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -342,35 +362,23 @@ export default function TournamentBracketPage() {
                                             generateBracket();
                                         }
                                     }}
-                                    className="text-slate-400 hover:text-white"
+                                    className="h-7 text-xs text-slate-400 hover:text-rose-400 px-2"
                                 >
-                                    <RefreshCcw className="w-4 h-4 mr-2" />
-                                    再生成
+                                    <RefreshCcw className="w-3 h-3 mr-1" />
+                                    初期化
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Info bar */}
-                        <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900/40 rounded-xl border border-white/5 text-xs text-slate-500 flex-wrap">
-                            <span className="flex items-center gap-1.5">
-                                <Monitor className="w-3.5 h-3.5 text-indigo-400" />
-                                表示用URL:
-                                <Link href={displayUrl} target="_blank"
-                                    className="text-indigo-400 hover:text-indigo-300 font-mono underline underline-offset-2">
-                                    {displayUrl}
-                                </Link>
-                            </span>
-                            <span className="text-slate-700">•</span>
-                            <span>管理者の変更は約5秒でリアルタイム反映されます</span>
+                        <div className="flex-1 min-h-0 bg-white rounded-lg overflow-hidden shadow-sm">
+                            <TournamentBracket
+                                bracketData={bracketData}
+                                entries={activeEntries}
+                                bracketId={bracketId!}
+                                onBracketUpdate={setBracketData}
+                                onSave={saveBracket}
+                            />
                         </div>
-
-                        <TournamentBracket
-                            bracketData={bracketData}
-                            entries={activeEntries}
-                            bracketId={bracketId!}
-                            onBracketUpdate={setBracketData}
-                            onSave={saveBracket}
-                        />
                     </motion.div>
                 )}
             </main>
@@ -383,6 +391,7 @@ export default function TournamentBracketPage() {
                     bracketData={bracketData}
                     entries={activeEntries}
                     onWin={handleFullscreenWin}
+                    onScoreChange={handleFullscreenScoreChange}
                     readOnly={false}
                 />
             )}
