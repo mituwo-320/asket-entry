@@ -8,7 +8,7 @@ import { Search, Download, ShieldAlert, CheckCircle2, X, AlertCircle, Loader2, U
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
-import GroupManager from '@/components/admin/GroupManager';
+
 import ProjectManagerModal from '@/components/admin/ProjectManagerModal'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
@@ -863,20 +863,7 @@ export default function AdminDashboard() {
 
 
 
-                    {/* NEW: Group Management Section */}
-                    <motion.div variants={itemVariants}>
-                        <Card className="p-0 overflow-hidden">
-                            <div className="p-6 border-b border-white/5 bg-slate-900/20">
-                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-indigo-400" />
-                                    グループ編成
-                                </h2>
-                            </div>
-                            <div className="p-6">
-                                <GroupManager entries={entries} onSave={loadData} />
-                            </div>
-                        </Card>
-                    </motion.div>
+
 
                     {/* Quick Actions */}
                     <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
