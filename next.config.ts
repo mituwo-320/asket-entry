@@ -13,3 +13,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+// Cache invalidation for full deployment
