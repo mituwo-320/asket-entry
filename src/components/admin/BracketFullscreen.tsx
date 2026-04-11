@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, MutableRefObject } from "react";
 import { BracketMatch, TournamentBracketData, TeamEntry } from "@/lib/types";
-import { Trophy, Crown, X, Maximize2, Zap, Star, ChevronLeft, ChevronRight, Skull } from "lucide-react";
+import { Trophy, Crown, X, Maximize2, Zap, Star, ChevronLeft, ChevronRight, Skull, Undo, ZoomIn, ZoomOut } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 
 interface BracketFullscreenProps {
@@ -11,6 +11,8 @@ interface BracketFullscreenProps {
     onWin: (matchId: string, winnerId: string) => void;
     onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
     readOnly?: boolean; // display-only mode (no win buttons)
+    showScores?: boolean; // whether to show score inputs initially
+    onUndo?: (matchId: string) => void;
 }
 
 // NO-OP
@@ -28,7 +30,7 @@ function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketDa
             const getPos = (id: string, side: 'left' | 'right') => {
                 const el = matchRefs.current[id];
                 if (!el || !contentRef.current) return null;
-                
+
                 // Get offset within contentRef
                 let node: HTMLElement | null = el;
                 let x = 0;
@@ -38,7 +40,7 @@ function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketDa
                     y += node.offsetTop;
                     node = node.offsetParent as HTMLElement;
                 }
-                
+
                 if (side === 'right') x += el.offsetWidth;
                 y += el.offsetHeight / 2;
                 return { x, y };
@@ -74,7 +76,7 @@ function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketDa
                         const inSide = destM.bracket === 'losers' ? 'left' : 'right';
                         const p1 = getPos(m.matchId, outLose);
                         const p2 = getPos(destM.matchId, inSide);
-                        
+
                         if (p1 && p2) {
                             const midX = p1.x + Math.abs(p2.x - p1.x) * 0.3;
                             newPaths.push({
@@ -125,6 +127,7 @@ function TeamNameCard({
     onWin,
     onScoreChange,
     readOnly,
+    showScores,
 }: {
     slot: { slotId: string; teamId?: string; teamName?: string; seedNumber?: number; isBye?: boolean };
     score?: string | number;
@@ -135,6 +138,7 @@ function TeamNameCard({
     onWin: () => void;
     onScoreChange?: (val: string) => void;
     readOnly: boolean;
+    showScores: boolean;
 }) {
     if (slot.isBye) {
         return (
@@ -156,17 +160,15 @@ function TeamNameCard({
 
     return (
         <motion.div
-            layoutId={`team-${slot.teamId}`}
             layout
-            className={`flex items-center justify-between px-3 py-2 min-h-[48px] transition-colors duration-500 border-t-2 border-slate-200 ${
-                isHighlighted
-                    ? 'bg-amber-200'
-                    : isWinner
-                        ? 'bg-emerald-50'
-                        : isLoser
-                            ? 'bg-slate-100 opacity-60'
-                            : 'bg-white hover:bg-slate-50'
-            }`}
+            className={`flex items-center justify-between px-3 py-2 min-h-[48px] transition-colors duration-500 border-t-2 border-slate-200 ${isHighlighted
+                ? 'bg-amber-200'
+                : isWinner
+                    ? 'bg-emerald-50'
+                    : isLoser
+                        ? 'bg-slate-100 opacity-60'
+                        : 'bg-white hover:bg-slate-50'
+                }`}
         >
             <div className="flex items-center gap-2 min-w-0 flex-1">
                 <AnimatePresence>
@@ -182,13 +184,12 @@ function TeamNameCard({
                 </AnimatePresence>
                 <motion.span
                     layout
-                    className={`font-black break-words leading-tight whitespace-normal ${
-                        isWinner
-                            ? 'text-emerald-800 text-lg'
-                            : isLoser
-                                ? 'text-slate-500 line-through text-base'
-                                : 'text-slate-900 text-lg'
-                    }`}
+                    className={`font-black break-words leading-tight whitespace-normal ${isWinner
+                        ? 'text-emerald-800 text-lg'
+                        : isLoser
+                            ? 'text-slate-500 line-through text-base'
+                            : 'text-slate-900 text-lg'
+                        }`}
                     animate={isHighlighted ? { scale: [1, 1.04, 1] } : { scale: 1 }}
                     transition={isHighlighted ? { repeat: 2, duration: 0.5 } : {}}
                 >
@@ -196,25 +197,23 @@ function TeamNameCard({
                 </motion.span>
             </div>
 
-            {(!readOnly && onScoreChange) ? (
+            {showScores && !readOnly && onScoreChange ? (
                 <input
                     type="number"
                     value={score ?? ''}
                     onChange={(e) => onScoreChange(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
-                    className={`w-14 font-black text-xl ml-2 px-2 py-0.5 rounded-lg border-2 focus:ring-2 outline-none transition-colors text-center ${
-                        isWinner 
-                            ? 'bg-emerald-100 border-emerald-500 text-emerald-900 focus:ring-emerald-500' 
-                            : 'bg-white border-slate-400 text-slate-900 focus:ring-indigo-500 hover:border-indigo-500'
-                    }`}
+                    className={`w-20 font-black text-2xl ml-2 px-2 py-1 rounded-lg border-2 focus:ring-4 outline-none transition-colors text-center ${isWinner
+                        ? 'bg-emerald-100 border-emerald-500 text-emerald-900 focus:ring-emerald-500'
+                        : 'bg-white border-slate-400 text-slate-900 focus:ring-indigo-500 hover:border-indigo-500'
+                        }`}
                     placeholder="-"
                 />
             ) : (
                 score !== undefined && score !== null && score !== '' && (
-                    <div className={`font-black text-xl ml-2 px-2 py-0.5 rounded-lg border-2 ${
-                        isWinner ? 'bg-emerald-100 border-emerald-500 text-emerald-900' : 'bg-slate-100 border-slate-300 text-slate-800'
-                    }`}>
+                    <div className={`font-black text-xl ml-2 px-2 py-0.5 rounded-lg border-2 ${isWinner ? 'bg-emerald-100 border-emerald-500 text-emerald-900' : 'bg-slate-100 border-slate-300 text-slate-800'
+                        }`}>
                         {score}
                     </div>
                 )
@@ -244,6 +243,8 @@ function ProjectionMatch({
     scale,
     matchRefs,
     onScoreChange,
+    showScores,
+    onUndo,
 }: {
     match: BracketMatch;
     side: 'left' | 'center' | 'right';
@@ -253,6 +254,8 @@ function ProjectionMatch({
     scale: number;
     matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
     onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
+    showScores: boolean;
+    onUndo?: (matchId: string) => void;
 }) {
     const isReady = match.status === 'ready' && match.slotA.teamId && match.slotB.teamId && !match.slotA.isBye && !match.slotB.isBye;
     const isCompleted = match.status === 'completed';
@@ -318,10 +321,22 @@ function ProjectionMatch({
                 onWin={() => match.slotA.teamId && onWin(match.matchId, match.slotA.teamId)}
                 onScoreChange={(val) => onScoreChange?.(match.matchId, true, val)}
                 readOnly={readOnly}
+                showScores={showScores}
             />
 
             {/* VS divider */}
-            <div className="text-center py-0.5 bg-slate-50 text-slate-400 font-black text-[10px] tracking-[0.5em] border-y border-slate-100">VS</div>
+            <div className="text-center py-0.5 bg-slate-50 text-slate-400 font-black text-[10px] tracking-[0.5em] border-y border-slate-100 flex items-center justify-center relative">
+                <span className="relative z-0">VS</span>
+                {isCompleted && !readOnly && onUndo && (
+                    <button 
+                        onClick={() => onUndo(match.matchId)} 
+                        className="absolute right-2 text-slate-300 hover:text-rose-500 p-0.5 transition-colors z-10" 
+                        title="やり直し"
+                    >
+                        <Undo className="w-3.5 h-3.5" />
+                    </button>
+                )}
+            </div>
 
             {/* Team B */}
             <TeamNameCard
@@ -334,6 +349,7 @@ function ProjectionMatch({
                 onWin={() => match.slotB.teamId && onWin(match.matchId, match.slotB.teamId)}
                 onScoreChange={(val) => onScoreChange?.(match.matchId, false, val)}
                 readOnly={readOnly}
+                showScores={showScores}
             />
         </motion.div>
     );
@@ -350,6 +366,8 @@ function RoundGroup({
     scale,
     matchRefs,
     onScoreChange,
+    showScores,
+    onUndo,
 }: {
     roundNum: number;
     matches: BracketMatch[];
@@ -360,6 +378,8 @@ function RoundGroup({
     scale: number;
     matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
     onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
+    showScores: boolean;
+    onUndo?: (matchId: string) => void;
 }) {
     return (
         <div className="flex flex-col gap-8 justify-around h-full z-10 relative">
@@ -377,6 +397,8 @@ function RoundGroup({
                     scale={scale}
                     matchRefs={matchRefs}
                     onScoreChange={onScoreChange}
+                    showScores={showScores}
+                    onUndo={onUndo}
                 />
             ))}
         </div>
@@ -403,22 +425,25 @@ export default function BracketFullscreen({
     onWin,
     onScoreChange,
     readOnly = false,
+    showScores: defaultShowScores = false,
+    onUndo,
 }: BracketFullscreenProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const matchRefs = useRef<Record<string, HTMLDivElement | null>>({});
-    
+
     const [recentWinnerId, setRecentWinnerId] = useState<string | null>(null);
     const [scale, setScale] = useState(1);
     const [renderLinesTick, setRenderLinesTick] = useState(0);
+    const [showScores, setShowScores] = useState(defaultShowScores);
 
     // Auto-scale to fit viewport
     useEffect(() => {
         const recalc = () => {
             if (!contentRef.current || !containerRef.current) return;
-            // Maximize available space
-            const vw = window.innerWidth - 64;
-            const vh = window.innerHeight - 64; 
+            // Maximize available space with minimal margin
+            const vw = window.innerWidth - 5;
+            const vh = window.innerHeight - 5;
 
             const parentNode = contentRef.current.parentElement;
             if (parentNode) {
@@ -431,7 +456,8 @@ export default function BracketFullscreen({
                 if (cw > 0 && ch > 0) {
                     const sx = vw / cw;
                     const sy = vh / ch;
-                    setScale(Math.min(sx, sy, 1.2)); // Allow slight upscale to fill
+                    // 上限を1.2から4.0に引き上げ、より詳細に拡大表示できるようにする
+                    setScale(Math.min(sx, sy, 4.0));
                     setRenderLinesTick(t => t + 1); // trigger re-render of lines after scale fixes layout bounds
                 }
             }
@@ -446,7 +472,7 @@ export default function BracketFullscreen({
 
     const enterFullscreen = useCallback(() => {
         if (containerRef.current) {
-            containerRef.current.requestFullscreen?.().catch(() => {});
+            containerRef.current.requestFullscreen?.().catch(() => { });
         }
     }, []);
 
@@ -474,42 +500,44 @@ export default function BracketFullscreen({
         return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
     };
 
+    const handleZoomIn = () => setScale(s => Math.min(s * 1.25, 8.0));
+    const handleZoomOut = () => setScale(s => Math.max(s / 1.25, 0.2));
+
     if (!isOpen) return null;
 
     const hasLosers = bracketData.losersMatches.length > 0;
     const hasWinners = bracketData.winnersMatches.length > 0;
 
     return (
-        <div ref={containerRef} className="fixed inset-0 z-[150] bg-white overflow-hidden flex flex-col font-sans px-8 py-8">
-            
+        <div ref={containerRef} className="fixed inset-0 z-[150] bg-slate-50 overflow-hidden flex flex-col font-sans p-4">
+
             {/* Minimal Absolute Controls */}
-            <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200">
+            <div className="absolute top-4 right-4 z-[200] flex items-center gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-slate-200">
+                {!readOnly && (
+                    <button onClick={() => setShowScores(!showScores)}
+                        className={`px-3 py-2 rounded-xl font-bold text-sm transition-all shadow-sm border ${showScores ? 'bg-indigo-100 text-indigo-700 border-indigo-200 hover:bg-indigo-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-indigo-600'}`}>
+                        得点入力: {showScores ? 'ON' : 'OFF'}
+                    </button>
+                )}
+                <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <button onClick={handleZoomOut} className="px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 font-black border-r border-slate-200 transition-colors" title="縮小">
+                        <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button onClick={handleZoomIn} className="px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 font-black transition-colors" title="拡大">
+                        <ZoomIn className="w-4 h-4" />
+                    </button>
+                </div>
                 <button onClick={enterFullscreen}
                     className="p-2.5 bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all shadow-sm hover:shadow-md font-bold flex items-center justify-center">
                     <Maximize2 className="w-5 h-5" />
                 </button>
-                <button onClick={() => { document.exitFullscreen?.().catch(() => {}); onClose(); }}
+                <button onClick={() => { document.exitFullscreen?.().catch(() => { }); onClose(); }}
                     className="p-2.5 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all shadow-sm hover:shadow-md font-bold flex items-center justify-center">
                     <X className="w-5 h-5" />
                 </button>
             </div>
 
-            {/* Eliminated bar absolute bottom */}
-            {(bracketData.eliminatedTeams || []).length > 0 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-md px-6 py-2.5 rounded-3xl shadow-lg border border-slate-200 flex items-center gap-3 max-w-[90vw] shrink-0 overflow-x-auto custom-scrollbar">
-                    <span className="text-xs font-black text-rose-600 tracking-wider flex-shrink-0 flex items-center gap-1.5 uppercase">
-                        <Skull className="w-4 h-4" /> 敗退
-                    </span>
-                    {(bracketData.eliminatedTeams || []).map(id => {
-                        const e = entries.find(x => x.id === id);
-                        return (
-                            <span key={id} className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 flex-shrink-0 shadow-sm whitespace-nowrap">
-                                {e?.teamName || id}
-                            </span>
-                        );
-                    })}
-                </div>
-            )}
+
 
             {/* Bracket area — auto-scaled */}
             <div className="flex-1 w-full h-full overflow-auto flex items-center justify-center relative radial-grid">
@@ -534,7 +562,8 @@ export default function BracketFullscreen({
                                         {groupByRound(bracketData.winnersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="left"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
-                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs} />
+                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs}
+                                                onScoreChange={onScoreChange} showScores={showScores} />
                                         ))}
                                     </div>
                                 </div>
@@ -560,6 +589,9 @@ export default function BracketFullscreen({
                                             readOnly={readOnly}
                                             scale={scale}
                                             matchRefs={matchRefs}
+                                            onScoreChange={onScoreChange}
+                                            showScores={showScores}
+                                            onUndo={onUndo}
                                         />
                                     ))}
                                 </div>
@@ -579,7 +611,8 @@ export default function BracketFullscreen({
                                         {groupByRound(bracketData.losersMatches).map(([rn, ms]) => (
                                             <RoundGroup key={rn} roundNum={rn} matches={ms} side="right"
                                                 recentWinnerId={recentWinnerId} onWin={handleWin}
-                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs} />
+                                                readOnly={readOnly} scale={scale} matchRefs={matchRefs}
+                                                onScoreChange={onScoreChange} showScores={showScores} />
                                         ))}
                                     </div>
                                 </div>

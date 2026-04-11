@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TeamEntry, TournamentBracketData, Project } from "@/lib/types";
 import TournamentBracket from "@/components/admin/TournamentBracket";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
-import { recordMatchResult, updateMatchScore } from "@/lib/bracket-generator";
+import { recordMatchResult, updateMatchScore, undoMatchResult } from "@/lib/bracket-generator";
 
 export default function TournamentBracketPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -142,6 +142,19 @@ export default function TournamentBracketPage() {
     const handleFullscreenWin = (matchId: string, winnerId: string) => {
         if (!bracketData) return;
         const updated = recordMatchResult(bracketData, matchId, winnerId);
+        setBracketData(updated);
+        if (bracketId) {
+            fetch('/api/admin/bracket/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
+            }).catch(console.error);
+        }
+    };
+
+    const handleFullscreenUndo = (matchId: string) => {
+        if (!bracketData) return;
+        const updated = undoMatchResult(bracketData, matchId);
         setBracketData(updated);
         if (bracketId) {
             fetch('/api/admin/bracket/update', {
@@ -391,6 +404,7 @@ export default function TournamentBracketPage() {
                     bracketData={bracketData}
                     entries={activeEntries}
                     onWin={handleFullscreenWin}
+                    onUndo={handleFullscreenUndo}
                     onScoreChange={handleFullscreenScoreChange}
                     readOnly={false}
                 />

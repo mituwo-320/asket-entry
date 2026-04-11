@@ -35,7 +35,8 @@ export async function sendAdminNotificationEmail(teamData: {
     }
 
     try {
-        await transporter.sendMail({
+        console.log(`Attempting to send Admin Notification Email to: ${adminEmail}`);
+        const info = await transporter.sendMail({
             from: `"vankycup System" <${process.env.SMTP_USER}>`,
             to: adminEmail,
             subject: `【新規エントリー通知】チーム「${teamData.teamName}」が登録されました`,
@@ -57,9 +58,17 @@ export async function sendAdminNotificationEmail(teamData: {
                 </div>
             `,
         });
+        console.log(`Admin Notification Email sent successfully: ${info.messageId}`);
         return true;
     } catch (error) {
         console.error('Failed to send admin notification email:', error);
+        console.error('SMTP Config used (Admin Email):', {
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || '587',
+            user: process.env.SMTP_USER ? '***@' + (process.env.SMTP_USER.split('@')[1] || 'hidden') : 'NOT SET',
+            secure: process.env.SMTP_SECURE === 'true',
+            adminEmail: adminEmail || 'NOT SET'
+        });
         return false;
     }
 }
@@ -83,7 +92,8 @@ export async function sendUserRegistrationEmail(teamData: {
     }
 
     try {
-        await transporter.sendMail({
+        console.log(`Attempting to send User Registration Email to: ${teamData.email}`);
+        const info = await transporter.sendMail({
             from: `"vankycup" <${process.env.SMTP_USER}>`,
             to: teamData.email,
             subject: `【vankycup】エントリー受付完了のお知らせ (${teamData.projectName || '大会'})`,
@@ -106,9 +116,16 @@ export async function sendUserRegistrationEmail(teamData: {
                 </div>
             `,
         });
+        console.log(`User Registration Email sent successfully: ${info.messageId}`);
         return true;
     } catch (error) {
         console.error('Failed to send user registration email:', error);
+        console.error('SMTP Config used (User Reg Email):', {
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || '587',
+            user: process.env.SMTP_USER ? '***@' + (process.env.SMTP_USER.split('@')[1] || 'hidden') : 'NOT SET',
+            secure: process.env.SMTP_SECURE === 'true'
+        });
         return false;
     }
 }
@@ -151,6 +168,12 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
         return true;
     } catch (error) {
         console.error('Failed to send password reset email:', error);
+        console.error('SMTP Config used (Password Reset Email):', {
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || '587',
+            user: process.env.SMTP_USER ? '***@' + (process.env.SMTP_USER.split('@')[1] || 'hidden') : 'NOT SET',
+            secure: process.env.SMTP_SECURE === 'true'
+        });
         return false;
     }
 }

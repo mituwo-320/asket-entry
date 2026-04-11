@@ -95,23 +95,28 @@ export async function POST(request: Request) {
                 console.error("Failed to fetch project details for email", e);
             }
 
-            // Trigger admin notification email asynchronously
-            sendAdminNotificationEmail({
-                teamName: body.name,
-                representative: userName,
-                email: userEmail,
-                projectId: body.tournamentId,
-                projectName: projectName,
-                teamCountString: currentTeamCountStr
-            }).catch(console.error);
-
-            // Trigger User confirmation email asynchronously
-            sendUserRegistrationEmail({
-                teamName: body.name,
-                representative: userName,
-                email: userEmail,
-                projectName: projectName
-            }).catch(console.error);
+            // 通知の完了を待機する（メール）
+            try {
+                const notifications = [
+                    sendAdminNotificationEmail({
+                        teamName: body.name,
+                        representative: userName,
+                        email: userEmail,
+                        projectId: body.tournamentId,
+                        projectName: projectName,
+                        teamCountString: currentTeamCountStr
+                    }),
+                    sendUserRegistrationEmail({
+                        teamName: body.name,
+                        representative: userName,
+                        email: userEmail,
+                        projectName: projectName
+                    })
+                ];
+                await Promise.all(notifications);
+            } catch (notifyError) {
+                console.error('Notification failed during registration:', notifyError);
+            }
 
             return NextResponse.json({
                 success: true,
