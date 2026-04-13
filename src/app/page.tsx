@@ -17,7 +17,7 @@ export default function Home() {
           <Trophy className="w-4 h-4 text-emerald-500" />
           <span className="font-bold tracking-wider">vankycup</span>
         </div>
-        <h1 className="text-5xl md:text-7xl font-bold font-heading mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">
+        <h1 className="text-4xl md:text-7xl font-bold font-heading mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">
           ヴァンキーカップ<br />
           エントリー
         </h1>
