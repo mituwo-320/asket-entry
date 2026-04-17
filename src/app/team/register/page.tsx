@@ -281,6 +281,7 @@ export default function RegisterPage() {
     }
 
     return (
+        <>
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200 font-sans selection:bg-indigo-500/30">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
@@ -704,7 +705,7 @@ export default function RegisterPage() {
                             return isFull ? "キャンセル待ちとしてエントリーする" : "上記の内容でエントリーする";
                         })()}
                     </Button>
-                </form>
+                    </form>
             </Card>
         </div>
 
@@ -715,5 +716,6 @@ export default function RegisterPage() {
             title={confirmDialog.title}
             message={confirmDialog.message}
         />
+    </>
     );
 }
