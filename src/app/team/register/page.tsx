@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { ArrowLeft, CheckCircle2, Loader2, Sparkles, ShieldCheck, UserCheck, MessageCircle, Copy, Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -39,6 +39,9 @@ export default function RegisterPage() {
         confirmPassword: ""
     });
     const [error, setError] = useState("");
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: "", message: "", onConfirm: () => {} });
+
+    const showConfirm = (title: string, message: string, onConfirm: () => void) => setConfirmDialog({ open: true, title, message, onConfirm });
 
     useEffect(() => {
         const userJson = localStorage.getItem('currentUser');
@@ -138,9 +141,11 @@ export default function RegisterPage() {
 
         } catch (err: any) {
             if (err.message === 'このメールアドレスは既に登録されています') {
-                if (confirm("このメールアドレスは既に登録されています。ログイン画面へ移動しますか？")) {
-                    router.push(`/login?email=${encodeURIComponent(formData.email)}`);
-                }
+                showConfirm(
+                    "登録済みのアカウント",
+                    `「${formData.email}」\n上記のメールアドレスは既に登録されています。\n\nログイン画面へ移動しますか？`,
+                    () => router.push(`/login?email=${encodeURIComponent(formData.email)}`)
+                );
             } else {
                 setError(err.message);
             }
@@ -347,18 +352,22 @@ export default function RegisterPage() {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => {
-                                    if (confirm("現在のアカウントからログアウトし、別のアカウントで登録しますか？")) {
-                                        localStorage.removeItem('currentUser');
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            existingUserId: "",
-                                            email: "",
-                                            representative: "",
-                                            furigana: "",
-                                            password: "",
-                                            confirmPassword: ""
-                                        }));
-                                    }
+                                    showConfirm(
+                                        "別のアカウントで登録",
+                                        "現在のアカウントからログアウトして、別のアカウントで登録しますか？",
+                                        () => {
+                                            localStorage.removeItem('currentUser');
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                existingUserId: "",
+                                                email: "",
+                                                representative: "",
+                                                furigana: "",
+                                                password: "",
+                                                confirmPassword: ""
+                                            }));
+                                        }
+                                    );
                                 }}
                                 className="text-xs border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 shrink-0"
                             >
@@ -698,5 +707,13 @@ export default function RegisterPage() {
                 </form>
             </Card>
         </div>
+
+        <ConfirmDialog
+            isOpen={confirmDialog.open}
+            onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+            onConfirm={confirmDialog.onConfirm}
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+        />
     );
 }

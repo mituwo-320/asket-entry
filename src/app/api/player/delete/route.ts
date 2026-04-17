@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { findTeamEntry } from '@/lib/sheets';
-import { Player } from '@/lib/types';
 
 export async function POST(request: Request) {
     try {
@@ -12,25 +10,34 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Team ID or Player ID missing' }, { status: 400 });
         }
 
-        // Fetch current entry
-        const entry = await findTeamEntry(teamId);
-        if (!entry) {
-            return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
+        // Find the player and verify it belongs to this team
+        const player = await db.player.findUnique({
+            where: { id: playerId }
+        });
+
+        if (!player) {
+            return NextResponse.json({ success: false, error: 'Player not found' }, { status: 404 });
         }
 
-        // Prevent deleting the representative player (if you want to enforce this, currently any player could be marked representative)
-        const playerToDelete = entry.players.find((p: Player) => p.id === playerId);
-        if (playerToDelete?.isRepresentative) {
+        // Verify the player belongs to this team
+        if (player.entryId !== teamId) {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Prevent deleting the representative player
+        if (player.isRepresentative) {
             return NextResponse.json({ success: false, error: '代表者は削除できません' }, { status: 400 });
         }
 
-        // Filter out the player
-        const updatedPlayers = entry.players.filter((p: Player) => p.id !== playerId);
+        // Delete the player directly from the Player table
+        await db.player.delete({
+            where: { id: playerId }
+        });
 
-        // Update database
-        await db.teamEntry.update({
-            where: { id: teamId },
-            data: { players: updatedPlayers }
+        // Return updated player list
+        const updatedPlayers = await db.player.findMany({
+            where: { entryId: teamId },
+            orderBy: { createdAt: 'asc' }
         });
 
         return NextResponse.json({ success: true, players: updatedPlayers });

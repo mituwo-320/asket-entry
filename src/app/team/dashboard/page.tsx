@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Player, TeamEntry } from "@/lib/types";
 import { PlayerForm } from "@/components/ui/PlayerForm";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog, AlertDialog } from "@/components/ui/ConfirmDialog";
 import { useSearchParams } from "next/navigation";
 import { getTournamentName } from "@/lib/tournament-constants";
 
@@ -20,6 +21,12 @@ function DashboardContent() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
     const [settings, setSettings] = useState<any>(null);
+    // Custom dialog state (replaces browser alert/confirm)
+    const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean }>({ open: false, title: "", message: "", onConfirm: () => {}, danger: false });
+
+    const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
+    const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false) => setConfirmDialog({ open: true, title, message, onConfirm, danger });
 
     useEffect(() => {
         fetch("/api/settings").then(res => res.json()).then(setSettings).catch(console.error);
@@ -79,45 +86,48 @@ function DashboardContent() {
                 throw new Error('Save failed');
             }
         } catch (e) {
-            alert("保存に失敗しました");
+            showAlert("保存エラー", "保存に失敗しました。もう一度お試しください。");
             setTeamEntry(previousEntry); // Rollback
         }
     };
 
-    const handleDeletePlayer = async (playerId: string) => {
+    const handleDeletePlayer = (playerId: string) => {
         if (!teamEntry) return;
 
         const playerToDelete = teamEntry.players.find(p => p.id === playerId);
         if (playerToDelete?.isRepresentative) {
-            alert("代表者は削除できません。");
+            showAlert("削除できません", "代表者は削除できません。");
             return;
         }
 
-        if (!confirm(`${playerToDelete?.name} 選手を削除してもよろしいですか？`)) {
-            return;
-        }
+        showConfirm(
+            "選手の削除",
+            `「${playerToDelete?.name}」選手を削除してもよろしいですか？\nこの操作は取り消せません。`,
+            async () => {
+                const previousEntry = { ...teamEntry };
+                const updatedPlayers = teamEntry.players.filter(p => p.id !== playerId);
+                setTeamEntry({ ...teamEntry, players: updatedPlayers });
 
-        const previousEntry = { ...teamEntry };
-        const updatedPlayers = teamEntry.players.filter(p => p.id !== playerId);
-        setTeamEntry({ ...teamEntry, players: updatedPlayers });
+                try {
+                    const res = await fetch('/api/player/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-team-id': teamEntry.id
+                        },
+                        body: JSON.stringify({ playerId })
+                    });
 
-        try {
-            const res = await fetch('/api/player/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-team-id': teamEntry.id
-                },
-                body: JSON.stringify({ playerId })
-            });
-
-            if (!res.ok) {
-                throw new Error('Delete failed');
-            }
-        } catch (e) {
-            alert("削除に失敗しました");
-            setTeamEntry(previousEntry); // Rollback
-        }
+                    if (!res.ok) {
+                        throw new Error('Delete failed');
+                    }
+                } catch (e) {
+                    showAlert("削除エラー", "削除に失敗しました。もう一度お試しください。");
+                    setTeamEntry(previousEntry); // Rollback
+                }
+            },
+            true // danger mode (red button)
+        );
     };
 
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid Entry ID</div>;
@@ -301,6 +311,23 @@ function DashboardContent() {
                     onCancel={() => setIsModalOpen(false)}
                 />
             </Modal>
+
+            {/* Custom Dialogs (replace browser alert/confirm) */}
+            <AlertDialog
+                isOpen={alertDialog.open}
+                onClose={() => setAlertDialog(d => ({ ...d, open: false }))}
+                title={alertDialog.title}
+                message={alertDialog.message}
+            />
+            <ConfirmDialog
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}
+                onConfirm={confirmDialog.onConfirm}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                danger={confirmDialog.danger}
+                confirmLabel="削除する"
+            />
         </div>
     );
 
