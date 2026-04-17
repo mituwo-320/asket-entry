@@ -122,6 +122,7 @@ export default function UserDashboard() {
 
                     {/* LINE OpenChat Urgent Banner */}
                     {showChatBanner && (() => {
+                        // Find projects that have an OpenChat link and the user is registered in
                         const chatProjects = projects.filter(p => {
                             if (!entries.some(e => e.tournamentId === p.id)) return false;
                             if (p.entryEndDate) {
@@ -130,8 +131,28 @@ export default function UserDashboard() {
                             }
                             return !!p.lineOpenChatLink || !!settings.lineOpenChatLink;
                         });
+                        if (chatProjects.length === 0) return null;
+
+                        // Check if ALL relevant entries are confirmed joined by management
+                        const allConfirmed = chatProjects.every(p =>
+                            entries.some(e => e.tournamentId === p.id && (e as any).isOpenChatJoined === true)
+                        );
+
+                        // If management has confirmed all entries as joined, show green confirmation instead
+                        if (allConfirmed) {
+                            return (
+                                <motion.div variants={itemVariants} className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
+                                    <div className="p-2 bg-emerald-500/20 rounded-xl flex-shrink-0">
+                                        <MessageCircle className="w-5 h-5 text-emerald-400" />
+                                    </div>
+                                    <p className="text-sm text-emerald-300 font-medium">
+                                        ✅ LINEオープンチャットへの参加が確認されています。ありがとうございます！
+                                    </p>
+                                </motion.div>
+                            );
+                        }
+
                         const chatLink = chatProjects[0]?.lineOpenChatLink || settings.lineOpenChatLink;
-                        if (!chatLink || chatProjects.length === 0) return null;
                         return (
                             <motion.div
                                 variants={itemVariants}
@@ -152,9 +173,12 @@ export default function UserDashboard() {
                                             <AlertCircle className="w-6 h-6 text-red-400" />
                                         </div>
                                         <div>
-                                            <p className="font-extrabold text-red-400 text-base">⚠️ LINEオープンチャットへの参加がまだです！</p>
+                                            <p className="font-extrabold text-red-400 text-base">⚠️ LINEオープンチャットへの参加がまだの可能性があります！</p>
                                             <p className="text-sm text-red-300/80 mt-1">
                                                 大会の集合時間・重要連絡はLINEのみで配信されます。<strong className="text-red-300">未参加の場合、当日の情報が届きません。</strong>
+                                            </p>
+                                            <p className="text-xs text-red-400/50 mt-2">
+                                                ※ このお知らせは参加登録後に必ず表示されます。参加済みの場合は運営が確認後に非表示になります。
                                             </p>
                                         </div>
                                     </div>
