@@ -164,7 +164,9 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 status: entry.status,
                 isPaid: entry.isPaid || false,
                 group: entry.group || null,
-                preliminaryNumber: entry.preliminaryNumber || null
+                preliminaryNumber: entry.preliminaryNumber || null,
+                isOpenChatJoined: entry.isOpenChatJoined || false,
+                managementMemo: entry.managementMemo || ""
             },
             create: {
                 id: entry.id,
@@ -177,7 +179,9 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 status: entry.status,
                 isPaid: entry.isPaid || false,
                 group: entry.group || null,
-                preliminaryNumber: entry.preliminaryNumber || null
+                preliminaryNumber: entry.preliminaryNumber || null,
+                isOpenChatJoined: entry.isOpenChatJoined || false,
+                managementMemo: entry.managementMemo || ""
             }
         });
 
@@ -229,6 +233,8 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             isPaid: e.isPaid,
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
+            isOpenChatJoined: e.isOpenChatJoined,
+            managementMemo: e.managementMemo,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -265,6 +271,8 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             isPaid: e.isPaid,
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
+            isOpenChatJoined: e.isOpenChatJoined,
+            managementMemo: e.managementMemo,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -468,6 +476,8 @@ export async function getAllAdminData() {
             isPaid: e.isPaid,
             group: e.group || undefined,
             preliminaryNumber: e.preliminaryNumber || undefined,
+            isOpenChatJoined: e.isOpenChatJoined,
+            managementMemo: e.managementMemo,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,

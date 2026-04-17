@@ -44,6 +44,8 @@ export interface TeamEntry {
     isPaid?: boolean; // NEW: Payment Status
     group?: string; // NEW: Group assignment (e.g. "A", "B")
     preliminaryNumber?: number; // NEW: Lottery selection 1-16
+    isOpenChatJoined?: boolean; // NEW: Management OpenChat check
+    managementMemo?: string; // NEW: Management Memo
     createdAt: string;
 }
 

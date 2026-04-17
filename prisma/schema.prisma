@@ -48,6 +48,8 @@ model TeamEntry {
   status                     String   @default("draft")
   group                      String?
   preliminaryNumber          Int? // NEW: Lottery selection 1-16
+  isOpenChatJoined           Boolean  @default(false)
+  managementMemo             String   @default("")
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 

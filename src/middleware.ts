@@ -19,9 +19,21 @@ export function middleware(request: NextRequest) {
         }
     }
 
+    if (request.nextUrl.pathname.startsWith('/management')) {
+        if (request.nextUrl.pathname === '/management/login') {
+            return NextResponse.next();
+        }
+
+        const mngCookie = request.cookies.get('management_auth');
+        if (!mngCookie || mngCookie.value !== 'true') {
+            const loginUrl = new URL('/management/login', request.url);
+            return NextResponse.redirect(loginUrl);
+        }
+    }
+
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*'],
+    matcher: ['/admin/:path*', '/management/:path*'],
 };

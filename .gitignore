@@ -40,3 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# temporary agent and cache
+.agent/
+.npm_cache/
+.local_xdg/
+.local_cache/
+*.bak
