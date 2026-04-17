@@ -85,24 +85,32 @@ export async function deleteProject(projectId: string): Promise<boolean> {
 // --- Users ---
 
 export async function saveUser(user: User): Promise<boolean> {
-    const hashedPassword = user.password ? await bcrypt.hash(user.password, 10) : '';
-    await db.user.upsert({
-        where: { id: user.id },
-        update: {
-            name: user.name,
-            phone: user.phone,
-            wristbandColor: user.wristbandColor || '',
-        },
-        create: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            phone: user.phone,
-            password: hashedPassword,
-            wristbandColor: user.wristbandColor || '',
+    try {
+        const hashedPassword = user.password ? await bcrypt.hash(user.password, 10) : '';
+        await db.user.upsert({
+            where: { id: user.id },
+            update: {
+                name: user.name,
+                phone: user.phone,
+                wristbandColor: user.wristbandColor || '',
+            },
+            create: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                phone: user.phone,
+                password: hashedPassword,
+                wristbandColor: user.wristbandColor || '',
+            }
+        });
+        return true;
+    } catch (e: any) {
+        // P2002 is Prisma error for unique constraint violation (email duplicate)
+        if (e.code === 'P2002') {
+            return false;
         }
-    });
-    return true;
+        throw e;
+    }
 }
 
 export async function verifyUserLogin(email: string, password: string): Promise<User | null> {

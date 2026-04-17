@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Users, ShieldCheck, ArrowLeft, Plus, AlertCircle } from "lucide-react";
+import { Users, ShieldCheck, ArrowLeft, Plus, AlertCircle, Edit2, Trash2, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { Player, TeamEntry } from "@/lib/types";
 import { PlayerForm } from "@/components/ui/PlayerForm";
@@ -80,6 +80,42 @@ function DashboardContent() {
             }
         } catch (e) {
             alert("保存に失敗しました");
+            setTeamEntry(previousEntry); // Rollback
+        }
+    };
+
+    const handleDeletePlayer = async (playerId: string) => {
+        if (!teamEntry) return;
+
+        const playerToDelete = teamEntry.players.find(p => p.id === playerId);
+        if (playerToDelete?.isRepresentative) {
+            alert("代表者は削除できません。");
+            return;
+        }
+
+        if (!confirm(`${playerToDelete?.name} 選手を削除してもよろしいですか？`)) {
+            return;
+        }
+
+        const previousEntry = { ...teamEntry };
+        const updatedPlayers = teamEntry.players.filter(p => p.id !== playerId);
+        setTeamEntry({ ...teamEntry, players: updatedPlayers });
+
+        try {
+            const res = await fetch('/api/player/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-team-id': teamEntry.id
+                },
+                body: JSON.stringify({ playerId })
+            });
+
+            if (!res.ok) {
+                throw new Error('Delete failed');
+            }
+        } catch (e) {
+            alert("削除に失敗しました");
             setTeamEntry(previousEntry); // Rollback
         }
     };
@@ -189,67 +225,70 @@ function DashboardContent() {
                             </Button>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-slate-400">
-                                <thead className="bg-slate-950/50 text-xs uppercase font-medium text-slate-500">
-                                    <tr>
-                                        <th className="p-4">氏名</th>
-                                        <th className="p-4 hidden md:table-cell">フリガナ</th>
-                                        <th className="p-4">スポーツ保険</th>
-                                        <th className="p-4 text-right">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-800">
-                                    {teamEntry.players.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} className="p-8 text-center text-slate-500">
-                                                選手が登録されていません
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        teamEntry.players.map((player) => (
-                                            <tr key={player.id} className="hover:bg-slate-800/50 transition-colors">
-                                                <td className="p-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-white">{player.name}</span>
-                                                        {player.isRepresentative && (
-                                                            <span className="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded border border-indigo-400">
-                                                                代表
-                                                            </span>
-                                                        )}
-                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${player.wristbandColor === '赤' ? 'bg-red-900/30 text-red-400 border-red-800' :
-                                                            player.wristbandColor === '青' ? 'bg-blue-900/30 text-blue-400 border-blue-800' :
-                                                                'bg-yellow-900/30 text-yellow-400 border-yellow-800'
-                                                            }`}>
-                                                            {player.wristbandColor}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 hidden md:table-cell">{player.furigana}</td>
-                                                <td className="p-4">
-                                                    {player.insurance ? (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                            <ShieldCheck className="w-3 h-3 mr-1" /> 加入
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-500 border border-slate-700">
-                                                            未加入
+                        <div className="grid grid-cols-1 gap-3 p-4">
+                            {teamEntry.players.length === 0 ? (
+                                <div className="p-8 text-center bg-slate-950/50 rounded-xl border border-slate-800">
+                                    <p className="text-slate-500">選手が登録されていません</p>
+                                    <Button onClick={() => {
+                                        setEditingPlayer(null);
+                                        setIsModalOpen(true);
+                                    }} variant="outline" className="mt-4 border-slate-700">
+                                        <Plus className="w-4 h-4 mr-2" /> 最初の選手を追加
+                                    </Button>
+                                </div>
+                            ) : (
+                                teamEntry.players.map((player) => (
+                                    <div key={player.id} className="bg-slate-950/50 hover:bg-slate-900/80 border border-slate-800 rounded-xl p-4 transition-all">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-bold text-white text-lg">{player.name}</span>
+                                                    {player.isRepresentative && (
+                                                        <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 font-bold">
+                                                            代表
                                                         </span>
                                                     )}
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    <Button variant="ghost" size="sm" onClick={() => {
-                                                        setEditingPlayer(player);
-                                                        setIsModalOpen(true);
-                                                    }}>
-                                                        編集
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                                </div>
+                                                <p className="text-xs text-slate-500">{player.furigana}</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => {
+                                                    setEditingPlayer(player);
+                                                    setIsModalOpen(true);
+                                                }} className="p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                                {!player.isRepresentative && (
+                                                    <button onClick={() => handleDeletePlayer(player.id)} className="p-2 text-slate-400 hover:text-red-400 bg-slate-900 hover:bg-red-950/50 rounded-lg transition-colors border border-slate-800">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-800/50">
+                                            <div className={`p-2.5 rounded-lg border flex flex-col gap-1 items-start ${player.wristbandColor === '赤' ? 'bg-red-900/10 border-red-500/20' :
+                                                player.wristbandColor === '青' ? 'bg-blue-900/10 border-blue-500/20' :
+                                                    'bg-yellow-900/10 border-yellow-500/20'
+                                                }`}>
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">レベル/リストバンド</span>
+                                                <span className={`text-sm font-bold ${player.wristbandColor === '赤' ? 'text-red-400' :
+                                                    player.wristbandColor === '青' ? 'text-blue-400' : 'text-yellow-400'
+                                                    }`}>
+                                                    {player.wristbandColor}
+                                                </span>
+                                            </div>
+                                            <div className={`p-2.5 rounded-lg border flex flex-col gap-1 items-start ${player.insurance ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-slate-900/50 border-slate-800'}`}>
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">スポーツ保険</span>
+                                                <span className={`text-sm font-bold flex items-center gap-1.5 ${player.insurance ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                                    {player.insurance ? <ShieldCheck className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                                    {player.insurance ? '加入' : '未加入'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </Card>
                 </div>

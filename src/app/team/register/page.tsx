@@ -137,7 +137,13 @@ export default function RegisterPage() {
             setRegisteredPassword(formData.password);
 
         } catch (err: any) {
-            setError(err.message);
+            if (err.message === 'このメールアドレスは既に登録されています') {
+                if (confirm("このメールアドレスは既に登録されています。ログイン画面へ移動しますか？")) {
+                    router.push(`/login?email=${encodeURIComponent(formData.email)}`);
+                }
+            } else {
+                setError(err.message);
+            }
         } finally {
             setIsLoading(false);
         }

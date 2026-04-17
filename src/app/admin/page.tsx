@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Download, ShieldAlert, CheckCircle2, X, AlertCircle, Loader2, Users, Calendar, Trophy, Settings, FileDown, Ticket, Edit2, Printer, ArrowLeft } from "lucide-react";
+import { Search, Download, ShieldAlert, CheckCircle2, X, AlertCircle, Loader2, Users, Calendar, Trophy, Settings, FileDown, Ticket, Edit2, Printer, ArrowLeft, MessageSquare } from "lucide-react";
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
@@ -606,6 +606,7 @@ export default function AdminDashboard() {
                                             <th className="px-4 py-3 text-right">請求額 (内訳)</th>
                                             <th className="px-4 py-3">ステータス</th>
                                             <th className="px-4 py-3">支払状況</th>
+                                            <th className="px-4 py-3">運営確認</th>
                                             <th className="px-4 py-3 text-right">アクション</th>
                                         </tr>
                                     </thead>
@@ -696,6 +697,19 @@ export default function AdminDashboard() {
                                                             {entry.isPaid ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
                                                             {entry.isPaid ? '支払い済' : '未払い'}
                                                         </button>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex flex-col gap-1.5 items-start">
+                                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${entry.isOpenChatJoined ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-500 border border-slate-700'}`}>
+                                                                {entry.isOpenChatJoined ? <CheckCircle2 className="w-2.5 h-2.5" /> : <div className="w-2.5 h-2.5 rounded-full border border-current" />}
+                                                                OPチャット
+                                                            </span>
+                                                            {entry.managementMemo && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-amber-900/30 text-amber-500 border border-amber-800" title={entry.managementMemo}>
+                                                                    <MessageSquare className="w-2.5 h-2.5" /> メモあり
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3 text-right">
                                                         <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedEntry(entry)}>
@@ -806,6 +820,28 @@ export default function AdminDashboard() {
                                                 ))}
                                             </div>
                                         </div>
+
+                                        {/* Management Details in Admin Modal */}
+                                        <div className="space-y-3 mt-6 pt-4 border-t border-slate-800/50">
+                                            <h3 className="text-sm font-bold text-slate-300 flex items-center gap-2">
+                                                <MessageSquare className="w-4 h-4 text-emerald-400" /> 運営情報 (確認用)
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <div className={`p-3 rounded-xl border flex items-center gap-2 ${selectedEntry.isOpenChatJoined ? 'bg-emerald-900/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-800/30 border-slate-700 text-slate-400'}`}>
+                                                    {selectedEntry.isOpenChatJoined ? <CheckCircle2 className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
+                                                    <span className="text-xs font-bold">OPチャット{selectedEntry.isOpenChatJoined ? '参加済' : '未参加'}</span>
+                                                </div>
+                                            </div>
+                                            {selectedEntry.managementMemo ? (
+                                                <div className="bg-amber-900/10 border border-amber-500/20 p-4 rounded-xl">
+                                                    <p className="text-[10px] text-amber-500/70 font-bold uppercase tracking-wider mb-2">運営メモ</p>
+                                                    <p className="text-sm text-amber-100/90 whitespace-pre-wrap">{selectedEntry.managementMemo}</p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-slate-500">運営チームからのメモはありません</p>
+                                            )}
+                                        </div>
+
                                     </div>
                                     <div className="p-6 border-t border-white/5 bg-slate-900 mt-auto flex flex-col sm:flex-row justify-between items-center gap-4 rounded-b-2xl">
                                         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
