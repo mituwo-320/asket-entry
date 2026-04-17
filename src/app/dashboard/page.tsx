@@ -6,10 +6,10 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -19,6 +19,7 @@ export default function UserDashboard() {
     const [settings, setSettings] = useState<Setting | any>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+    const [showChatBanner, setShowChatBanner] = useState(true);
 
     useEffect(() => {
         // 1. Check Session
@@ -118,6 +119,58 @@ export default function UserDashboard() {
                         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">マイページ</h2>
                         <p className="text-slate-400 text-sm sm:text-base">登録情報の管理や、大会へのエントリー状況を確認できます。</p>
                     </motion.div>
+
+                    {/* LINE OpenChat Urgent Banner */}
+                    {showChatBanner && (() => {
+                        const chatProjects = projects.filter(p => {
+                            if (!entries.some(e => e.tournamentId === p.id)) return false;
+                            if (p.entryEndDate) {
+                                const ms30 = 30 * 24 * 60 * 60 * 1000;
+                                if (new Date().getTime() - new Date(p.entryEndDate).getTime() > ms30) return false;
+                            }
+                            return !!p.lineOpenChatLink || !!settings.lineOpenChatLink;
+                        });
+                        const chatLink = chatProjects[0]?.lineOpenChatLink || settings.lineOpenChatLink;
+                        if (!chatLink || chatProjects.length === 0) return null;
+                        return (
+                            <motion.div
+                                variants={itemVariants}
+                                className="mb-8 bg-red-500/10 border-2 border-red-500/50 rounded-2xl p-5 relative overflow-hidden"
+                            >
+                                {/* Pulsing background accent */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent animate-pulse pointer-events-none" />
+                                <button
+                                    onClick={() => setShowChatBanner(false)}
+                                    className="absolute top-3 right-3 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                    title="閉じる"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative">
+                                    <div className="flex items-start gap-3 flex-1">
+                                        <div className="p-2.5 bg-red-500/20 rounded-xl flex-shrink-0">
+                                            <AlertCircle className="w-6 h-6 text-red-400" />
+                                        </div>
+                                        <div>
+                                            <p className="font-extrabold text-red-400 text-base">⚠️ LINEオープンチャットへの参加がまだです！</p>
+                                            <p className="text-sm text-red-300/80 mt-1">
+                                                大会の集合時間・重要連絡はLINEのみで配信されます。<strong className="text-red-300">未参加の場合、当日の情報が届きません。</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <a
+                                        href={chatLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white font-extrabold py-3 px-5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-green-900/30 flex-shrink-0 w-full sm:w-auto justify-center"
+                                    >
+                                        <MessageCircle className="w-5 h-5" />
+                                        今すぐ参加する
+                                    </a>
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Left Column: Profile */}

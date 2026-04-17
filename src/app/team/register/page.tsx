@@ -248,32 +248,59 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {(activeProject?.lineOpenChatLink || settings?.lineOpenChatLink) && (
-                            <div className="bg-emerald-500/10 border-emerald-500/20 border rounded-lg p-6 text-left space-y-4">
-                                <div className="flex items-center gap-2 text-emerald-400 font-bold">
-                                    <MessageCircle className="w-5 h-5" />
-                                    <span>LINEオープンチャット参加のお願い</span>
+                        {(activeProject?.lineOpenChatLink || settings?.lineOpenChatLink) ? (
+                            <>
+                                {/* URGENT LINE OpenChat Warning */}
+                                <div className="bg-red-500/10 border-2 border-red-500/60 rounded-xl p-5 text-left space-y-4 animate-in fade-in">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 bg-red-500/20 rounded-lg mt-0.5 flex-shrink-0">
+                                            <AlertCircle className="w-5 h-5 text-red-400" />
+                                        </div>
+                                        <div>
+                                            <p className="font-extrabold text-red-400 text-base leading-tight">
+                                                ⚠️ 必須：LINEオープンチャットへの参加
+                                            </p>
+                                            <p className="text-xs text-red-300/80 mt-0.5 font-bold">
+                                                参加しないと大会当日の重要連絡が届きません！
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-red-950/50 rounded-lg p-3 text-sm text-red-200/90 border border-red-500/20">
+                                        <ul className="space-y-1.5 list-none">
+                                            <li className="flex items-center gap-2"><span className="text-red-400 font-bold">✕</span> 集合時間・場所の案内が届かない</li>
+                                            <li className="flex items-center gap-2"><span className="text-red-400 font-bold">✕</span> 緊急の変更・中止情報が届かない</li>
+                                            <li className="flex items-center gap-2"><span className="text-red-400 font-bold">✕</span> ルールや持ち物の案内が届かない</li>
+                                        </ul>
+                                    </div>
+                                    <a
+                                        href={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-extrabold py-4 px-4 rounded-lg transition-colors text-base shadow-lg shadow-green-900/30"
+                                    >
+                                        <MessageCircle className="w-5 h-5" />
+                                        今すぐLINEオープンチャットに参加する
+                                    </a>
+                                    <p className="text-center text-xs text-red-300/60">
+                                        ※ リーダー（代表者）の方のみ参加が必要です
+                                    </p>
                                 </div>
-                                <p className="text-sm text-emerald-100/80">
-                                    リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
-                                </p>
-                                <a
-                                    href={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block text-center w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-4 rounded transition-colors"
-                                >
-                                    LINEオープンチャットに参加する
-                                </a>
-                            </div>
-                        )}
 
-                        <Button
-                            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
-                            onClick={() => router.push("/dashboard")}
-                        >
-                            マイページへ進む
-                        </Button>
+                                <Button
+                                    className="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-300 font-medium py-4 transition-all duration-300 text-sm"
+                                    onClick={() => router.push("/dashboard")}
+                                >
+                                    LINEを後で参加する（推奨しません）
+                                </Button>
+                            </>
+                        ) : (
+                            <Button
+                                className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
+                                onClick={() => router.push("/dashboard")}
+                            >
+                                マイページへ進む
+                            </Button>
+                        )}
                     </div>
                 </Card>
             </div>
