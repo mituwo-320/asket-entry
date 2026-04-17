@@ -263,6 +263,9 @@ export default function RegisterPage() {
                                             <p className="text-xs text-red-300/80 mt-0.5 font-bold">
                                                 参加しないと大会当日の重要連絡が届きません！
                                             </p>
+                                            <p className="text-sm text-red-200/70 mt-1.5">
+                                                リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="bg-red-950/50 rounded-lg p-3 text-sm text-red-200/90 border border-red-500/20">
