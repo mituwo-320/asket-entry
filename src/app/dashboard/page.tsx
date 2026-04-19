@@ -6,7 +6,7 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X, Printer } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion, AnimatePresence } from "framer-motion";
@@ -393,6 +393,13 @@ export default function UserDashboard() {
                                                         </div>
                                                     </Card>
                                                 </Link>
+                                                {entry.status === 'submitted' && (
+                                                    <div className="mt-3 flex justify-end">
+                                                        <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-indigo-500/50 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
+                                                            <Printer className="w-4 h-4" /> 請求書（PDF）を発行
+                                                        </Link>
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         ))}
                                     </div>
