@@ -20,6 +20,9 @@ export async function POST(request: Request) {
         if (typeof updates.managementMemo === 'string') {
             validUpdates.managementMemo = updates.managementMemo;
         }
+        if (typeof updates.status === 'string') {
+            validUpdates.status = updates.status;
+        }
 
         await db.teamEntry.update({
             where: { id: entryId },

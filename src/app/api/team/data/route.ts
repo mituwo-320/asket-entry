@@ -16,6 +16,7 @@ export async function GET(request: Request) {
         const projects = await getProjects();
         const project = projects.find(p => p.id === entry.tournamentId);
         const projectName = project?.name || '不明な大会';
+        const projectEndDate = project?.entryEndDate;
 
         let isWaitlist = false;
         if (project && project.maxTeams) {
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json({
-            teamEntry: { ...entry, projectName, isWaitlist },
+            teamEntry: { ...entry, projectName, projectEndDate, isWaitlist },
             user
         });
     } else {

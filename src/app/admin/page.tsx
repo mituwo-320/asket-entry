@@ -875,14 +875,48 @@ export default function AdminDashboard() {
                                                     <><X className="w-4 h-4" /> このチームをキャンセルにする</>
                                                 )}
                                             </button>
+                                            
+                                            {selectedEntry.status === 'submitted' && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm("本当にこのチームを仮エントリー状態に戻しますか？\n（ユーザーが再度メンバー編集できるようになります）")) return;
+                                                        try {
+                                                            const res = await fetch('/api/admin/entry/update', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: 'draft' } })
+                                                            });
+                                                            if (res.ok) {
+                                                                const updatedEntry = { ...selectedEntry, status: 'draft' as any };
+                                                                setSelectedEntry(updatedEntry);
+                                                                setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
+                                                            } else {
+                                                                alert("更新に失敗しました");
+                                                            }
+                                                        } catch (e) {
+                                                            alert("エラーが発生しました");
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-sm font-medium border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-2"
+                                                >
+                                                    仮エントリーに戻す
+                                                </button>
+                                            )}
+
                                             <a
                                                 href={`/team/dashboard?id=${selectedEntry.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-sm font-medium border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-2"
                                             >
-                                                チーム情報を編集 (別画面)
+                                                ユーザー代理表示・編集
                                             </a>
+
+                                            {selectedEntry.status === 'submitted' && (
+                                                <a href={`/team/invoice?id=${selectedEntry.id}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 rounded-lg transition-colors flex items-center gap-2">
+                                                    <Printer className="w-4 h-4" /> 請求書(PDF)
+                                                </a>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => setSelectedEntry(null)}

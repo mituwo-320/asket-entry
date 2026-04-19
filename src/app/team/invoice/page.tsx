@@ -60,6 +60,15 @@ function InvoiceContent() {
 
     const representativeName = teamEntry.players?.find(p => p.isRepresentative)?.name || user.name;
 
+    // Calculate due date: 7 days after the tournament entry deadline, or a standard fallback
+    let dueDateString = "5月25日（月）まで";
+    if (teamEntry.projectEndDate) {
+        const d = new Date(teamEntry.projectEndDate);
+        d.setDate(d.getDate() + 7);
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        dueDateString = `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）まで`;
+    }
+
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-800">
             {/* Non-printable Top Bar */}
@@ -80,12 +89,12 @@ function InvoiceContent() {
             </div>
 
             {/* Printable Area - A4 Size Simulation */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white p-8 sm:p-[20mm] min-h-[297mm] shadow-xl my-8 print:my-0 print:shadow-none print:p-0">
+            <div className="w-full max-w-[210mm] mx-auto bg-white p-8 sm:p-[15mm] min-h-[297mm] shadow-xl my-8 print:my-0 print:shadow-none print:p-0 print:text-[13px]">
                 
                 {/* Header */}
-                <div className="mb-10 text-center">
-                    <h1 className="text-2xl font-bold tracking-widest border-b-2 border-slate-800 pb-4 mb-4 inline-block px-8">請 求 書</h1>
-                    <div className="text-right text-sm text-slate-500 mb-2">
+                <div className="mb-8 text-center">
+                    <h1 className="text-2xl font-bold tracking-widest border-b-2 border-slate-800 pb-2 mb-2 inline-block px-8">請 求 書</h1>
+                    <div className="text-right text-xs text-slate-500 mb-2">
                         発行日: {new Date().toLocaleDateString('ja-JP')}
                     </div>
                 </div>
@@ -108,15 +117,15 @@ function InvoiceContent() {
                 </div>
 
                 {/* Greeting */}
-                <div className="mb-10 text-sm leading-relaxed">
-                    <p className="mb-4">【ヴァンキーカップ】</p>
+                <div className="mb-6 text-sm leading-relaxed">
+                    <p className="mb-2">【ヴァンキーカップ】</p>
                     <p>この度はヴァンキーカップ {teamEntry.projectName || teamEntry.tournamentId} にご参加いただき、誠にありがとうございます。</p>
                     <p>下記の通り参加費を徴収させていただきます。お手数おかけしますが、お振込よろしくお願いします。</p>
                 </div>
 
                 {/* Calculation Details */}
-                <div className="mb-10 border-t-2 border-b-2 border-slate-800 py-6">
-                    <table className="w-full text-base mb-6">
+                <div className="mb-8 border-t-2 border-b-2 border-slate-800 py-4">
+                    <table className="w-full text-base mb-4">
                         <tbody>
                             <tr className="border-b border-slate-200">
                                 <td className="py-3">参加費用（{participationFee.toLocaleString()}円）× {playerCount}人</td>
@@ -138,11 +147,10 @@ function InvoiceContent() {
                 </div>
 
                 {/* Payment Info */}
-                <div className="mb-12 bg-slate-50 p-6 rounded border border-slate-200 text-sm leading-relaxed space-y-4">
+                <div className="mb-8 bg-slate-50 p-5 rounded border border-slate-200 text-sm leading-relaxed space-y-3 print:break-inside-avoid">
                     <div>
                         <span className="font-bold mr-2 text-base">■ お支払い期日:</span> 
-                        {/* Currently hardcoded based on user request, could be made dynamic if needed */}
-                        <span className="font-bold text-base text-red-600">5月25日（月）まで</span>
+                        <span className="font-bold text-base text-red-600">{dueDateString}</span>
                     </div>
                     
                     <div>
@@ -162,7 +170,7 @@ function InvoiceContent() {
                 </div>
 
                 {/* Footer Message */}
-                <div className="mt-16 pt-8 border-t border-slate-200 text-sm leading-relaxed text-center">
+                <div className="mt-8 pt-4 border-t border-slate-200 text-xs sm:text-sm leading-relaxed text-center print:break-inside-avoid">
                     <p>バスケを通して、仲間を増やしてもらえたら嬉しいし、楽しい時間を過ごしましょう！</p>
                     <p>会場に居る人、全ての人に景品が当たるチャンスがあるので、見学・応援大歓迎です♪</p>
                     <p>一緒に最高の1日にしましょうね。よろしくお願いします。</p>
@@ -176,10 +184,15 @@ function InvoiceContent() {
                         background-color: white !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
+                        margin: 0;
+                        padding: 0;
                     }
                     @page {
-                        size: A4;
-                        margin: 15mm;
+                        size: auto;
+                        margin: 5mm;
+                    }
+                    .print\\:break-inside-avoid {
+                        page-break-inside: avoid;
                     }
                 }
             `}</style>
