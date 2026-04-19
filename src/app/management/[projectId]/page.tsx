@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse } from "lucide-react";
+import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -282,6 +282,12 @@ export default function ManagementProjectDetail() {
                                                     <Smartphone className="w-5 h-5 mb-1 opacity-70" />
                                                     <span className="text-[10px] font-bold">詳細・全メモ</span>
                                                 </Button>
+                                                {entry.status === 'submitted' && (
+                                                    <a href={`/team/invoice?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900 hover:bg-slate-800 rounded-xl text-slate-300 transition-colors">
+                                                        <Printer className="w-5 h-5 mb-1 opacity-70" />
+                                                        <span className="text-[10px] font-bold">請求書(PDF)</span>
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>

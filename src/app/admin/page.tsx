@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Download, ShieldAlert, CheckCircle2, X, AlertCircle, Loader2, Users, Calendar, Trophy, Settings, FileDown, Ticket, Edit2, Printer, ArrowLeft, MessageSquare } from "lucide-react";
+import { Settings, Save, AlertCircle, Plus, Copy, Trash2, Link as LinkIcon, RefreshCcw, Bell, ShieldCheck, Mail, LogOut, Loader2, LayoutDashboard, Target, Users, Megaphone, Smartphone, CheckCircle2, MessageSquare, Menu, Calendar, X, FileEdit, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft } from "lucide-react";
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
