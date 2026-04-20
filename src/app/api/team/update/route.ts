@@ -34,41 +34,31 @@ export async function POST(request: Request) {
         // 2. Update Team Entry (Team Name, Kana, Intro)
         const updatedEntry: TeamEntry = {
             ...existingEntry,
-            teamName: body.teamName,
-            teamNameKana: body.teamNameKana,
-            teamIntroduction: body.teamIntroduction,
+            teamName: body.teamName !== undefined ? body.teamName : existingEntry.teamName,
+            teamNameKana: body.teamNameKana !== undefined ? body.teamNameKana : existingEntry.teamNameKana,
+            teamIntroduction: body.teamIntroduction !== undefined ? body.teamIntroduction : existingEntry.teamIntroduction,
         };
 
-        // 3. Update Representative Player (Name, Furigana, Wristband, Insurance)
-        // Find the representative player
+        // 3. Update Representative Player
         const repIndex = updatedEntry.players.findIndex(p => p.isRepresentative);
-        if (repIndex >= 0) {
-            updatedEntry.players[repIndex] = {
-                ...updatedEntry.players[repIndex],
-                name: body.representativeName,
-                furigana: body.repFurigana,
-                wristbandColor: body.wristbandColor,
-                insurance: body.insurance,
+        const playerIndexToUpdate = repIndex >= 0 ? repIndex : 0;
+        
+        if (updatedEntry.players.length > 0) {
+            updatedEntry.players[playerIndexToUpdate] = {
+                ...updatedEntry.players[playerIndexToUpdate],
+                name: body.representativeName !== undefined ? body.representativeName : updatedEntry.players[playerIndexToUpdate].name,
+                furigana: body.repFurigana !== undefined ? body.repFurigana : updatedEntry.players[playerIndexToUpdate].furigana,
+                wristbandColor: body.wristbandColor !== undefined ? body.wristbandColor : updatedEntry.players[playerIndexToUpdate].wristbandColor,
+                insurance: body.insurance !== undefined ? body.insurance : updatedEntry.players[playerIndexToUpdate].insurance,
             };
-        } else {
-            // Fallback: update first player if no rep tag found
-            if (updatedEntry.players.length > 0) {
-                updatedEntry.players[0] = {
-                    ...updatedEntry.players[0],
-                    name: body.representativeName,
-                    furigana: body.repFurigana,
-                    wristbandColor: body.wristbandColor,
-                    insurance: body.insurance,
-                };
-            }
         }
 
-        // 4. Update User Profile (Name, Phone, Address, PostalCode)
+        // 4. Update User Profile
         const updatedUser: User = {
             ...user,
-            name: body.representativeName, // Sync user name with rep name
-            phone: body.phone,
-            wristbandColor: body.wristbandColor, // Sync preference
+            name: body.representativeName !== undefined ? body.representativeName : user.name,
+            phone: body.phone !== undefined ? body.phone : user.phone,
+            wristbandColor: body.wristbandColor !== undefined ? body.wristbandColor : user.wristbandColor,
         };
 
         console.log('[API Update] Saving updates...');

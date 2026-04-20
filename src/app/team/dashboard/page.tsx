@@ -23,10 +23,10 @@ function DashboardContent() {
     const [settings, setSettings] = useState<any>(null);
     // Custom dialog state (replaces browser alert/confirm)
     const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
-    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean }>({ open: false, title: "", message: "", onConfirm: () => {}, danger: false });
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean; confirmLabel?: string }>({ open: false, title: "", message: "", onConfirm: () => {}, danger: false, confirmLabel: "削除する" });
 
     const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
-    const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false) => setConfirmDialog({ open: true, title, message, onConfirm, danger });
+    const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
 
     useEffect(() => {
         fetch("/api/settings").then(res => res.json()).then(setSettings).catch(console.error);
@@ -250,6 +250,41 @@ function DashboardContent() {
                         </Card>
                     </div>
 
+                    {/* Team Introduction Section */}
+                    {teamEntry.status === 'draft' && (
+                        <Card className="p-6 bg-slate-900 border-slate-800">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h2 className="text-xl font-bold text-white">チーム紹介・意気込み</h2>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-4">
+                                大会当日にMCがこの情報をもとにチームの紹介を行います！アピールポイントや意気込みなど、色々と書いてもらえると嬉しいです！
+                            </p>
+                            <textarea
+                                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                rows={4}
+                                placeholder="例：〇〇大学のサークルメンバーで結成したチームです！優勝目指して頑張ります！"
+                                defaultValue={teamEntry.teamIntroduction || ""}
+                                onBlur={async (e) => {
+                                    const newText = e.target.value;
+                                    if (newText === teamEntry.teamIntroduction) return;
+                                    try {
+                                        const res = await fetch('/api/team/update', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
+                                            body: JSON.stringify({ teamIntroduction: newText })
+                                        });
+                                        if (res.ok) {
+                                            setTeamEntry({ ...teamEntry, teamIntroduction: newText });
+                                        }
+                                    } catch (err) {
+                                        console.error("Failed to update intro", err);
+                                    }
+                                }}
+                            />
+                            <p className="text-xs text-slate-500 mt-2">入力後、外をタップすると自動保存されます。</p>
+                        </Card>
+                    )}
+
                     {/* Player List */}
                     <Card className="bg-slate-900 border-slate-800 overflow-hidden">
                         <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -354,7 +389,9 @@ function DashboardContent() {
                                     onClick={() => showConfirm(
                                         "本エントリー確認", 
                                         "これ以降メンバーの編集ができなくなりますが、本エントリーを完了して請求書を発行してよろしいですか？",
-                                        () => handleFinalizeEntry()
+                                        () => handleFinalizeEntry(),
+                                        false,
+                                        "完了する"
                                     )} 
                                     className="w-full md:w-auto min-w-[300px] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-6 text-lg shadow-lg shadow-indigo-500/30"
                                 >
@@ -395,7 +432,7 @@ function DashboardContent() {
                 title={confirmDialog.title}
                 message={confirmDialog.message}
                 danger={confirmDialog.danger}
-                confirmLabel="削除する"
+                confirmLabel={confirmDialog.confirmLabel}
             />
         </div>
     );
