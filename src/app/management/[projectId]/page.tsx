@@ -370,13 +370,9 @@ export default function ManagementProjectDetail() {
                                                 参加費{selectedEntry.isPaid ? '支払済' : '未払い'}
                                             </Button>
 
-                                            <div className="col-span-2 grid grid-cols-2 gap-3 mt-4">
-                                                <a href={`/team/dashboard?id=${selectedEntry.id}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-3 rounded-lg bg-indigo-900/20 hover:bg-indigo-900/40 border border-indigo-500/30 text-indigo-400 text-sm font-bold transition-colors">
-                                                    ユーザー代理表示
-                                                    <span className="text-[10px] opacity-70 mt-0.5">（メンバー編集など）</span>
-                                                </a>
+                                            <div className="col-span-2 mt-4">
                                                 <Button
-                                                    className="h-full border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 font-bold flex flex-col items-center justify-center py-2"
+                                                    className="w-full h-12 border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 font-bold flex items-center justify-center"
                                                     onClick={() => {
                                                         if (!confirm("本当にこのチームを仮エントリー状態に戻しますか？\n（ユーザーが再度メンバー編集できるようになります）")) return;
                                                         handleUpdateEntry(selectedEntry.id, { status: 'draft' });
