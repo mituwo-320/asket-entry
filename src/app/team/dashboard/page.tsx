@@ -23,7 +23,7 @@ function DashboardContent() {
     const [settings, setSettings] = useState<any>(null);
     // Custom dialog state (replaces browser alert/confirm)
     const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
-    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean; confirmLabel?: string }>({ open: false, title: "", message: "", onConfirm: () => {}, danger: false, confirmLabel: "削除する" });
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean; confirmLabel?: string }>({ open: false, title: "", message: "", onConfirm: () => { }, danger: false, confirmLabel: "削除する" });
 
     const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
     const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
@@ -262,7 +262,7 @@ function DashboardContent() {
                             <textarea
                                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                                 rows={4}
-                                placeholder="例：〇〇大学のサークルメンバーで結成したチームです！優勝目指して頑張ります！"
+                                placeholder="例：〇〇から参加します！〇〇ブースターで結成したチームです！優勝目指して頑張ります！"
                                 defaultValue={teamEntry.teamIntroduction || ""}
                                 onBlur={async (e) => {
                                     const newText = e.target.value;
@@ -380,19 +380,19 @@ function DashboardContent() {
                                 <div>
                                     <h3 className="text-xl font-bold text-indigo-300 mb-2">メンバー登録はすべて完了しましたか？</h3>
                                     <p className="text-sm text-indigo-200/80">
-                                        すべてのメンバーの登録が終わったら、「本エントリーを完了する」を押して請求書を発行してください。<br className="hidden md:block"/>
+                                        すべてのメンバーの登録が終わったら、「本エントリーを完了する」を押して請求書を発行してください。<br className="hidden md:block" />
                                         <strong className="text-amber-400">※これ以降、メンバー情報（追加・編集・削除）の変更は一切できなくなります。</strong>
                                     </p>
                                 </div>
-                                <Button 
+                                <Button
                                     size="lg"
                                     onClick={() => showConfirm(
-                                        "本エントリー確認", 
+                                        "本エントリー確認",
                                         "これ以降メンバーの編集ができなくなりますが、本エントリーを完了して請求書を発行してよろしいですか？",
                                         () => handleFinalizeEntry(),
                                         false,
                                         "完了する"
-                                    )} 
+                                    )}
                                     className="w-full md:w-auto min-w-[300px] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-6 text-lg shadow-lg shadow-indigo-500/30"
                                 >
                                     <CheckCircle className="w-5 h-5 mr-2" /> 本エントリーを完了し、請求書を発行する
