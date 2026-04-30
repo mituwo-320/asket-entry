@@ -194,11 +194,16 @@ function DashboardContent() {
                         <div className="p-5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 flex items-start gap-4">
                             <CheckCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                             <div>
-                                <h3 className="font-bold text-lg mb-1">✅ 本エントリー完了済み</h3>
-                                <p className="text-sm">
-                                    本エントリーが完了しているため、メンバーの編集はロックされています。<br />
-                                    変更が必要な場合は運営にお問い合わせください。
-                                </p>
+                                <h3 className="font-bold text-lg mb-2">✅ 本エントリー完了済み</h3>
+                                <div className="text-sm space-y-2 opacity-90 leading-relaxed">
+                                    <p>本エントリーが完了しているため、メンバーの編集はロックされています。</p>
+                                    <ul className="list-disc list-inside space-y-1 ml-1 text-xs md:text-sm">
+                                        <li>本エントリー完了後にメンバーが追加となる場合は、大会当日に会場受付にて参加費をご精算のうえ、リストバンドをお受け取りください。</li>
+                                        <li>追加メンバーは大会のスポーツ保険の対象外となりますので、個人でレクリエーション保険等にご加入されることをお勧めいたします。</li>
+                                        <li>すでに登録済みのメンバーがキャンセルとなった場合、参加費用の返金はいたしかねますので、あらかじめご了承ください。</li>
+                                    </ul>
+                                    <p className="pt-2">その他、登録内容の変更が必要な場合は運営にお問い合わせください。</p>
+                                </div>
                             </div>
                         </div>
                     ) : (teamEntry as any).projectEndDate && (() => {
