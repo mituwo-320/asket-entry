@@ -114,10 +114,10 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                     const repPhone = user?.phone || "不明";
                     
                     return (
-                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none print:p-0 flex flex-col">
+                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[3mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
                             
                             {/* Header Section */}
-                            <div className="border-b-2 border-slate-800 pb-1 mb-2">
+                            <div className="border-b border-slate-800 pb-1 mb-2">
                                 <div className="flex justify-between items-end mb-1">
                                     <h1 className="text-xl sm:text-2xl font-black tracking-wider text-slate-800 leading-tight">{projectContext?.name || entry.tournamentId}</h1>
                                     <div className="text-sm font-bold text-slate-600 whitespace-nowrap ml-4">
@@ -134,10 +134,10 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                                     
                                     <div className="flex items-center gap-4 mt-2">
                                         <div className="flex items-center gap-2">
-                                            <span className="bg-slate-200 text-slate-700 px-2 py-0.5 text-[10px] font-bold rounded">代表者</span>
+                                            <span className="bg-slate-200 text-slate-700 px-1.5 py-0.5 text-[9px] font-bold rounded">代表者</span>
                                             <div className="flex flex-col">
                                                 <span className="text-[9px] text-slate-500 leading-none">{repFurigana}</span>
-                                                <span className="text-sm font-bold leading-tight">{repName}</span>
+                                                <span className="text-xs sm:text-sm font-bold leading-tight">{repName}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 border-l-2 border-slate-300 pl-4">
@@ -165,33 +165,33 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                             {/* Player List */}
                             <div className="mb-3 flex-1">
                                 <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-sm">登録選手一覧</h3>
-                                <table className="w-full text-xs sm:text-sm border-collapse border border-slate-800">
+                                <table className="w-full text-xs border-collapse border border-slate-800">
                                     <thead className="bg-slate-100">
                                         <tr>
-                                            <th className="border border-slate-800 p-1.5 sm:p-2 text-center w-8 sm:w-12">No.</th>
-                                            <th className="border border-slate-800 p-1.5 sm:p-2 text-left">氏名 (フリガナ)</th>
-                                            <th className="border border-slate-800 p-1.5 sm:p-2 text-center w-16 sm:w-24">代表者</th>
-                                            <th className="border border-slate-800 p-1.5 sm:p-2 text-center w-24 sm:w-32">リストバンド色</th>
-                                            <th className="border border-slate-800 p-1.5 sm:p-2 text-center w-16 sm:w-24">保険</th>
+                                            <th className="border border-slate-800 p-1 sm:p-1.5 text-center w-8 sm:w-12">No.</th>
+                                            <th className="border border-slate-800 p-1 sm:p-1.5 text-left">氏名 (フリガナ)</th>
+                                            <th className="border border-slate-800 p-1 sm:p-1.5 text-center w-16 sm:w-20">代表者</th>
+                                            <th className="border border-slate-800 p-1 sm:p-1.5 text-center w-24 sm:w-32">リストバンド色</th>
+                                            <th className="border border-slate-800 p-1 sm:p-1.5 text-center w-16 sm:w-20">保険</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {(entry.players || []).map((player, idx) => (
                                             <tr key={player.id || idx}>
-                                                <td className="border border-slate-800 p-1.5 sm:p-2 text-center font-bold">{idx + 1}</td>
-                                                <td className="border border-slate-800 p-1.5 sm:p-2">
+                                                <td className="border border-slate-800 p-1 sm:p-1.5 text-center font-bold">{idx + 1}</td>
+                                                <td className="border border-slate-800 p-1 sm:p-1.5">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] sm:text-[10px] text-slate-500 leading-none">{player.furigana}</span>
+                                                        <span className="text-[8px] sm:text-[9px] text-slate-500 leading-none">{player.furigana}</span>
                                                         <span className="font-bold">{player.name}</span>
                                                     </div>
                                                 </td>
-                                                <td className="border border-slate-800 p-1.5 sm:p-2 text-center font-bold text-lg leading-none">
+                                                <td className="border border-slate-800 p-1 sm:p-1.5 text-center font-bold text-base leading-none">
                                                     {player.isRepresentative ? "〇" : ""}
                                                 </td>
-                                                <td className="border border-slate-800 p-1.5 sm:p-2 text-center font-bold">
+                                                <td className="border border-slate-800 p-1 sm:p-1.5 text-center font-bold">
                                                     {player.wristbandColor || "未定"}
                                                 </td>
-                                                <td className="border border-slate-800 p-1.5 sm:p-2 text-center font-bold text-lg leading-none">
+                                                <td className="border border-slate-800 p-1 sm:p-1.5 text-center font-bold text-base leading-none">
                                                     {player.insurance ? "〇" : "×"}
                                                 </td>
                                             </tr>
@@ -201,8 +201,8 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                             </div>
 
                             <div className="mt-auto">
-                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-sm">チーム紹介・意気込み</h3>
-                                <div className="border border-slate-800 p-3 min-h-[60px] text-sm whitespace-pre-wrap leading-relaxed">
+                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-xs sm:text-sm">チーム紹介・意気込み</h3>
+                                <div className="border border-slate-800 p-2 min-h-[40px] text-xs whitespace-pre-wrap leading-relaxed">
                                     {entry.teamIntroduction || "（未記入）"}
                                 </div>
                             </div>

@@ -89,17 +89,17 @@ function InvoiceContent() {
             </div>
 
             {/* Printable Area - A4 Size Simulation */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white p-8 sm:p-[15mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none print:p-0 print:text-[13px]">
+            <div className="w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
                 
                 {/* Header */}
-                <div className="mb-8 text-center">
+                <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold tracking-widest border-b-2 border-slate-800 pb-2 mb-2 inline-block px-8">請 求 書</h1>
                     <div className="text-right text-xs text-slate-500 mb-2">
                         発行日: {new Date().toLocaleDateString('ja-JP')}
                     </div>
                 </div>
 
-                <div className="flex justify-between mb-12 print:mb-8">
+                <div className="flex justify-between mb-8 print:mb-6">
                     {/* Addressee */}
                     <div className="text-lg">
                         <div className="font-bold text-xl mb-1 pb-1 border-b border-slate-400 inline-block min-w-[250px]">
@@ -107,8 +107,8 @@ function InvoiceContent() {
                         </div>
                     </div>
                     {/* Issuer */}
-                    <div className="text-sm space-y-1 text-right">
-                        <p className="font-bold text-base">株式会社 タツヲノコプロ</p>
+                    <div className="text-xs space-y-1 text-right text-slate-700">
+                        <p className="font-bold text-sm text-slate-900">株式会社 タツヲノコプロ</p>
                         <p>代表取締役 細本龍男（たつを）</p>
                         <p>〒530-0016 大阪市北区中崎１丁目7番3号</p>
                         <p>電話 (070) 8369-8316</p>
@@ -117,14 +117,14 @@ function InvoiceContent() {
                 </div>
 
                 {/* Greeting */}
-                <div className="mb-6 print:mb-4 text-sm leading-relaxed">
-                    <p className="mb-2">【ヴァンキーカップ】</p>
+                <div className="mb-6 print:mb-4 text-xs sm:text-sm leading-relaxed">
+                    <p className="mb-1">【ヴァンキーカップ】</p>
                     <p>この度はヴァンキーカップ {teamEntry.projectName || teamEntry.tournamentId} にご参加いただき、誠にありがとうございます。</p>
                     <p>下記の通り参加費を徴収させていただきます。お手数おかけしますが、お振込よろしくお願いします。</p>
                 </div>
 
                 {/* Calculation Details */}
-                <div className="mb-8 print:mb-6 border-t-2 border-b-2 border-slate-800 py-4 print:py-2">
+                <div className="mb-6 print:mb-4 border-t-2 border-b-2 border-slate-800 py-4 print:py-2 flex-1">
                     <table className="w-full text-base mb-4">
                         <tbody>
                             <tr className="border-b border-slate-200">
@@ -147,30 +147,31 @@ function InvoiceContent() {
                 </div>
 
                 {/* Payment Info */}
-                <div className="mb-8 print:mb-6 bg-slate-50 p-5 print:p-4 rounded border border-slate-200 text-sm leading-relaxed space-y-3 print:space-y-2 print:break-inside-avoid">
+                <div className="mb-4 print:mb-2 bg-slate-50 p-4 print:p-3 rounded border border-slate-200 text-xs sm:text-sm leading-relaxed space-y-2 print:space-y-1 print:break-inside-avoid">
                     <div>
-                        <span className="font-bold mr-2 text-base">■ お支払い期日:</span> 
-                        <span className="font-bold text-base text-red-600">{dueDateString}</span>
+                        <span className="font-bold mr-2 text-sm sm:text-base">■ お支払い期日:</span> 
+                        <span className="font-bold text-sm sm:text-base text-red-600">{dueDateString}</span>
                     </div>
                     
-                    <div>
-                        <span className="font-bold block text-base mb-2">■ お振込先</span>
-                        <div className="pl-4 font-bold text-base space-y-1">
-                            <p>三菱ＵＦＪ銀行 鶴橋支店</p>
-                            <p>普通 ００９２１１４</p>
-                            <p>株式会社 タツヲノコプロ</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <span className="font-bold block text-sm sm:text-base mb-1">■ お振込先</span>
+                            <div className="pl-4 font-bold text-sm sm:text-base space-y-0.5">
+                                <p>三菱ＵＦＪ銀行 鶴橋支店</p>
+                                <p>普通 ００９２１１４</p>
+                                <p>株式会社 タツヲノコプロ</p>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="text-slate-600 pt-4 space-y-1">
-                        <p>※ お振込名義は「<span className="font-bold text-slate-800">{representativeName}</span>」でお願いいたします。</p>
-                        <p>※ エントリー以降の参加者キャンセルによる返金は行いません。</p>
-                        <p>※ 恐れ入りますが振込手数料はご負担ください。</p>
+                        <div className="text-slate-600 space-y-1 text-xs pt-1 sm:pt-6">
+                            <p>※ お振込名義は「<span className="font-bold text-slate-800">{representativeName}</span>」でお願いいたします。</p>
+                            <p>※ エントリー以降の参加者キャンセルによる返金は行いません。</p>
+                            <p>※ 恐れ入りますが振込手数料はご負担ください。</p>
+                        </div>
                     </div>
                 </div>
 
                 {/* Footer Message */}
-                <div className="mt-8 pt-4 border-t border-slate-200 text-xs sm:text-sm leading-relaxed text-center print:break-inside-avoid">
+                <div className="mt-auto pt-3 border-t border-slate-200 text-xs sm:text-[13px] leading-relaxed text-center print:break-inside-avoid">
                     <p>バスケを通して、仲間を増やしてもらえたら嬉しいし、楽しい時間を過ごしましょう！</p>
                     <p>会場に居る人、全ての人に景品が当たるチャンスがあるので、見学・応援大歓迎です♪</p>
                     <p>一緒に最高の1日にしましょうね。よろしくお願いします。</p>
@@ -189,7 +190,7 @@ function InvoiceContent() {
                     }
                     @page {
                         size: A4 portrait;
-                        margin: 10mm;
+                        margin: 5mm;
                     }
                     .print\\:break-inside-avoid {
                         page-break-inside: avoid;
