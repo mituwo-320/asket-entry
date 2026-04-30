@@ -88,8 +88,8 @@ function InvoiceContent() {
                 </div>
             </div>
 
-            {/* Printable Area - A4 Size Simulation */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
+            {/* Printable Area */}
+            <div className="w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
                 
                 {/* Header */}
                 <div className="mb-6 text-center">
@@ -124,7 +124,7 @@ function InvoiceContent() {
                 </div>
 
                 {/* Calculation Details */}
-                <div className="mb-6 print:mb-4 border-t-2 border-b-2 border-slate-800 py-4 print:py-2 flex-1">
+                <div className="mb-6 print:mb-4 border-t-2 border-b-2 border-slate-800 py-4 print:py-2">
                     <table className="w-full text-base mb-4">
                         <tbody>
                             <tr className="border-b border-slate-200">
@@ -173,7 +173,7 @@ function InvoiceContent() {
                 </div>
 
                 {/* Footer Message */}
-                <div className="mt-auto pt-3 border-t border-slate-200 text-xs sm:text-[13px] leading-relaxed text-center print:break-inside-avoid">
+                <div className="mt-6 pt-3 border-t border-slate-200 text-xs sm:text-[13px] leading-relaxed text-center print:break-inside-avoid">
                     <p>バスケを通して、仲間を増やしてもらえたら嬉しいし、楽しい時間を過ごしましょう！</p>
                     <p>会場に居る人、全ての人に景品が当たるチャンスがあるので、見学・応援大歓迎です♪</p>
                     <p>一緒に最高の1日にしましょうね。よろしくお願いします。</p>

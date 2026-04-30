@@ -114,7 +114,7 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                     const repPhone = user?.phone || "不明";
                     
                     return (
-                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[3mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
+                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[3mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
                             
                             {/* Header Section */}
                             <div className="border-b border-slate-800 pb-1 mb-2">
@@ -163,7 +163,7 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                             </div>
 
                             {/* Player List */}
-                            <div className="mb-3 flex-1">
+                            <div className="mb-4">
                                 <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-sm">登録選手一覧</h3>
                                 <table className="w-full text-xs border-collapse border border-slate-800">
                                     <thead className="bg-slate-100">
@@ -200,7 +200,7 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
                                 </table>
                             </div>
 
-                            <div className="mt-auto">
+                            <div className="mt-4">
                                 <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-xs sm:text-sm">チーム紹介・意気込み</h3>
                                 <div className="border border-slate-800 p-2 min-h-[40px] text-xs whitespace-pre-wrap leading-relaxed">
                                     {entry.teamIntroduction || "（未記入）"}
