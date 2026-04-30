@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Printer, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
 function InvoiceContent() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const entryId = searchParams.get('id');
 
     const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string } | null>(null);
@@ -73,10 +74,13 @@ function InvoiceContent() {
         <div className="min-h-screen bg-slate-100 font-sans text-slate-800">
             {/* Non-printable Top Bar */}
             <div className="print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
-                <Link href="/dashboard" className="flex items-center text-slate-300 hover:text-white transition-colors">
+                <button 
+                    onClick={() => router.back()} 
+                    className="flex items-center text-slate-300 hover:text-white transition-colors"
+                >
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    マイページへ戻る
-                </Link>
+                    前の画面へ戻る
+                </button>
                 <div className="flex gap-4">
                     <button 
                         onClick={() => window.print()} 
