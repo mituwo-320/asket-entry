@@ -174,7 +174,8 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 group: entry.group || null,
                 preliminaryNumber: entry.preliminaryNumber || null,
                 isOpenChatJoined: entry.isOpenChatJoined || false,
-                managementMemo: entry.managementMemo || ""
+                managementMemo: entry.managementMemo || "",
+                uniformColor: entry.uniformColor || null
             },
             create: {
                 id: entry.id,
@@ -189,7 +190,8 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 group: entry.group || null,
                 preliminaryNumber: entry.preliminaryNumber || null,
                 isOpenChatJoined: entry.isOpenChatJoined || false,
-                managementMemo: entry.managementMemo || ""
+                managementMemo: entry.managementMemo || "",
+                uniformColor: entry.uniformColor || null
             }
         });
 
@@ -243,6 +245,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             preliminaryNumber: e.preliminaryNumber || undefined,
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
+            uniformColor: e.uniformColor || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -281,6 +284,7 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             preliminaryNumber: e.preliminaryNumber || undefined,
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
+            uniformColor: e.uniformColor || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -486,6 +490,7 @@ export async function getAllAdminData() {
             preliminaryNumber: e.preliminaryNumber || undefined,
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
+            uniformColor: e.uniformColor || undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,

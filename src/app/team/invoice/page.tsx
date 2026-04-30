@@ -89,7 +89,7 @@ function InvoiceContent() {
             </div>
 
             {/* Printable Area - A4 Size Simulation */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white p-8 sm:p-[15mm] min-h-[297mm] shadow-xl my-8 print:my-0 print:shadow-none print:p-0 print:text-[13px]">
+            <div className="w-full max-w-[210mm] mx-auto bg-white p-8 sm:p-[15mm] min-h-[297mm] print:min-h-0 shadow-xl my-8 print:my-0 print:shadow-none print:p-0 print:text-[13px]">
                 
                 {/* Header */}
                 <div className="mb-8 text-center">
@@ -99,7 +99,7 @@ function InvoiceContent() {
                     </div>
                 </div>
 
-                <div className="flex justify-between mb-12">
+                <div className="flex justify-between mb-12 print:mb-8">
                     {/* Addressee */}
                     <div className="text-lg">
                         <div className="font-bold text-xl mb-1 pb-1 border-b border-slate-400 inline-block min-w-[250px]">
@@ -117,14 +117,14 @@ function InvoiceContent() {
                 </div>
 
                 {/* Greeting */}
-                <div className="mb-6 text-sm leading-relaxed">
+                <div className="mb-6 print:mb-4 text-sm leading-relaxed">
                     <p className="mb-2">【ヴァンキーカップ】</p>
                     <p>この度はヴァンキーカップ {teamEntry.projectName || teamEntry.tournamentId} にご参加いただき、誠にありがとうございます。</p>
                     <p>下記の通り参加費を徴収させていただきます。お手数おかけしますが、お振込よろしくお願いします。</p>
                 </div>
 
                 {/* Calculation Details */}
-                <div className="mb-8 border-t-2 border-b-2 border-slate-800 py-4">
+                <div className="mb-8 print:mb-6 border-t-2 border-b-2 border-slate-800 py-4 print:py-2">
                     <table className="w-full text-base mb-4">
                         <tbody>
                             <tr className="border-b border-slate-200">
@@ -147,7 +147,7 @@ function InvoiceContent() {
                 </div>
 
                 {/* Payment Info */}
-                <div className="mb-8 bg-slate-50 p-5 rounded border border-slate-200 text-sm leading-relaxed space-y-3 print:break-inside-avoid">
+                <div className="mb-8 print:mb-6 bg-slate-50 p-5 print:p-4 rounded border border-slate-200 text-sm leading-relaxed space-y-3 print:space-y-2 print:break-inside-avoid">
                     <div>
                         <span className="font-bold mr-2 text-base">■ お支払い期日:</span> 
                         <span className="font-bold text-base text-red-600">{dueDateString}</span>
@@ -188,8 +188,8 @@ function InvoiceContent() {
                         padding: 0;
                     }
                     @page {
-                        size: auto;
-                        margin: 5mm;
+                        size: A4 portrait;
+                        margin: 10mm;
                     }
                     .print\\:break-inside-avoid {
                         page-break-inside: avoid;

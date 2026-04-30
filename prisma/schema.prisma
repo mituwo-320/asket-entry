@@ -50,7 +50,9 @@ model TeamEntry {
   preliminaryNumber          Int? // NEW: Lottery selection 1-16
   isOpenChatJoined           Boolean  @default(false)
   managementMemo             String   @default("")
+  uniformColor               String?
   createdAt                  DateTime @default(now())
+
   updatedAt                  DateTime @updatedAt
 
   players Player[]

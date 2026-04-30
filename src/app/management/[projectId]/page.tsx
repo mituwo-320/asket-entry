@@ -178,6 +178,14 @@ export default function ManagementProjectDetail() {
                     <h2 className="text-sm font-black text-slate-400 tracking-widest uppercase flex items-center gap-2">
                         <ListCollapse className="w-4 h-4" /> エントリー一覧 ({filteredEntries.length})
                     </h2>
+                    <Button
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-200"
+                        size="sm"
+                        onClick={() => window.open(`/management/print?projectId=${projectId}`, '_blank')}
+                    >
+                        <Printer className="w-4 h-4 mr-2" />
+                        一括印刷 (A4)
+                    </Button>
                 </div>
 
                 {/* Team Cards List */}
@@ -191,7 +199,7 @@ export default function ManagementProjectDetail() {
 
                             return (
                                 <motion.div key={entry.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-                                    <Card className={`overflow-hidden border-slate-700/50 bg-slate-900/60 p-0`}>
+                                    <Card className={`overflow-hidden border-slate-700/50 ${wl ? 'bg-amber-950/40 border-amber-500/30' : 'bg-slate-900/60'} p-0`}>
                                         <div className="p-4 sm:p-5 relative">
                                             {/* Top row: Status/Waitlist & Prelim Number */}
                                             <div className="flex justify-between items-start mb-3">
@@ -340,7 +348,20 @@ export default function ManagementProjectDetail() {
                                             <MessageSquare className="w-4 h-4" /> 運営用メモ設定
                                         </h3>
 
+                                        <div className="mb-4">
+                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
+                                            <Input
+                                                type="text"
+                                                className="w-full bg-slate-950 border-slate-700 text-slate-200 focus-visible:ring-emerald-500"
+                                                placeholder="例：赤、白、黒 など"
+                                                value={selectedEntry.uniformColor || ""}
+                                                onChange={(e) => setSelectedEntry({ ...selectedEntry, uniformColor: e.target.value })}
+                                                onBlur={(e) => handleUpdateEntry(selectedEntry.id, { uniformColor: e.target.value })}
+                                            />
+                                        </div>
+
                                         <div>
+                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">運営用メモ</label>
                                             <textarea
                                                 className="w-full h-40 bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none text-base sm:text-sm"
                                                 placeholder="チームについての備考や引き継ぎ事項などを記入してください..."
@@ -370,7 +391,14 @@ export default function ManagementProjectDetail() {
                                                 参加費{selectedEntry.isPaid ? '支払済' : '未払い'}
                                             </Button>
 
-                                            <div className="col-span-2 mt-4">
+                                            <div className="col-span-2 mt-4 space-y-3">
+                                                <Button
+                                                    className="w-full h-12 border bg-indigo-900/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/40 font-bold flex items-center justify-center"
+                                                    onClick={() => window.open(`/management/print?teamId=${selectedEntry.id}`, '_blank')}
+                                                >
+                                                    <Printer className="w-5 h-5 mr-2" />
+                                                    このチームの情報を印刷 (A4)
+                                                </Button>
                                                 <Button
                                                     className="w-full h-12 border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 font-bold flex items-center justify-center"
                                                     onClick={() => {

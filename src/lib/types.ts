@@ -46,6 +46,8 @@ export interface TeamEntry {
     preliminaryNumber?: number; // NEW: Lottery selection 1-16
     isOpenChatJoined?: boolean; // NEW: Management OpenChat check
     managementMemo?: string; // NEW: Management Memo
+    uniformColor?: string; // NEW: Uniform color
+
     createdAt: string;
 }
 

@@ -568,6 +568,13 @@ export default function AdminDashboard() {
                                     <Button className="w-full sm:w-auto hover:bg-indigo-600 hover:text-white" size="sm" variant="outline" onClick={downloadDetailedTeamList}>
                                         <Download className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">リスト出力 (詳細)</span>
                                     </Button>
+                                    <Button
+                                        className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                                        size="sm"
+                                        onClick={() => window.open(`/admin/print?projectId=${selectedProjectId}`, '_blank')}
+                                    >
+                                        <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">一括印刷 (A4)</span>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -822,10 +829,34 @@ export default function AdminDashboard() {
                                         </div>
 
                                         {/* Management Details in Admin Modal */}
-                                        <div className="space-y-3 mt-6 pt-4 border-t border-slate-800/50">
+                                        <div className="space-y-4 mt-6 pt-4 border-t border-slate-800/50">
                                             <h3 className="text-sm font-bold text-slate-300 flex items-center gap-2">
-                                                <MessageSquare className="w-4 h-4 text-emerald-400" /> 運営情報 (確認用)
+                                                <MessageSquare className="w-4 h-4 text-emerald-400" /> 運営設定・情報
                                             </h3>
+
+                                            <div className="mb-4">
+                                                <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
+                                                <Input
+                                                    type="text"
+                                                    className="w-full bg-slate-950 border-slate-700 text-slate-200 focus-visible:ring-emerald-500"
+                                                    placeholder="例：赤、白、黒 など"
+                                                    value={selectedEntry.uniformColor || ""}
+                                                    onChange={(e) => setSelectedEntry({ ...selectedEntry, uniformColor: e.target.value })}
+                                                    onBlur={async (e) => {
+                                                        const newVal = e.target.value;
+                                                        try {
+                                                            await fetch('/api/admin/entry/update', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ entryId: selectedEntry.id, updates: { uniformColor: newVal } })
+                                                            });
+                                                            setEntries(prev => prev.map(entry => entry.id === selectedEntry.id ? { ...entry, uniformColor: newVal } : entry));
+                                                        } catch (err) {
+                                                            alert("保存に失敗しました");
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
                                             <div className="grid grid-cols-2 gap-3 mb-3">
                                                 <div className={`p-3 rounded-xl border flex items-center gap-2 ${selectedEntry.isOpenChatJoined ? 'bg-emerald-900/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-800/30 border-slate-700 text-slate-400'}`}>
                                                     {selectedEntry.isOpenChatJoined ? <CheckCircle2 className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
@@ -917,6 +948,10 @@ export default function AdminDashboard() {
                                                     <Printer className="w-4 h-4" /> 請求書(PDF)
                                                 </a>
                                             )}
+                                            
+                                            <a href={`/admin/print?teamId=${selectedEntry.id}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-sm font-medium border border-indigo-500/30 rounded-lg transition-colors flex items-center gap-2">
+                                                <Printer className="w-4 h-4" /> チーム情報印刷 (A4)
+                                            </a>
                                         </div>
                                         <button
                                             onClick={() => setSelectedEntry(null)}
