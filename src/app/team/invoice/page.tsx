@@ -138,22 +138,29 @@ function InvoiceContent() {
                         </tbody>
                     </table>
 
-                    <div className="flex justify-between items-end">
-                        <div className="text-xl font-bold tracking-widest">【 合計金額 】</div>
-                        <div className="text-3xl font-bold border-b-2 border-slate-800 px-4 pb-1">
-                            {grandTotal.toLocaleString()} 円 <span className="text-sm font-normal">（税込）</span>
+                    <div className="flex justify-between items-end mt-2 print:mt-1">
+                        <div className="text-lg font-bold tracking-widest">【 合計金額 】</div>
+                        <div className="text-2xl font-bold border-b-2 border-slate-800 px-4 pb-1">
+                            {grandTotal.toLocaleString()} 円 <span className="text-xs font-normal">（税込）</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Payment Info */}
-                <div className="mb-4 print:mb-2 bg-slate-50 p-4 print:p-3 rounded border border-slate-200 text-xs sm:text-sm leading-relaxed space-y-2 print:space-y-1 print:break-inside-avoid">
-                    <div>
-                        <span className="font-bold mr-2 text-sm sm:text-base">■ お支払い期日:</span> 
-                        <span className="font-bold text-sm sm:text-base text-red-600">{dueDateString}</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="mb-4 print:mb-2 bg-slate-50 p-4 print:p-3 rounded border border-slate-200 text-xs sm:text-sm leading-relaxed print:break-inside-avoid">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3 print:space-y-2">
+                            <div>
+                                <span className="font-bold block text-sm sm:text-base mb-1">■ お支払い期日</span>
+                                <span className="font-bold text-sm sm:text-base text-red-600 pl-4 block">{dueDateString}</span>
+                            </div>
+                            <div className="text-slate-600 space-y-1 text-[10px] sm:text-xs border-t border-slate-200 pt-2 print:pt-1">
+                                <p>※ お振込名義は「<span className="font-bold text-slate-800">{representativeName}</span>」でお願いします。</p>
+                                <p>※ 参加者キャンセルによる返金は行いません。</p>
+                                <p>※ 振込手数料はご負担ください。</p>
+                            </div>
+                        </div>
+                        
                         <div>
                             <span className="font-bold block text-sm sm:text-base mb-1">■ お振込先</span>
                             <div className="pl-4 font-bold text-sm sm:text-base space-y-0.5">
@@ -161,11 +168,6 @@ function InvoiceContent() {
                                 <p>普通 ００９２１１４</p>
                                 <p>株式会社 タツヲノコプロ</p>
                             </div>
-                        </div>
-                        <div className="text-slate-600 space-y-1 text-xs pt-1 sm:pt-6">
-                            <p>※ お振込名義は「<span className="font-bold text-slate-800">{representativeName}</span>」でお願いいたします。</p>
-                            <p>※ エントリー以降の参加者キャンセルによる返金は行いません。</p>
-                            <p>※ 恐れ入りますが振込手数料はご負担ください。</p>
                         </div>
                     </div>
                 </div>
