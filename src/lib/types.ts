@@ -24,6 +24,7 @@ export interface Project {
     id: string;
     name: string;
     isActive: boolean;
+    isWaitlistEnabled?: boolean; // NEW: Enable/Disable waitlist registration
     entryStartDate?: string;
     entryEndDate?: string;
     lineOpenChatLink?: string;

@@ -36,6 +36,7 @@ export async function POST(request: Request) {
             id: body.id || "proj_" + uuidv4(),
             name: body.name,
             isActive: body.isActive !== undefined ? body.isActive : true,
+            isWaitlistEnabled: body.isWaitlistEnabled !== undefined ? body.isWaitlistEnabled : true,
             entryStartDate: body.entryStartDate ? new Date(body.entryStartDate).toISOString() : undefined,
             entryEndDate: body.entryEndDate ? new Date(body.entryEndDate).toISOString() : undefined,
             lineOpenChatLink: body.lineOpenChatLink || undefined,

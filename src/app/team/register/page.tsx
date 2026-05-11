@@ -419,11 +419,17 @@ export default function RegisterPage() {
 
                                     // 枠がいっぱいの時以外は表示しない
                                     if (!isFull) return null;
+                                    
+                                    const isWaitlistOff = selectedProject.isWaitlistEnabled === false;
 
                                     return (
                                         <div className="p-3 rounded-lg border flex items-center gap-3 text-sm font-medium mb-3 transition-colors bg-red-500/10 border-red-500/20 text-red-400">
                                             <div className="flex-1">
-                                                <span className="flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />大変申し訳ありません。現在満員枠となっております。（キャンセル待ちとして登録されます）</span>
+                                                <span className="flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />
+                                                {isWaitlistOff 
+                                                    ? "大変申し訳ありません。現在満員枠となっており、受付を終了しました。" 
+                                                    : "大変申し訳ありません。現在満員枠となっております。（キャンセル待ちとして登録されます）"}
+                                                </span>
                                             </div>
                                             <div className="text-lg tabular-nums tracking-tighter shrink-0 flex items-baseline gap-1 bg-slate-900/50 px-3 py-1 rounded-md border border-slate-800/50">
                                                 <span className="text-red-300">{selectedProject.currentEntryCount || 0}</span>
@@ -444,9 +450,11 @@ export default function RegisterPage() {
                                 <option value="" disabled>選択してください</option>
                                 {projects.map(p => {
                                     const isFull = p.maxTeams && (p.currentEntryCount || 0) >= p.maxTeams;
+                                    const isWaitlistOff = p.isWaitlistEnabled === false;
+                                    const isDisabled = isFull && isWaitlistOff;
                                     return (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name} {isFull ? '(キャンセル待ち)' : ''}
+                                        <option key={p.id} value={p.id} disabled={isDisabled}>
+                                            {p.name} {isFull ? (isWaitlistOff ? '(満員 - 受付終了)' : '(キャンセル待ち)') : ''}
                                         </option>
                                     );
                                 })}
@@ -720,18 +728,27 @@ export default function RegisterPage() {
                         className={`w-full font-medium py-6 transition-all duration-300 ${(() => {
                             const selectedProject = projects.find(p => p.id === formData.projectId);
                             const isFull = selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
+                            const isWaitlistOff = selectedProject?.isWaitlistEnabled === false;
+                            if (isFull && isWaitlistOff) {
+                                return "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed";
+                            }
                             return isFull
                                 ? "bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white shadow-lg shadow-amber-500/20 border border-amber-500/50"
                                 : "bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-500/20"
                         })()
                             }`}
-                        disabled={isLoading}
+                        disabled={isLoading || (() => {
+                            const selectedProject = projects.find(p => p.id === formData.projectId);
+                            return selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams && selectedProject.isWaitlistEnabled === false;
+                        })()}
                     >
                         {isLoading ? (
                             <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> 登録中...</>
                         ) : (() => {
                             const selectedProject = projects.find(p => p.id === formData.projectId);
                             const isFull = selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
+                            const isWaitlistOff = selectedProject?.isWaitlistEnabled === false;
+                            if (isFull && isWaitlistOff) return "この大会は受付を終了しました";
                             return isFull ? "キャンセル待ちとしてエントリーする" : "上記の内容でエントリーする";
                         })()}
                     </Button>

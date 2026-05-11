@@ -16,7 +16,18 @@ export async function POST(request: Request) {
         const tournamentId = body.tournamentId;
 
         // --- Waitlist Logic ---
-        // Capacity limit checked for UI display, but backend allows registration (acts as waitlist)
+        // 1. プロジェクト情報を取得し、定員およびキャンセル待ち設定を確認する
+        const project = await db.project.findUnique({ where: { id: body.tournamentId } });
+        if (!project) {
+            return NextResponse.json({ error: '指定された大会は見つかりませんでした' }, { status: 404 });
+        }
+        
+        if (project.maxTeams) {
+            const currentCount = await db.teamEntry.count({ where: { tournamentId: body.tournamentId } });
+            if (currentCount >= project.maxTeams && project.isWaitlistEnabled === false) {
+                return NextResponse.json({ error: 'この大会は定員に達しており、現在キャンセル待ちは受け付けていません。' }, { status: 400 });
+            }
+        }
         // ------------------------------------
 
         if (body.existingUserId) {

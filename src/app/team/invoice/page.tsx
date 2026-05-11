@@ -11,7 +11,7 @@ function InvoiceContent() {
     const router = useRouter();
     const entryId = searchParams.get('id');
 
-    const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string } | null>(null);
+    const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string, projectEndDate?: string } | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [settings, setSettings] = useState<Setting | any>(null);
     const [isLoading, setIsLoading] = useState(true);

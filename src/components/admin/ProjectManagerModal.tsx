@@ -211,6 +211,22 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
 
                                                     <div className="space-y-1 sm:col-span-2">
+                                                        <label className="text-[10px] text-slate-400 uppercase tracking-widest">キャンセル待ち機能</label>
+                                                        <select
+                                                            value={p.isWaitlistEnabled !== false ? 'true' : 'false'}
+                                                            onChange={(e) => {
+                                                                const updated = [...localProjects];
+                                                                updated[index].isWaitlistEnabled = e.target.value === 'true';
+                                                                setLocalProjects(updated);
+                                                            }}
+                                                            className="w-full h-9 bg-slate-900 border border-slate-700 rounded-md text-sm px-3 text-slate-200"
+                                                        >
+                                                            <option value="true">ON (定員超過時はキャンセル待ちとして受付)</option>
+                                                            <option value="false">OFF (定員超過時は受付終了)</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">LINEオープンチャットURL</label>
                                                         <Input
                                                             type="url"
