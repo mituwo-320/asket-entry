@@ -6,7 +6,7 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X, Printer } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X, Printer, FileText } from "lucide-react";
 import Link from "next/link";
 import { getTournamentName } from "@/lib/tournament-constants";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +20,40 @@ export default function UserDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [showChatBanner, setShowChatBanner] = useState(true);
+
+    const [receiptModalEntryId, setReceiptModalEntryId] = useState<string | null>(null);
+    const [receiptNameInput, setReceiptNameInput] = useState("");
+    const [isEditingReceiptName, setIsEditingReceiptName] = useState(false);
+    const [isIssuingReceipt, setIsIssuingReceipt] = useState(false);
+
+    const handleIssueReceipt = async (customName?: string) => {
+        if (!receiptModalEntryId) return;
+        setIsIssuingReceipt(true);
+        try {
+            const res = await fetch('/api/team/receipt/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-team-id': receiptModalEntryId },
+                body: JSON.stringify({ receiptName: customName || receiptNameInput })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setEntries(prev => prev.map(e => 
+                    e.id === receiptModalEntryId 
+                    ? { ...e, receiptName: data.receiptName || undefined, receiptIssuedAt: data.receiptIssuedAt }
+                    : e
+                ));
+                const issuedId = receiptModalEntryId;
+                setReceiptModalEntryId(null);
+                window.open(`/team/receipt?id=${issuedId}`, '_blank');
+            } else {
+                alert(data.error || "領収書の発行に失敗しました。");
+            }
+        } catch (e) {
+            alert("通信エラーが発生しました。");
+        } finally {
+            setIsIssuingReceipt(false);
+        }
+    };
 
     useEffect(() => {
         // 1. Check Session
@@ -423,10 +457,31 @@ export default function UserDashboard() {
                                                     </Card>
                                                 </Link>
                                                 {entry.status === 'submitted' && (
-                                                    <div className="mt-3 flex justify-end">
+                                                    <div className="mt-3 flex justify-end gap-2">
                                                         <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-indigo-500/50 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
                                                             <Printer className="w-4 h-4" /> 請求書（PDF）を発行
                                                         </Link>
+                                                        {entry.isPaid && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    if ((entry as any).receiptViewedAt) {
+                                                                        alert("すでに領収書は発行・確認済みです。二度目の発行はできません。");
+                                                                    } else {
+                                                                        setReceiptNameInput(entry.teamName);
+                                                                        setIsEditingReceiptName(false);
+                                                                        setReceiptModalEntryId(entry.id);
+                                                                    }
+                                                                }}
+                                                                disabled={!!(entry as any).receiptViewedAt}
+                                                                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${
+                                                                    (entry as any).receiptViewedAt 
+                                                                        ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                                                                        : 'bg-indigo-600 border border-indigo-500 hover:bg-indigo-500 text-white'
+                                                                }`}
+                                                            >
+                                                                <FileText className="w-4 h-4" /> 領収書を発行
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </motion.div>
@@ -504,6 +559,77 @@ export default function UserDashboard() {
                     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                 }}
             />
+            {receiptModalEntryId && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModalEntryId(null)} />
+                    <div className="relative bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
+                        <h2 className="text-lg font-bold text-white">領収書の発行</h2>
+                        
+                        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 space-y-1">
+                            <p className="text-sm text-red-400 font-bold flex items-center gap-1">
+                                <AlertCircle className="w-4 h-4" /> ⚠️ 重要事項
+                            </p>
+                            <ul className="list-disc list-inside text-xs text-red-300/90 ml-1 space-y-1">
+                                <li>領収書の発行と確認は<span className="font-bold underline text-red-400">1度のみ</span>可能です。</li>
+                                <li>確認画面を閉じると二度と表示されません。</li>
+                                <li>必ず画面から<span className="font-bold underline text-red-400">PDFを保存</span>または<span className="font-bold underline text-red-400">印刷</span>をしてください。</li>
+                                <li>発行後は宛名（御社名）の変更はできません。</li>
+                            </ul>
+                        </div>
+
+                        {/* 宛名表示 */}
+                        <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-700">
+                            <p className="text-xs text-slate-500 mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
+                            {isEditingReceiptName ? (
+                                <input
+                                    type="text"
+                                    value={receiptNameInput}
+                                    onChange={(e) => setReceiptNameInput(e.target.value)}
+                                    className="w-full bg-slate-900 border border-indigo-500 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    placeholder="例：株式会社〇〇 様、△△チーム"
+                                    autoFocus
+                                />
+                            ) : (
+                                <p className="text-white font-bold text-base">{receiptNameInput}　御中</p>
+                            )}
+                        </div>
+
+                        {/* 宛名変更ボタン */}
+                        {!isEditingReceiptName ? (
+                            <button
+                                onClick={() => setIsEditingReceiptName(true)}
+                                className="text-sm text-indigo-400 hover:text-indigo-300 underline"
+                            >
+                                宛名を変更する
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditingReceiptName(false)}
+                                className="text-sm text-slate-400 hover:text-slate-300 underline"
+                            >
+                                変更をキャンセル
+                            </button>
+                        )}
+
+                        {/* アクションボタン */}
+                        <div className="flex flex-col gap-2 pt-2">
+                            <button
+                                onClick={() => handleIssueReceipt(receiptNameInput || undefined)}
+                                disabled={isIssuingReceipt}
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
+                            >
+                                {isIssuingReceipt ? '発行中...' : 'この内容で発行する'}
+                            </button>
+                            <button
+                                onClick={() => !isIssuingReceipt && setReceiptModalEntryId(null)}
+                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-colors"
+                            >
+                                戻る（発行しない）
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

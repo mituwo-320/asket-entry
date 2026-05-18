@@ -44,6 +44,13 @@ function InvoiceContent() {
 
         fetchData();
     }, [entryId]);
+    useEffect(() => {
+        if (teamEntry) {
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const safeName = teamEntry.teamName.replace(/[\s\u3000]+/g, '_');
+            document.title = `ヴァンキーカップ請求書_${safeName}_${dateStr}`;
+        }
+    }, [teamEntry]);
 
     if (!entryId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid Entry ID</div>;
     if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
