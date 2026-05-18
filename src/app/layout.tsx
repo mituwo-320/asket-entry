@@ -41,6 +41,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className="scroll-smooth">
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${outfit.variable} ${notoSansJP.variable} font-noto-sans antialiased text-slate-100 min-h-screen bg-slate-950 selection:bg-indigo-500/30 selection:text-indigo-200`}
       >
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950 pointer-events-none -z-10" />

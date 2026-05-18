@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { findTeamEntry, saveTeamEntry, findUserById, saveUser, getSetting } from '@/lib/sheets';
+import { findTeamEntry, saveTeamEntry, findUserById, saveUser, getSetting, getProjects } from '@/lib/sheets';
 import { TeamEntry, User } from '@/lib/types';
 
 export async function POST(request: Request) {
@@ -20,9 +20,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
         }
 
-        const setting = await getSetting();
-        if (setting?.entryDeadline && new Date() > new Date(setting.entryDeadline)) {
-            return NextResponse.json({ error: 'エントリー期間は終了しました' }, { status: 403 });
+        const projects = await getProjects();
+        const project = projects.find(p => p.id === existingEntry.tournamentId);
+        if (project?.entryEndDate && new Date() > new Date(project.entryEndDate)) {
+            return NextResponse.json({ error: 'この大会のエントリー期間は終了しました' }, { status: 403 });
         }
 
         const user = await findUserById(existingEntry.userId);

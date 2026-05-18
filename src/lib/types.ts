@@ -27,6 +27,7 @@ export interface Project {
     isWaitlistEnabled?: boolean; // NEW: Enable/Disable waitlist registration
     entryStartDate?: string;
     entryEndDate?: string;
+    eventDate?: string; // NEW: 大会本番日程
     lineOpenChatLink?: string;
     maxTeams?: number; // NEW: Maximum number of teams allowed
     createdAt?: string;
@@ -48,6 +49,9 @@ export interface TeamEntry {
     isOpenChatJoined?: boolean; // NEW: Management OpenChat check
     managementMemo?: string; // NEW: Management Memo
     uniformColor?: string; // NEW: Uniform color
+    receiptName?: string; // 領収書の宛名（御社名）
+    receiptIssuedAt?: string; // 領収書発行日時
+    receiptViewedAt?: string; // 領収書閲覧日時
 
     createdAt: string;
 }

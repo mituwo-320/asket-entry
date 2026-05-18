@@ -88,6 +88,35 @@ export default function UserDashboard() {
         show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
     };
 
+    const activeEntries = entries.filter(entry => {
+        const project = projects.find(p => p.id === entry.tournamentId);
+        if (!project) return true;
+        if (project.isActive === false) return false;
+        
+        // 本番日程（eventDate）がある場合、その日の終わり（23:59:59）まではアクティブとする
+        if (project.eventDate) {
+            const eventDate = new Date(project.eventDate);
+            eventDate.setHours(23, 59, 59, 999);
+            return new Date() <= eventDate;
+        }
+        
+        return true;
+    });
+
+    const pastEntries = entries.filter(entry => {
+        const project = projects.find(p => p.id === entry.tournamentId);
+        if (!project) return false;
+        if (project.isActive === false) return true;
+        
+        if (project.eventDate) {
+            const eventDate = new Date(project.eventDate);
+            eventDate.setHours(23, 59, 59, 999);
+            return new Date() > eventDate;
+        }
+        
+        return false;
+    });
+
     return (
         <div className="min-h-screen">
             {/* Header */}
@@ -307,7 +336,7 @@ export default function UserDashboard() {
 
                             {/* Active Entries Section */}
                             <motion.section variants={itemVariants}>
-                                {entries.length === 0 ? (
+                                {activeEntries.length === 0 ? (
                                     <Card className="p-12 border-dashed border-slate-700/50 bg-slate-900/20 text-center">
                                         <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
                                             <Trophy className="w-10 h-10 text-slate-500" />
@@ -323,7 +352,7 @@ export default function UserDashboard() {
                                     </Card>
                                 ) : (
                                     <div className="space-y-4">
-                                        {entries.map((entry, i) => (
+                                        {activeEntries.map((entry, i) => (
                                             <motion.div
                                                 key={entry.id}
                                                 initial={{ opacity: 0, x: -20 }}
@@ -412,9 +441,53 @@ export default function UserDashboard() {
                                     <History className="w-5 h-5" />
                                     <h3 className="text-sm font-bold uppercase tracking-wider">過去の大会履歴</h3>
                                 </div>
-                                <div className="p-8 bg-slate-900/20 rounded-2xl border border-white/5 text-center text-slate-500 backdrop-blur-sm">
-                                    <p>過去に参加した大会の履歴がありません</p>
-                                </div>
+                                {pastEntries.length === 0 ? (
+                                    <div className="p-8 bg-slate-900/20 rounded-2xl border border-white/5 text-center text-slate-500 backdrop-blur-sm">
+                                        <p>過去に参加した大会の履歴がありません</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 opacity-75">
+                                        {pastEntries.map((entry, i) => (
+                                            <motion.div
+                                                key={entry.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.1 }}
+                                            >
+                                                <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
+                                                    <Card className="p-0 overflow-hidden hover:border-slate-700 transition-all duration-300 bg-slate-950/40">
+                                                        <div className="flex flex-col sm:flex-row relative">
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-700" />
+                                                            <div className="p-6 pl-8 flex-1">
+                                                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-400 border border-white/10">
+                                                                        {(entry as any).projectName || entry.tournamentId}
+                                                                    </div>
+                                                                    <div className="text-xs font-bold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                                                                        大会終了
+                                                                    </div>
+                                                                </div>
+                                                                <h4 className="text-2xl font-bold text-slate-400 group-hover:text-slate-200 transition-colors mb-4">
+                                                                    {entry.teamName}
+                                                                </h4>
+                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-500">
+                                                                    <span className="flex items-center gap-1.5 bg-slate-900/30 px-2.5 py-1 rounded-lg">
+                                                                        <UserIcon className="w-4 h-4 text-slate-500" /> 選手 {entry.players?.length || 0}名
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 mt-2 sm:mt-0">
+                                                                 <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-slate-500 group-hover:text-slate-400 transition-colors">
+                                                                    詳細を確認する <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                 </Link>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
                             </motion.section>
                         </div>
                     </div>

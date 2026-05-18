@@ -194,6 +194,20 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                         />
                                                     </div>
 
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] text-indigo-400 uppercase tracking-widest font-bold">大会本番日時 (当日)</label>
+                                                        <Input
+                                                            type="datetime-local"
+                                                            value={p.eventDate ? new Date(new Date(p.eventDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                                                            onChange={(e) => {
+                                                                const updated = [...localProjects];
+                                                                updated[index].eventDate = e.target.value ? new Date(e.target.value).toISOString() : undefined;
+                                                                setLocalProjects(updated);
+                                                            }}
+                                                            className="h-9 bg-slate-900 border-indigo-950 text-indigo-400 focus-visible:ring-indigo-500"
+                                                        />
+                                                    </div>
+
                                                     <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">エントリー上限チーム数</label>
                                                         <Input

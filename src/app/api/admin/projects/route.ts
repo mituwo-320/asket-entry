@@ -16,7 +16,8 @@ export async function GET() {
                 name: "【テスト用】2026年春季大会",
                 isActive: true,
                 entryStartDate: new Date().toISOString(),
-                entryEndDate: new Date("2026-04-30T23:59:59").toISOString()
+                entryEndDate: new Date("2026-04-30T23:59:59").toISOString(),
+                eventDate: new Date("2026-05-15T09:00:00").toISOString()
             };
             await saveProject(mockProject);
             projects = [mockProject];
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
             isWaitlistEnabled: body.isWaitlistEnabled !== undefined ? body.isWaitlistEnabled : true,
             entryStartDate: body.entryStartDate ? new Date(body.entryStartDate).toISOString() : undefined,
             entryEndDate: body.entryEndDate ? new Date(body.entryEndDate).toISOString() : undefined,
+            eventDate: body.eventDate ? new Date(body.eventDate).toISOString() : undefined,
             lineOpenChatLink: body.lineOpenChatLink || undefined,
             maxTeams: body.maxTeams ? parseInt(body.maxTeams.toString(), 10) : undefined
         };

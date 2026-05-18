@@ -20,6 +20,7 @@ function EditTeamContent() {
     const [settings, setSettings] = useState<any>(null);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [projectEndDate, setProjectEndDate] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         // Team
@@ -58,6 +59,7 @@ function EditTeamContent() {
 
                 const data = await res.json();
                 const team: TeamEntry = data.teamEntry;
+                setProjectEndDate((team as any).projectEndDate || null);
                 const user: User | undefined = data.user; // We might need to fetch user separately or API/team/data returns it?
                 // Checking api/team/data/route.ts -> it returns { teamEntry: ... } only. 
                 // We need the User object too. But api/team/data usually finds entry by userId if no header?
@@ -150,7 +152,7 @@ function EditTeamContent() {
     if (isLoading || !isSettingsLoaded) return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div>;
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid ID</div>;
 
-    if (settings?.entryDeadline && new Date() > new Date(settings.entryDeadline)) {
+    if (projectEndDate && new Date() > new Date(projectEndDate)) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
                 <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">

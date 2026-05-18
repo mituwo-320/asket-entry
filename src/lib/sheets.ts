@@ -16,6 +16,7 @@ export async function getProjects(): Promise<Project[]> {
             isWaitlistEnabled: p.isWaitlistEnabled !== false, // Default to true if undefined
             entryStartDate: p.entryStartDate ? p.entryStartDate.toISOString() : undefined,
             entryEndDate: p.entryEndDate ? p.entryEndDate.toISOString() : undefined,
+            eventDate: p.eventDate ? p.eventDate.toISOString() : undefined,
             lineOpenChatLink: p.lineOpenChatLink || undefined,
             maxTeams: p.maxTeams || undefined,
             createdAt: p.createdAt.toISOString()
@@ -48,6 +49,7 @@ export async function saveProject(project: Project): Promise<boolean> {
                 isWaitlistEnabled: project.isWaitlistEnabled !== false,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
+                eventDate: project.eventDate ? new Date(project.eventDate) : null,
                 lineOpenChatLink: project.lineOpenChatLink || null,
                 maxTeams: project.maxTeams || null
             },
@@ -58,6 +60,7 @@ export async function saveProject(project: Project): Promise<boolean> {
                 isWaitlistEnabled: project.isWaitlistEnabled !== false,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
+                eventDate: project.eventDate ? new Date(project.eventDate) : null,
                 lineOpenChatLink: project.lineOpenChatLink || null,
                 maxTeams: project.maxTeams || null
             }
@@ -178,7 +181,10 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 preliminaryNumber: entry.preliminaryNumber || null,
                 isOpenChatJoined: entry.isOpenChatJoined || false,
                 managementMemo: entry.managementMemo || "",
-                uniformColor: entry.uniformColor || null
+                uniformColor: entry.uniformColor || null,
+                receiptName: entry.receiptName || null,
+                receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
+                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null
             },
             create: {
                 id: entry.id,
@@ -194,7 +200,10 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 preliminaryNumber: entry.preliminaryNumber || null,
                 isOpenChatJoined: entry.isOpenChatJoined || false,
                 managementMemo: entry.managementMemo || "",
-                uniformColor: entry.uniformColor || null
+                uniformColor: entry.uniformColor || null,
+                receiptName: entry.receiptName || null,
+                receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
+                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null
             }
         });
 
@@ -249,6 +258,9 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
             uniformColor: e.uniformColor || undefined,
+            receiptName: e.receiptName || undefined,
+            receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
+            receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -288,6 +300,9 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
             uniformColor: e.uniformColor || undefined,
+            receiptName: e.receiptName || undefined,
+            receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
+            receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -494,6 +509,9 @@ export async function getAllAdminData() {
             isOpenChatJoined: e.isOpenChatJoined,
             managementMemo: e.managementMemo,
             uniformColor: e.uniformColor || undefined,
+            receiptName: e.receiptName || undefined,
+            receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
+            receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,

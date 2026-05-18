@@ -24,6 +24,11 @@ function DashboardContent() {
     // Custom dialog state (replaces browser alert/confirm)
     const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean; confirmLabel?: string }>({ open: false, title: "", message: "", onConfirm: () => { }, danger: false, confirmLabel: "削除する" });
+    // 領収書発行モーダル
+    const [receiptModal, setReceiptModal] = useState(false);
+    const [receiptNameInput, setReceiptNameInput] = useState("");
+    const [isEditingReceiptName, setIsEditingReceiptName] = useState(false);
+    const [isIssuingReceipt, setIsIssuingReceipt] = useState(false);
 
     const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
     const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
@@ -149,12 +154,38 @@ function DashboardContent() {
         }
     };
 
+    // 領収書を発行する（初回のみ宛名を保存）
+    const handleIssueReceipt = async (customName?: string) => {
+        if (!teamEntry) return;
+        setIsIssuingReceipt(true);
+        try {
+            const res = await fetch('/api/team/receipt/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
+                body: JSON.stringify({ receiptName: customName || null })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setTeamEntry({ ...teamEntry, receiptName: data.receiptName || undefined, receiptIssuedAt: data.receiptIssuedAt });
+                setReceiptModal(false);
+                window.open(`/team/receipt?id=${teamEntry.id}`, '_blank');
+            } else {
+                showAlert("エラー", data.error || "領収書の発行に失敗しました。");
+            }
+        } catch (e) {
+            showAlert("エラー", "通信エラーが発生しました。");
+        } finally {
+            setIsIssuingReceipt(false);
+        }
+    };
+
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid Entry ID</div>;
     if (isLoading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>;
     if (!teamEntry) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Team Entry Not Found</div>;
 
     const totalPlayers = teamEntry.players.length;
     const insuranceCount = teamEntry.players.filter(p => p.insurance).length;
+    const isDeadlinePassed = (teamEntry as any).projectEndDate ? new Date() > new Date((teamEntry as any).projectEndDate) : false;
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
@@ -178,11 +209,13 @@ function DashboardContent() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="text-right">
-                            <Link href={`/team/edit?id=${entryId}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 justify-end">
-                                チーム設定
-                            </Link>
-                        </div>
+                        {!isDeadlinePassed && (
+                            <div className="text-right">
+                                <Link href={`/team/edit?id=${entryId}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 justify-end">
+                                    チーム設定
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -405,10 +438,53 @@ function DashboardContent() {
                             </div>
                         ) : (
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 text-center space-y-4">
-                                <h3 className="text-lg font-bold text-white mb-2">本エントリー完了済み・請求書</h3>
+                                <h3 className="text-lg font-bold text-white mb-2">本エントリー完了済み・書類</h3>
+                                {/* 請求書ボタン */}
                                 <Link href={`/team/invoice?id=${teamEntry.id}`} target="_blank" className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-8 rounded-lg shadow transition-colors">
                                     <Printer className="w-5 h-5" /> 請求書（PDF）を発行・確認する
                                 </Link>
+                                {/* 領収書ボタン：支払い確認済みの場合のみ表示 */}
+                                {teamEntry.isPaid && (
+                                    <div>
+                                        {teamEntry.receiptViewedAt ? (
+                                            // 閲覧済み：ボタン無効化
+                                            <button
+                                                disabled
+                                                className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-slate-800/50 border border-slate-700 text-slate-500 font-bold py-4 px-8 rounded-lg shadow cursor-not-allowed"
+                                            >
+                                                <Printer className="w-5 h-5" /> 領収書は確認済みです（再表示不可）
+                                            </button>
+                                        ) : teamEntry.receiptIssuedAt ? (
+                                            // 発行済み・未閲覧：確認のみ
+                                            <div className="space-y-2">
+                                                <button
+                                                    onClick={() => {
+                                                        window.open(`/team/receipt?id=${teamEntry.id}`, '_blank');
+                                                        // Optimistically set viewed so they can't click again without refresh
+                                                        setTeamEntry({ ...teamEntry, receiptViewedAt: new Date().toISOString() });
+                                                    }}
+                                                    className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-500/40 text-emerald-300 font-bold py-4 px-8 rounded-lg shadow transition-colors"
+                                                >
+                                                    <Printer className="w-5 h-5" /> 領収書（発行済み）を確認・保存する
+                                                </button>
+                                                <p className="text-xs text-red-400 font-bold">⚠️ 表示できるのは1度のみです。必ずPDFを保存してください。</p>
+                                            </div>
+                                        ) : (
+                                            // 未発行：発行モーダルを開く
+                                            <button
+                                                onClick={() => {
+                                                    const rep = teamEntry.players?.find(p => p.isRepresentative);
+                                                    setReceiptNameInput(`${teamEntry.teamName} ${rep?.name || ''}`.trim());
+                                                    setIsEditingReceiptName(false);
+                                                    setReceiptModal(true);
+                                                }}
+                                                className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/40 text-blue-300 font-bold py-4 px-8 rounded-lg shadow transition-colors"
+                                            >
+                                                <Printer className="w-5 h-5" /> 領収書を発行・確認する
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -422,6 +498,79 @@ function DashboardContent() {
                     onCancel={() => setIsModalOpen(false)}
                 />
             </Modal>
+
+            {/* 領収書発行モーダル */}
+            {receiptModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModal(false)} />
+                    <div className="relative bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
+                        <h2 className="text-lg font-bold text-white">領収書の発行</h2>
+                        
+                        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 space-y-1">
+                            <p className="text-sm text-red-400 font-bold flex items-center gap-1">
+                                <AlertCircle className="w-4 h-4" /> ⚠️ 重要事項
+                            </p>
+                            <ul className="list-disc list-inside text-xs text-red-300/90 ml-1 space-y-1">
+                                <li>領収書の発行と確認は<span className="font-bold underline text-red-400">1度のみ</span>可能です。</li>
+                                <li>確認画面を閉じると二度と表示されません。</li>
+                                <li>必ず画面から<span className="font-bold underline text-red-400">PDFを保存</span>または<span className="font-bold underline text-red-400">印刷</span>をしてください。</li>
+                                <li>発行後は宛名（御社名）の変更はできません。</li>
+                            </ul>
+                        </div>
+
+                        {/* 宛名表示 */}
+                        <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-700">
+                            <p className="text-xs text-slate-500 mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
+                            {isEditingReceiptName ? (
+                                <input
+                                    type="text"
+                                    value={receiptNameInput}
+                                    onChange={(e) => setReceiptNameInput(e.target.value)}
+                                    className="w-full bg-slate-900 border border-indigo-500 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    placeholder="例：株式会社〇〇 様、△△チーム"
+                                    autoFocus
+                                />
+                            ) : (
+                                <p className="text-white font-bold text-base">{receiptNameInput}　御中</p>
+                            )}
+                        </div>
+
+                        {/* 宛名変更ボタン */}
+                        {!isEditingReceiptName ? (
+                            <button
+                                onClick={() => setIsEditingReceiptName(true)}
+                                className="text-sm text-indigo-400 hover:text-indigo-300 underline"
+                            >
+                                宛名を変更する
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditingReceiptName(false)}
+                                className="text-sm text-slate-400 hover:text-slate-300 underline"
+                            >
+                                変更をキャンセル
+                            </button>
+                        )}
+
+                        {/* アクションボタン */}
+                        <div className="flex flex-col gap-2 pt-2">
+                            <button
+                                onClick={() => handleIssueReceipt(receiptNameInput || undefined)}
+                                disabled={isIssuingReceipt}
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
+                            >
+                                {isIssuingReceipt ? '発行中...' : 'この内容で発行する'}
+                            </button>
+                            <button
+                                onClick={() => !isIssuingReceipt && setReceiptModal(false)}
+                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-colors"
+                            >
+                                戻る（発行しない）
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Custom Dialogs (replace browser alert/confirm) */}
             <AlertDialog

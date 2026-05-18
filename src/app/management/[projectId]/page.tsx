@@ -193,7 +193,10 @@ export default function ManagementProjectDetail() {
                     <AnimatePresence>
                         {filteredEntries.map((entry) => {
                             const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
-                            const totalAmount = settings.participationFee + (insCount * settings.insuranceFee);
+                            const playerCount = entry.players ? entry.players.length : 0;
+                            const participationTotal = settings.participationFee * playerCount;
+                            const insuranceTotal = insCount * settings.insuranceFee;
+                            const totalAmount = participationTotal + insuranceTotal;
                             const wl = isWaitlisted(entry);
                             const assignment = lotteryAssignments.get(entry.id);
 
@@ -251,7 +254,7 @@ export default function ManagementProjectDetail() {
                                                         <p className="text-[10px] text-slate-500 font-bold">({entry.players?.length || 0}名)</p>
                                                     </div>
                                                     <p className="text-lg font-black text-emerald-400 leading-none">¥{totalAmount.toLocaleString()}</p>
-                                                    <p className="text-[9px] text-slate-500 mt-1 whitespace-nowrap">参:¥{settings.participationFee.toLocaleString()} | 保(x{insCount}):¥{(insCount*settings.insuranceFee).toLocaleString()}</p>
+                                                    <p className="text-[9px] text-slate-500 mt-1 whitespace-nowrap">参(x{playerCount}):¥{participationTotal.toLocaleString()} | 保(x{insCount}):¥{insuranceTotal.toLocaleString()}</p>
                                                 </div>
                                             </div>
 
@@ -278,7 +281,19 @@ export default function ManagementProjectDetail() {
                                                     </button>
                                                     
                                                     <button
-                                                        onClick={() => handleUpdateEntry(entry.id, { isPaid: !entry.isPaid })}
+                                                        onClick={() => {
+                                                            const alreadyPaid = entry.isPaid;
+                                                            if (alreadyPaid) {
+                                                                if (confirm(`「${entry.teamName}」の支払い状況を未払いに戻しますか？`)) {
+                                                                    handleUpdateEntry(entry.id, { isPaid: false });
+                                                                }
+                                                            } else {
+                                                                const markPaid = confirm(`「${entry.teamName}」の支払いを確認しましたか？\n※「OK」で支払い済みに更新され、ユーザー側で領収書が発行可能になります。`);
+                                                                if (markPaid) {
+                                                                    handleUpdateEntry(entry.id, { isPaid: true });
+                                                                }
+                                                            }
+                                                        }}
                                                         className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isPaid ? 'bg-blue-900/30 border-blue-500/40 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
                                                     >
                                                         {entry.isPaid ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
@@ -295,6 +310,18 @@ export default function ManagementProjectDetail() {
                                                         <Printer className="w-5 h-5 mb-1 opacity-70" />
                                                         <span className="text-[10px] font-bold">請求書(PDF)</span>
                                                     </a>
+                                                )}
+                                                {/* ユーザー側の領収書発行状況 */}
+                                                {(entry as any).receiptIssuedAt ? (
+                                                    <a href={`/management/receipt?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 rounded-xl text-emerald-400 transition-colors">
+                                                        <Printer className="w-5 h-5 mb-1 opacity-80" />
+                                                        <span className="text-[10px] font-bold">領収書(発行済)</span>
+                                                    </a>
+                                                ) : (
+                                                    <div className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900/50 rounded-xl text-slate-500 cursor-not-allowed">
+                                                        <Printer className="w-5 h-5 mb-1 opacity-40" />
+                                                        <span className="text-[10px] font-bold">領収書(未発行)</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
