@@ -145,6 +145,148 @@ export default function ManagementProjectDetail() {
 
     const lotteryAssignments = calculateLotteryNumbers(entries);
 
+    const confirmedEntries = filteredEntries.filter(e => !isWaitlisted(e) && e.status !== 'cancelled');
+    const otherEntries = filteredEntries.filter(e => isWaitlisted(e) || e.status === 'cancelled');
+
+    const renderEntryCard = (entry: TeamEntry) => {
+        const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
+        const playerCount = entry.players ? entry.players.length : 0;
+        const participationTotal = settings.participationFee * playerCount;
+        const insuranceTotal = insCount * settings.insuranceFee;
+        const totalAmount = participationTotal + insuranceTotal;
+        const wl = isWaitlisted(entry);
+        const assignment = lotteryAssignments.get(entry.id);
+
+        return (
+            <motion.div key={entry.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
+                <Card className={`overflow-hidden border-slate-700/50 ${wl ? 'bg-amber-950/40 border-amber-500/30' : 'bg-slate-900/60'} p-0`}>
+                    <div className="p-4 sm:p-5 relative">
+                        {/* Top row: Status/Waitlist & Prelim Number */}
+                        <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center gap-2">
+                                {entry.status === 'cancelled' ? (
+                                    <span className="text-[10px] font-bold tracking-wider bg-slate-800 text-slate-500 px-2 py-0.5 rounded border border-slate-700">キャンセル</span>
+                                ) : wl ? (
+                                    <span className="text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20">C待ち</span>
+                                ) : (
+                                    <span className="text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">確定済</span>
+                                )}
+                            </div>
+                            
+                            <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">予選番号</span>
+                                {assignment && assignment.final ? (
+                                    assignment.bumped ? (
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-xl font-black text-amber-400 leading-none px-2 py-0.5 bg-slate-800 rounded-md border border-amber-400/30 shadow-inner">
+                                                {assignment.final}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500 line-through mt-1">希望: {assignment.requested}</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-xl font-black text-white leading-none px-2 py-0.5 bg-slate-800 rounded-md border border-slate-700 shadow-inner">
+                                            {assignment.final}
+                                        </span>
+                                    )
+                                ) : (
+                                    <span className="text-sm font-bold text-slate-600">-</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Team Name */}
+                        <h3 className="text-xl font-black text-white mb-0.5 line-clamp-1">{entry.teamName}</h3>
+                        <p className="text-xs font-medium text-slate-500 mb-4">{entry.teamNameKana || "フリガナなし"}</p>
+
+                        {/* Info Grid */}
+                        <div className="grid grid-cols-2 gap-3 mb-5">
+                            <div className="bg-slate-950/50 p-2.5 rounded-lg border border-white/5">
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">代表者 / 連絡先</p>
+                                <p className="text-sm font-bold text-slate-200 line-clamp-1">{getRepName(entry.userId)}</p>
+                                <p className="text-[11px] font-mono text-slate-400 mt-0.5">{getRepPhone(entry.userId)}</p>
+                            </div>
+                            <div className="bg-slate-950/50 p-2.5 rounded-lg border border-white/5 flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-1">
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ご請求額</p>
+                                    <p className="text-[10px] text-slate-500 font-bold">({entry.players?.length || 0}名)</p>
+                                </div>
+                                <p className="text-lg font-black text-emerald-400 leading-none">¥{totalAmount.toLocaleString()}</p>
+                                <p className="text-[9px] text-slate-500 mt-1 whitespace-nowrap">参(x{playerCount}):¥{participationTotal.toLocaleString()} | 保(x{insCount}):¥{insuranceTotal.toLocaleString()}</p>
+                            </div>
+                        </div>
+
+                        {/* Memo Snippet */}
+                        {entry.managementMemo && (
+                            <div className="mb-4 bg-amber-900/10 border border-amber-500/20 rounded-lg p-3 relative hover:bg-amber-900/20 transition-colors cursor-pointer" onClick={() => setSelectedEntry(entry)}>
+                                <div className="flex gap-2 items-center mb-1">
+                                    <MessageSquare className="w-3 h-3 text-amber-500" />
+                                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">運営メモ</span>
+                                </div>
+                                <p className="text-xs text-amber-100/80 leading-relaxed line-clamp-2">{entry.managementMemo}</p>
+                            </div>
+                        )}
+
+                        {/* Action Toggles Area */}
+                        <div className="flex flex-col sm:flex-row gap-2 border-t border-slate-800 pt-4">
+                            <div className="flex gap-2 w-full">
+                                <button
+                                    onClick={() => handleUpdateEntry(entry.id, { isOpenChatJoined: !entry.isOpenChatJoined })}
+                                    className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isOpenChatJoined ? 'bg-emerald-900/30 border-emerald-500/40 text-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
+                                >
+                                    {entry.isOpenChatJoined ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
+                                    <span className="text-[10px] font-bold tracking-wider">オープンチャット</span>
+                                </button>
+                                
+                                <button
+                                    onClick={() => {
+                                        const alreadyPaid = entry.isPaid;
+                                        if (alreadyPaid) {
+                                            if (confirm(`「${entry.teamName}」の支払い状況を未払いに戻しますか？`)) {
+                                                handleUpdateEntry(entry.id, { isPaid: false });
+                                            }
+                                        } else {
+                                            const markPaid = confirm(`「${entry.teamName}」の支払いを確認しましたか？\n※「OK」で支払い済みに更新され、ユーザー側で領収書が発行可能になります。`);
+                                            if (markPaid) {
+                                                handleUpdateEntry(entry.id, { isPaid: true });
+                                            }
+                                        }
+                                    }}
+                                    className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isPaid ? 'bg-blue-900/30 border-blue-500/40 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
+                                >
+                                    {entry.isPaid ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
+                                    <span className="text-[10px] font-bold tracking-wider">参加費 支払済</span>
+                                </button>
+                            </div>
+                            
+                            <Button variant="outline" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border-slate-700 hover:bg-slate-800 rounded-xl" onClick={() => setSelectedEntry(entry)}>
+                                <Smartphone className="w-5 h-5 mb-1 opacity-70" />
+                                <span className="text-[10px] font-bold">詳細・全メモ</span>
+                            </Button>
+                            {entry.status === 'submitted' && (
+                                <a href={`/team/invoice?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900 hover:bg-slate-800 rounded-xl text-slate-300 transition-colors">
+                                    <Printer className="w-5 h-5 mb-1 opacity-70" />
+                                    <span className="text-[10px] font-bold">請求書(PDF)</span>
+                                </a>
+                            )}
+                            {/* ユーザー側の領収書発行状況 */}
+                            {(entry as any).receiptIssuedAt ? (
+                                <a href={`/management/receipt?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 rounded-xl text-emerald-400 transition-colors">
+                                    <Printer className="w-5 h-5 mb-1 opacity-80" />
+                                    <span className="text-[10px] font-bold">領収書(発行済)</span>
+                                </a>
+                            ) : (
+                                <div className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900/50 rounded-xl text-slate-500 cursor-not-allowed">
+                                    <Printer className="w-5 h-5 mb-1 opacity-40" />
+                                    <span className="text-[10px] font-bold">領収書(未発行)</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Card>
+            </motion.div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 pb-20">
             {/* Header */}
@@ -176,7 +318,7 @@ export default function ManagementProjectDetail() {
 
                 <div className="flex items-center justify-between mb-4 px-1">
                     <h2 className="text-sm font-black text-slate-400 tracking-widest uppercase flex items-center gap-2">
-                        <ListCollapse className="w-4 h-4" /> エントリー一覧 ({filteredEntries.length})
+                        <ListCollapse className="w-4 h-4" /> 確定エントリー一覧 ({confirmedEntries.length})
                     </h2>
                     <Button
                         className="bg-slate-800 hover:bg-slate-700 text-slate-200"
@@ -188,154 +330,35 @@ export default function ManagementProjectDetail() {
                     </Button>
                 </div>
 
-                {/* Team Cards List */}
+                {/* Main Team Cards List */}
                 <div className="grid grid-cols-1 gap-4">
                     <AnimatePresence>
-                        {filteredEntries.map((entry) => {
-                            const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
-                            const playerCount = entry.players ? entry.players.length : 0;
-                            const participationTotal = settings.participationFee * playerCount;
-                            const insuranceTotal = insCount * settings.insuranceFee;
-                            const totalAmount = participationTotal + insuranceTotal;
-                            const wl = isWaitlisted(entry);
-                            const assignment = lotteryAssignments.get(entry.id);
-
-                            return (
-                                <motion.div key={entry.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-                                    <Card className={`overflow-hidden border-slate-700/50 ${wl ? 'bg-amber-950/40 border-amber-500/30' : 'bg-slate-900/60'} p-0`}>
-                                        <div className="p-4 sm:p-5 relative">
-                                            {/* Top row: Status/Waitlist & Prelim Number */}
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className="flex items-center gap-2">
-                                                    {entry.status === 'cancelled' ? (
-                                                        <span className="text-[10px] font-bold tracking-wider bg-slate-800 text-slate-500 px-2 py-0.5 rounded border border-slate-700">キャンセル</span>
-                                                    ) : wl ? (
-                                                        <span className="text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20">C待ち</span>
-                                                    ) : (
-                                                        <span className="text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">確定済</span>
-                                                    )}
-                                                </div>
-                                                
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">予選番号</span>
-                                                    {assignment && assignment.final ? (
-                                                        assignment.bumped ? (
-                                                            <div className="flex flex-col items-end">
-                                                                <span className="text-xl font-black text-amber-400 leading-none px-2 py-0.5 bg-slate-800 rounded-md border border-amber-400/30 shadow-inner">
-                                                                    {assignment.final}
-                                                                </span>
-                                                                <span className="text-[10px] text-slate-500 line-through mt-1">希望: {assignment.requested}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-xl font-black text-white leading-none px-2 py-0.5 bg-slate-800 rounded-md border border-slate-700 shadow-inner">
-                                                                {assignment.final}
-                                                            </span>
-                                                        )
-                                                    ) : (
-                                                        <span className="text-sm font-bold text-slate-600">-</span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Team Name */}
-                                            <h3 className="text-xl font-black text-white mb-0.5 line-clamp-1">{entry.teamName}</h3>
-                                            <p className="text-xs font-medium text-slate-500 mb-4">{entry.teamNameKana || "フリガナなし"}</p>
-
-                                            {/* Info Grid */}
-                                            <div className="grid grid-cols-2 gap-3 mb-5">
-                                                <div className="bg-slate-950/50 p-2.5 rounded-lg border border-white/5">
-                                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">代表者 / 連絡先</p>
-                                                    <p className="text-sm font-bold text-slate-200 line-clamp-1">{getRepName(entry.userId)}</p>
-                                                    <p className="text-[11px] font-mono text-slate-400 mt-0.5">{getRepPhone(entry.userId)}</p>
-                                                </div>
-                                                <div className="bg-slate-950/50 p-2.5 rounded-lg border border-white/5 flex flex-col justify-between">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ご請求額</p>
-                                                        <p className="text-[10px] text-slate-500 font-bold">({entry.players?.length || 0}名)</p>
-                                                    </div>
-                                                    <p className="text-lg font-black text-emerald-400 leading-none">¥{totalAmount.toLocaleString()}</p>
-                                                    <p className="text-[9px] text-slate-500 mt-1 whitespace-nowrap">参(x{playerCount}):¥{participationTotal.toLocaleString()} | 保(x{insCount}):¥{insuranceTotal.toLocaleString()}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Memo Snippet */}
-                                            {entry.managementMemo && (
-                                                <div className="mb-4 bg-amber-900/10 border border-amber-500/20 rounded-lg p-3 relative hover:bg-amber-900/20 transition-colors cursor-pointer" onClick={() => setSelectedEntry(entry)}>
-                                                    <div className="flex gap-2 items-center mb-1">
-                                                        <MessageSquare className="w-3 h-3 text-amber-500" />
-                                                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">運営メモ</span>
-                                                    </div>
-                                                    <p className="text-xs text-amber-100/80 leading-relaxed line-clamp-2">{entry.managementMemo}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Action Toggles Area */}
-                                            <div className="flex flex-col sm:flex-row gap-2 border-t border-slate-800 pt-4">
-                                                <div className="flex gap-2 w-full">
-                                                    <button
-                                                        onClick={() => handleUpdateEntry(entry.id, { isOpenChatJoined: !entry.isOpenChatJoined })}
-                                                        className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isOpenChatJoined ? 'bg-emerald-900/30 border-emerald-500/40 text-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
-                                                    >
-                                                        {entry.isOpenChatJoined ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
-                                                        <span className="text-[10px] font-bold tracking-wider">オープンチャット</span>
-                                                    </button>
-                                                    
-                                                    <button
-                                                        onClick={() => {
-                                                            const alreadyPaid = entry.isPaid;
-                                                            if (alreadyPaid) {
-                                                                if (confirm(`「${entry.teamName}」の支払い状況を未払いに戻しますか？`)) {
-                                                                    handleUpdateEntry(entry.id, { isPaid: false });
-                                                                }
-                                                            } else {
-                                                                const markPaid = confirm(`「${entry.teamName}」の支払いを確認しましたか？\n※「OK」で支払い済みに更新され、ユーザー側で領収書が発行可能になります。`);
-                                                                if (markPaid) {
-                                                                    handleUpdateEntry(entry.id, { isPaid: true });
-                                                                }
-                                                            }
-                                                        }}
-                                                        className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isPaid ? 'bg-blue-900/30 border-blue-500/40 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
-                                                    >
-                                                        {entry.isPaid ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
-                                                        <span className="text-[10px] font-bold tracking-wider">参加費 支払済</span>
-                                                    </button>
-                                                </div>
-                                                
-                                                <Button variant="outline" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border-slate-700 hover:bg-slate-800 rounded-xl" onClick={() => setSelectedEntry(entry)}>
-                                                    <Smartphone className="w-5 h-5 mb-1 opacity-70" />
-                                                    <span className="text-[10px] font-bold">詳細・全メモ</span>
-                                                </Button>
-                                                {entry.status === 'submitted' && (
-                                                    <a href={`/team/invoice?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900 hover:bg-slate-800 rounded-xl text-slate-300 transition-colors">
-                                                        <Printer className="w-5 h-5 mb-1 opacity-70" />
-                                                        <span className="text-[10px] font-bold">請求書(PDF)</span>
-                                                    </a>
-                                                )}
-                                                {/* ユーザー側の領収書発行状況 */}
-                                                {(entry as any).receiptIssuedAt ? (
-                                                    <a href={`/management/receipt?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 rounded-xl text-emerald-400 transition-colors">
-                                                        <Printer className="w-5 h-5 mb-1 opacity-80" />
-                                                        <span className="text-[10px] font-bold">領収書(発行済)</span>
-                                                    </a>
-                                                ) : (
-                                                    <div className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-slate-700 bg-slate-900/50 rounded-xl text-slate-500 cursor-not-allowed">
-                                                        <Printer className="w-5 h-5 mb-1 opacity-40" />
-                                                        <span className="text-[10px] font-bold">領収書(未発行)</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            );
-                        })}
-                        {filteredEntries.length === 0 && (
+                        {confirmedEntries.map(renderEntryCard)}
+                        {confirmedEntries.length === 0 && (
                             <div className="text-center py-12 bg-slate-900/30 rounded-2xl border border-white/5">
-                                <p className="text-slate-500">条件に一致するチームが見つかりません</p>
+                                <p className="text-slate-500">条件に一致する確定チームがありません</p>
                             </div>
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Waitlisted & Cancelled Teams */}
+                {otherEntries.length > 0 && (
+                    <div className="mt-12 mb-8">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="h-px bg-slate-800 flex-1"></div>
+                            <h2 className="text-sm font-black text-amber-500/80 tracking-widest flex items-center gap-2">
+                                キャンセル待ち・辞退チーム ({otherEntries.length})
+                            </h2>
+                            <div className="h-px bg-slate-800 flex-1"></div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 opacity-80">
+                            <AnimatePresence>
+                                {otherEntries.map(renderEntryCard)}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                )}
 
                 {/* Team Details & Full Memo Modal */}
                 <AnimatePresence>
