@@ -12,15 +12,17 @@ import { useRouter } from "next/navigation";
 export default function ManagementProjectList() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [entries, setEntries] = useState<TeamEntry[]>([]);
+    const [settings, setSettings] = useState<{ participationFee: number, insuranceFee: number }>({ participationFee: 0, insuranceFee: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     const loadData = async () => {
         try {
             // We just need basic data to show counts. In a massive app, we'd have a specific list endpoint.
-            const [projectsRes, dataRes] = await Promise.all([
+            const [projectsRes, dataRes, settingsRes] = await Promise.all([
                 fetch('/api/admin/projects'),
-                fetch('/api/admin/data')
+                fetch('/api/admin/data'),
+                fetch('/api/settings')
             ]);
             
             if (projectsRes.ok) {
@@ -33,6 +35,10 @@ export default function ManagementProjectList() {
             if (dataRes.ok) {
                 const data = await dataRes.json();
                 if (data.entries) setEntries(data.entries);
+            }
+            if (settingsRes.ok) {
+                const s = await settingsRes.json();
+                setSettings({ participationFee: Number(s.participationFee || 0), insuranceFee: Number(s.insuranceFee || 0) });
             }
         } catch (e) {
             console.error("Failed to fetch data", e);
@@ -99,9 +105,21 @@ export default function ManagementProjectList() {
                 ) : (
                     <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {projects.map(project => {
-                            const projectEntries = entries.filter(e => e.tournamentId === project.id && e.status !== 'cancelled');
-                            const confirmedCount = project.maxTeams ? Math.min(projectEntries.length, project.maxTeams) : projectEntries.length;
-                            const waitlistCount = project.maxTeams ? Math.max(0, projectEntries.length - project.maxTeams) : 0;
+                            const projectEntries = entries
+                                .filter(e => e.tournamentId === project.id && e.status !== 'cancelled')
+                                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                                
+                            const max = project.maxTeams || projectEntries.length;
+                            const confirmedEntriesList = projectEntries.slice(0, max);
+                            const confirmedCount = confirmedEntriesList.length;
+                            const waitlistCount = Math.max(0, projectEntries.length - max);
+                            
+                            let projectTotalAmount = 0;
+                            confirmedEntriesList.forEach(e => {
+                                const playerCount = e.players ? e.players.length : 0;
+                                const insCount = e.players ? e.players.filter(p => p.insurance).length : 0;
+                                projectTotalAmount += (playerCount * settings.participationFee) + (insCount * settings.insuranceFee);
+                            });
                             
                             return (
                                 <motion.div variants={itemVariants} key={project.id}>
@@ -129,6 +147,11 @@ export default function ManagementProjectList() {
                                                             <span className="text-lg font-bold text-amber-400">{waitlistCount} <span className="text-xs">組</span></span>
                                                         </div>
                                                     )}
+                                                    
+                                                    <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
+                                                        <span className="text-[10px] text-emerald-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
+                                                        <span className="text-lg font-black text-emerald-400">¥{projectTotalAmount.toLocaleString()}</span>
+                                                    </div>
                                                 </div>
                                             </div>
 
