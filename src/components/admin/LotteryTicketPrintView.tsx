@@ -129,21 +129,12 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
             </div>
 
             <div className="print-container w-full max-w-[210mm] mx-auto mt-8 print:mt-0 bg-white shadow-xl print:shadow-none p-4 sm:p-[10mm] print:p-[5mm]">
-                <div className="print:hidden mb-4 p-4 bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500 rounded text-sm flex items-center gap-2">
-                    <Scissors className="w-5 h-5 shrink-0" />
-                    <span>このページはA4用紙に印刷し、点線に沿って切り取ることで「抽選券」としてご利用いただけます。下部に当日追加用の空欄チケットが20枚付いています。</span>
-                </div>
-
                 <div className="flex flex-col">
                     {tickets.map((ticket) => (
                         <div 
                             key={ticket.id} 
-                            className="ticket-row border-b-2 border-dashed border-slate-400 py-4 flex items-stretch gap-2 break-inside-avoid"
+                            className="ticket-row border-b-2 border-dashed border-slate-400 py-3 flex items-stretch gap-2 break-inside-avoid min-h-[5rem]"
                         >
-                            <div className="w-8 flex-shrink-0 flex items-center justify-center border-r-2 border-dashed border-slate-300">
-                                <Scissors className="w-4 h-4 text-slate-300 -rotate-90" />
-                            </div>
-                            
                             <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                                 {/* Team Name */}
                                 <div className="col-span-5 flex flex-col justify-center px-2">
@@ -151,7 +142,7 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
                                     {ticket.isBlank ? (
                                         <div className="border-b border-slate-300 h-6 w-full"></div>
                                     ) : (
-                                        <span className="text-base font-bold text-slate-800 truncate">{ticket.teamName}</span>
+                                        <span className="text-sm font-bold text-slate-800 leading-tight line-clamp-2 break-words">{ticket.teamName}</span>
                                     )}
                                 </div>
                                 
