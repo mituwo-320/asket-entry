@@ -316,11 +316,11 @@ export default function ManagementProjectDetail() {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 px-1 gap-4">
                     <h2 className="text-sm font-black text-slate-400 tracking-widest uppercase flex items-center gap-2">
                         <ListCollapse className="w-4 h-4" /> 確定エントリー一覧 ({confirmedEntries.length})
                     </h2>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 md:flex md:flex-wrap md:justify-end gap-2 w-full md:w-auto">
                         <Button
                             className="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 border border-blue-500/30"
                             size="sm"
@@ -354,7 +354,7 @@ export default function ManagementProjectDetail() {
                             抽選券 (A4)
                         </Button>
                         <Button
-                            className="bg-slate-800 hover:bg-slate-700 text-slate-200"
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 col-span-2 md:col-span-1"
                             size="sm"
                             onClick={() => window.open(`/management/print?projectId=${projectId}`, '_blank')}
                         >

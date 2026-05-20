@@ -134,9 +134,9 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                                 {teamAccountingList.map((team, idx) => (
                                     <div key={idx} className="border border-slate-300 rounded-lg p-3 bg-slate-50/50 flex flex-col">
-                                        <div className="font-black text-lg border-b border-slate-300 pb-2 mb-2 truncate flex justify-between items-end">
-                                            <span>{team.teamName}</span>
-                                            <span className="text-sm font-bold text-slate-500">{team.playerCount}名</span>
+                                        <div className="font-black border-b border-slate-300 pb-2 mb-2 flex justify-between items-start gap-2 min-h-[2.5rem]">
+                                            <span className="text-[15px] leading-snug break-words">{team.teamName}</span>
+                                            <span className="text-sm font-bold text-slate-500 shrink-0 whitespace-nowrap mt-0.5">{team.playerCount}名</span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-y-1 text-sm font-bold">
                                             <div className="text-slate-500">参加費</div>
