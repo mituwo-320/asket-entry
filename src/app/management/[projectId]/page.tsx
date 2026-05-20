@@ -322,6 +322,14 @@ export default function ManagementProjectDetail() {
                     </h2>
                     <div className="flex gap-2">
                         <Button
+                            className="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 border border-blue-500/30"
+                            size="sm"
+                            onClick={() => window.open(`/management/print-accounting?projectId=${projectId}`, '_blank')}
+                        >
+                            <Printer className="w-4 h-4 mr-2" />
+                            会計リスト (A4)
+                        </Button>
+                        <Button
                             className="bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-400 border border-emerald-500/30"
                             size="sm"
                             onClick={() => window.open(`/management/print-insurance?projectId=${projectId}`, '_blank')}

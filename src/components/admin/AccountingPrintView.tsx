@@ -6,12 +6,13 @@ import { Loader2, Printer, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { TeamEntry, Project } from "@/lib/types";
 
-export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
+export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
     const searchParams = useSearchParams();
     const projectId = searchParams.get('projectId');
 
     const [entries, setEntries] = useState<TeamEntry[]>([]);
     const [project, setProject] = useState<Project | null>(null);
+    const [settings, setSettings] = useState<{ participationFee: number, insuranceFee: number }>({ participationFee: 0, insuranceFee: 0 });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -22,9 +23,10 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
 
         const fetchData = async () => {
             try {
-                const [dataRes, projectsRes] = await Promise.all([
+                const [dataRes, projectsRes, settingsRes] = await Promise.all([
                     fetch('/api/admin/data'),
-                    fetch('/api/admin/projects')
+                    fetch('/api/admin/projects'),
+                    fetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {
@@ -38,6 +40,11 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
                         const p = data.projects.find((p: Project) => p.id === projectId);
                         if (p) setProject(p);
                     }
+                }
+
+                if (settingsRes.ok) {
+                    const s = await settingsRes.json();
+                    setSettings({ participationFee: Number(s.participationFee || 0), insuranceFee: Number(s.insuranceFee || 0) });
                 }
             } catch (e) {
                 console.error("Error fetching data:", e);
@@ -58,7 +65,6 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
     </div>;
 
     // Filter valid entries (exclude cancelled)
-    // Exclude waitlisted based on maxTeams
     const validEntries = entries.filter(e => e.tournamentId === projectId && e.status !== 'cancelled');
     const sorted = [...validEntries].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     
@@ -69,26 +75,25 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
         targetEntries = sorted;
     }
 
-    // Extract all insured players
-    const insuredPlayers: { name: string, teamName: string }[] = [];
-    targetEntries.forEach(entry => {
-        if (entry.players) {
-            entry.players.forEach(p => {
-                if (p.insurance) {
-                    insuredPlayers.push({ name: p.name, teamName: entry.teamName });
-                }
-            });
-        }
-    });
+    // Calculate accounting details
+    let projectTotalAmount = 0;
+    const teamAccountingList = targetEntries.map(entry => {
+        const playerCount = entry.players ? entry.players.length : 0;
+        const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
+        
+        const participationTotal = playerCount * settings.participationFee;
+        const insuranceTotal = insCount * settings.insuranceFee;
+        const total = participationTotal + insuranceTotal;
 
-    // Format tournament date
-    let formattedDate = "";
-    const targetDate = project.eventDate || project.entryStartDate;
-    if (targetDate) {
-        const d = new Date(targetDate);
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
-        formattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
-    }
+        projectTotalAmount += total;
+
+        return {
+            teamName: entry.teamName,
+            participationFee: participationTotal,
+            insuranceFee: insuranceTotal,
+            total: total
+        };
+    });
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
@@ -111,40 +116,40 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
                 <div className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[15mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col min-h-[297mm]">
                     
                     {/* Header Section */}
-                    <div className="border-b-2 border-slate-800 pb-4 mb-6">
-                        <h1 className="text-2xl font-black tracking-widest text-center text-slate-800">保険加入者リスト</h1>
+                    <div className="border-b-2 border-slate-800 pb-4 mb-6 text-center">
+                        <p className="text-sm font-bold text-slate-500 mb-1">【清算リスト】</p>
+                        <h1 className="text-2xl font-black tracking-widest text-slate-800 mb-4">{project.name}</h1>
+                        <div className="inline-block bg-slate-100 border-2 border-slate-800 rounded-xl px-8 py-3">
+                            <p className="text-sm font-bold text-slate-600 mb-1">総合計金額</p>
+                            <p className="text-4xl font-black text-slate-900 leading-none">¥{projectTotalAmount.toLocaleString()}</p>
+                        </div>
                     </div>
 
-                    {/* Insured Players List */}
+                    {/* Accounting List */}
                     <div className="flex-1">
-                        {insuredPlayers.length === 0 ? (
-                            <p className="text-center text-slate-500 my-10">保険加入者はいません。</p>
+                        {teamAccountingList.length === 0 ? (
+                            <p className="text-center text-slate-500 my-10">確定チームはありません。</p>
                         ) : (
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                                {insuredPlayers.map((p, idx) => (
-                                    <div key={idx} className="flex border-b border-slate-300 border-dashed py-1">
-                                        <div className="w-8 text-right text-slate-400 font-mono text-sm mr-2">{idx + 1}.</div>
-                                        <div className="font-bold text-sm flex-1">{p.name}</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                                {teamAccountingList.map((team, idx) => (
+                                    <div key={idx} className="border border-slate-300 rounded-lg p-3 bg-slate-50/50 flex flex-col">
+                                        <div className="font-black text-lg border-b border-slate-300 pb-2 mb-2 truncate">
+                                            {team.teamName}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-y-1 text-sm font-bold">
+                                            <div className="text-slate-500">参加費</div>
+                                            <div className="text-right">¥{team.participationFee.toLocaleString()}</div>
+                                            <div className="text-slate-500">保険料</div>
+                                            <div className="text-right">¥{team.insuranceFee.toLocaleString()}</div>
+                                        </div>
+                                        <div className="mt-2 pt-2 border-t border-slate-300 flex justify-between items-end">
+                                            <div className="text-xs font-bold text-slate-500">合計</div>
+                                            <div className="text-xl font-black">¥{team.total.toLocaleString()}</div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         )}
-                    </div>
-
-                    {/* Footer Credits */}
-                    <div className="mt-8 pt-4 border-t-2 border-slate-800 flex justify-between items-end">
-                        <div className="text-sm leading-relaxed">
-                            <p><span className="font-bold w-16 inline-block">大会名：</span>{project.name}</p>
-                            <p><span className="font-bold w-16 inline-block">日付：</span>{formattedDate || "＿＿年＿＿月＿＿日（＿＿）"}</p>
-                            <p><span className="font-bold w-16 inline-block">場所：</span>＿＿＿＿＿＿＿＿＿＿＿＿</p>
-                            <p><span className="font-bold w-16 inline-block">主催：</span>細本龍男</p>
-                            <p><span className="font-bold w-16 inline-block">代表：</span>細本龍男</p>
-                            <p><span className="font-bold w-16 inline-block">連絡先：</span>070-8369-8316</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm font-bold text-slate-500 mb-1">合計人数</p>
-                            <p className="text-3xl font-black">{insuredPlayers.length} <span className="text-base font-bold ml-1">名</span></p>
-                        </div>
                     </div>
                 </div>
             </div>
