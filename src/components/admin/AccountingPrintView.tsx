@@ -56,6 +56,12 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
         fetchData();
     }, [projectId]);
 
+    useEffect(() => {
+        if (project) {
+            document.title = `受付・清算リスト_${project.name}`;
+        }
+    }, [project]);
+
     if (!projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;
     if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
 
@@ -75,25 +81,27 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
         targetEntries = sorted;
     }
 
-    // Calculate accounting details
-    let projectTotalAmount = 0;
-    const teamAccountingList = targetEntries.map(entry => {
-        const playerCount = entry.players ? entry.players.length : 0;
-        const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
-        
-        const participationTotal = playerCount * settings.participationFee;
-        const insuranceTotal = insCount * settings.insuranceFee;
-        const total = participationTotal + insuranceTotal;
+    // Calculate wristband colors (Global and Per Team)
+    const globalWristbands: Record<string, number> = {};
+    const teamWristbands: Record<string, Record<string, number>> = {};
 
-        projectTotalAmount += total;
-
-        return {
-            teamName: entry.teamName,
-            participationFee: participationTotal,
-            insuranceFee: insuranceTotal,
-            total: total
-        };
+    targetEntries.forEach(entry => {
+        teamWristbands[entry.id] = {};
+        entry.players?.forEach(player => {
+            const color = player.wristbandColor || "未定";
+            globalWristbands[color] = (globalWristbands[color] || 0) + 1;
+            teamWristbands[entry.id][color] = (teamWristbands[entry.id][color] || 0) + 1;
+        });
     });
+
+    // Format tournament date
+    let formattedDate = "";
+    const targetDate = project.eventDate || project.entryStartDate;
+    if (targetDate) {
+        const d = new Date(targetDate);
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        formattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+    }
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
@@ -113,45 +121,154 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
             </div>
 
             <div className="print-container">
-                <div className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[15mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col min-h-[297mm]">
-                    
-                    {/* Header Section */}
+                {/* PAGE 1: Global Summary */}
+                <div className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[15mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
                     <div className="border-b-2 border-slate-800 pb-4 mb-6 text-center">
-                        <p className="text-sm font-bold text-slate-500 mb-1">【清算リスト】</p>
-                        <h1 className="text-2xl font-black tracking-widest text-slate-800 mb-4">{project.name}</h1>
-                        <div className="inline-block bg-slate-100 border-2 border-slate-800 rounded-xl px-8 py-3">
-                            <p className="text-sm font-bold text-slate-600 mb-1">総合計金額</p>
-                            <p className="text-4xl font-black text-slate-900 leading-none">¥{projectTotalAmount.toLocaleString()}</p>
-                        </div>
+                        <p className="text-sm font-bold text-slate-500 mb-1">【大会全体 受付準備シート】</p>
+                        <h1 className="text-2xl font-black tracking-widest text-slate-800 mb-2">{project.name}</h1>
+                        <p className="text-sm font-bold text-slate-600">{formattedDate || "＿＿年＿＿月＿＿日（＿＿）"}</p>
                     </div>
 
-                    {/* Accounting List */}
-                    <div className="flex-1">
-                        {teamAccountingList.length === 0 ? (
-                            <p className="text-center text-slate-500 my-10">確定チームはありません。</p>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                                {teamAccountingList.map((team, idx) => (
-                                    <div key={idx} className="border border-slate-300 rounded-lg p-3 bg-slate-50/50 flex flex-col">
-                                        <div className="font-black text-lg border-b border-slate-300 pb-2 mb-2 truncate">
-                                            {team.teamName}
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-y-1 text-sm font-bold">
-                                            <div className="text-slate-500">参加費</div>
-                                            <div className="text-right">¥{team.participationFee.toLocaleString()}</div>
-                                            <div className="text-slate-500">保険料</div>
-                                            <div className="text-right">¥{team.insuranceFee.toLocaleString()}</div>
-                                        </div>
-                                        <div className="mt-2 pt-2 border-t border-slate-300 flex justify-between items-end">
-                                            <div className="text-xs font-bold text-slate-500">合計</div>
-                                            <div className="text-xl font-black">¥{team.total.toLocaleString()}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                    <div className="mt-4">
+                        <h2 className="text-xl font-black text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">リストバンド準備数（全体合計）</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {Object.entries(globalWristbands)
+                                .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                                .map(([color, count]) => (
+                                <div key={color} className="border-2 border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50">
+                                    <span className="text-sm font-bold text-slate-500 mb-1">{color}</span>
+                                    <span className="text-4xl font-black">{count} <span className="text-base font-bold ml-1">個</span></span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
+
+                {/* PAGE 2+: Team Specific Pages */}
+                {targetEntries.map((entry, index) => {
+                    const teamColorCounts = teamWristbands[entry.id] || {};
+                    
+                    return (
+                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[10mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
+                            
+                            {/* Header Section */}
+                            <div className="border-b border-slate-800 pb-1 mb-2">
+                                <div className="flex justify-between items-end mb-1">
+                                    <h1 className="text-xl sm:text-2xl font-black tracking-wider text-slate-800 leading-tight">{project.name}</h1>
+                                    <div className="text-sm font-bold text-slate-600 whitespace-nowrap ml-4">
+                                        実施日: {formattedDate || "＿＿年＿＿月＿＿日（＿＿）"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Team Title & Wristband Summary */}
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 mb-0.5">{entry.teamNameKana || "フリガナ未登録"}</p>
+                                    <h2 className="text-2xl sm:text-3xl font-black mb-1 leading-tight">{entry.teamName}</h2>
+                                    
+                                    <div className="mt-3 flex items-center gap-3">
+                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-1 rounded">チームのリストバンド配付数</span>
+                                        <div className="flex gap-4">
+                                            {Object.entries(teamColorCounts).map(([color, count]) => (
+                                                <div key={color} className="flex items-end gap-1">
+                                                    <span className="text-sm font-bold">{color}:</span>
+                                                    <span className="text-xl font-black leading-none">{count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="text-right">
+                                    <div className="inline-block border-2 border-slate-800 rounded-lg p-2 text-center mb-1 min-w-[80px]">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">登録数</p>
+                                        <p className="text-2xl font-black leading-none">{entry.players?.length || 0}<span className="text-xs font-medium ml-1 text-slate-600">名</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Player List */}
+                            <div className="mb-6">
+                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-sm flex justify-between items-end">
+                                    <span>登録選手一覧</span>
+                                </h3>
+                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                    <thead className="bg-slate-100">
+                                        <tr>
+                                            <th className="border border-slate-800 p-1.5 text-center w-8">No.</th>
+                                            <th className="border border-slate-800 p-1.5 text-left">氏名 (フリガナ)</th>
+                                            <th className="border border-slate-800 p-1.5 text-center w-28">リストバンド色</th>
+                                            <th className="border border-slate-800 p-1.5 text-center w-16">保険</th>
+                                            <th className="border border-slate-800 p-1.5 text-center w-20 bg-slate-200">欠席確認</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(entry.players || []).map((player, idx) => (
+                                            <tr key={player.id || idx}>
+                                                <td className="border border-slate-800 p-1.5 text-center font-bold text-slate-500">{idx + 1}</td>
+                                                <td className="border border-slate-800 p-1.5">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-slate-500 leading-none">{player.furigana}</span>
+                                                        <span className="font-bold text-sm">{player.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="border border-slate-800 p-1.5 text-center font-bold">
+                                                    {player.wristbandColor || "未定"}
+                                                </td>
+                                                <td className="border border-slate-800 p-1.5 text-center font-bold text-base leading-none">
+                                                    {player.insurance ? "〇" : "×"}
+                                                </td>
+                                                {/* Absent Checkbox Area */}
+                                                <td className="border border-slate-800 p-1.5 text-center align-middle">
+                                                    <div className="w-5 h-5 border-2 border-slate-300 mx-auto rounded-sm"></div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Additional Players Section */}
+                            <div className="mt-auto pt-4">
+                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-emerald-600 pl-2 text-sm flex items-center gap-2">
+                                    <span>当日追加選手 記入欄</span>
+                                    <span className="text-xs font-normal text-slate-500">※参加費: ¥{settings.participationFee.toLocaleString()} / 保険料: ¥{settings.insuranceFee.toLocaleString()}</span>
+                                </h3>
+                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                    <thead className="bg-emerald-50">
+                                        <tr>
+                                            <th className="border border-slate-800 p-2 text-left w-2/5">氏名</th>
+                                            <th className="border border-slate-800 p-2 text-center w-1/5">リストバンド色</th>
+                                            <th className="border border-slate-800 p-2 text-center w-1/5">参加費 徴収</th>
+                                            <th className="border border-slate-800 p-2 text-center w-1/5">保険料 徴収</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[1, 2, 3].map((num) => (
+                                            <tr key={num} className="h-12">
+                                                <td className="border border-slate-800 p-2"></td>
+                                                <td className="border border-slate-800 p-2 text-center"></td>
+                                                <td className="border border-slate-800 p-2 text-center">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <div className="w-4 h-4 border border-slate-400 rounded-sm"></div>
+                                                        <span className="text-[10px] text-slate-400">済</span>
+                                                    </div>
+                                                </td>
+                                                <td className="border border-slate-800 p-2 text-center">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <div className="w-4 h-4 border border-slate-400 rounded-sm"></div>
+                                                        <span className="text-[10px] text-slate-400">済</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Print Styles */}
@@ -166,7 +283,7 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                     }
                     @page {
                         size: A4 portrait;
-                        margin: 0;
+                        margin: 5mm;
                     }
                     .page-wrapper {
                         page-break-after: always;

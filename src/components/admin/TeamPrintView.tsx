@@ -86,6 +86,14 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
         formattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
     }
 
+    useEffect(() => {
+        if (projectContext) {
+            document.title = `確定エントリー一覧_${projectContext.name}`;
+        } else if (targetEntries.length > 0) {
+            document.title = `チーム情報_${targetEntries[0].teamName}`;
+        }
+    }, [projectContext, targetEntries]);
+
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
             {/* Non-printable Top Bar */}

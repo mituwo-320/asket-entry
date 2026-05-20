@@ -14,6 +14,10 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [editableProjectName, setEditableProjectName] = useState("");
+    const [editableDate, setEditableDate] = useState("");
+    const [editableLocation, setEditableLocation] = useState("");
+
     useEffect(() => {
         if (!projectId) {
             setIsLoading(false);
@@ -49,6 +53,23 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
         fetchData();
     }, [projectId]);
 
+    useEffect(() => {
+        if (project) {
+            setEditableProjectName(project.name);
+            let defaultFormattedDate = "";
+            const targetDate = project.eventDate || project.entryStartDate;
+            if (targetDate) {
+                const d = new Date(targetDate);
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                defaultFormattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+            } else {
+                defaultFormattedDate = "＿＿年＿＿月＿＿日（＿＿）";
+            }
+            setEditableDate(defaultFormattedDate);
+            document.title = `保険加入者リスト_${project.name}`;
+        }
+    }, [project]);
+
     if (!projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;
     if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
 
@@ -80,19 +101,6 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
             });
         }
     });
-
-    // Format tournament date
-    let defaultFormattedDate = "";
-    const targetDate = project.eventDate || project.entryStartDate;
-    if (targetDate) {
-        const d = new Date(targetDate);
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
-        defaultFormattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
-    }
-
-    const [editableProjectName, setEditableProjectName] = useState(project.name);
-    const [editableDate, setEditableDate] = useState(defaultFormattedDate || "＿＿年＿＿月＿＿日（＿＿）");
-    const [editableLocation, setEditableLocation] = useState("");
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
