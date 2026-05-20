@@ -58,7 +58,7 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
 
     useEffect(() => {
         if (project) {
-            document.title = `受付・清算リスト_${project.name}`;
+            document.title = `受付リスト_${project.name}`;
         }
     }, [project]);
 
@@ -147,6 +147,11 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                 {/* PAGE 2+: Team Specific Pages */}
                 {targetEntries.map((entry, index) => {
                     const teamColorCounts = teamWristbands[entry.id] || {};
+                    const playerCount = entry.players?.length || 0;
+                    const insCount = entry.players?.filter(p => p.insurance).length || 0;
+                    const participationTotal = playerCount * settings.participationFee;
+                    const insuranceTotal = insCount * settings.insuranceFee;
+                    const teamGrandTotal = participationTotal + insuranceTotal;
                     
                     return (
                         <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[10mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
@@ -180,10 +185,25 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                                     </div>
                                 </div>
                                 
-                                <div className="text-right">
+                                <div className="text-right flex items-end gap-4">
+                                    <div className="text-left text-xs font-bold text-slate-600 mb-1">
+                                        <div className="flex justify-between gap-4 border-b border-slate-300 pb-0.5 mb-0.5">
+                                            <span>参加費:</span>
+                                            <span>¥{participationTotal.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between gap-4 border-b border-slate-300 pb-0.5 mb-0.5">
+                                            <span>保険料:</span>
+                                            <span>¥{insuranceTotal.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between gap-4 text-sm text-slate-800">
+                                            <span>合計:</span>
+                                            <span className="font-black">¥{teamGrandTotal.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    
                                     <div className="inline-block border-2 border-slate-800 rounded-lg p-2 text-center mb-1 min-w-[80px]">
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">登録数</p>
-                                        <p className="text-2xl font-black leading-none">{entry.players?.length || 0}<span className="text-xs font-medium ml-1 text-slate-600">名</span></p>
+                                        <p className="text-2xl font-black leading-none">{playerCount}<span className="text-xs font-medium ml-1 text-slate-600">名</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -233,15 +253,14 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                             <div className="mt-auto pt-4">
                                 <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-emerald-600 pl-2 text-sm flex items-center gap-2">
                                     <span>当日追加選手 記入欄</span>
-                                    <span className="text-xs font-normal text-slate-500">※参加費: ¥{settings.participationFee.toLocaleString()} / 保険料: ¥{settings.insuranceFee.toLocaleString()}</span>
+                                    <span className="text-xs font-normal text-slate-500">※参加費: ¥{settings.participationFee.toLocaleString()}</span>
                                 </h3>
                                 <table className="w-full text-xs border-collapse border border-slate-800">
                                     <thead className="bg-emerald-50">
                                         <tr>
-                                            <th className="border border-slate-800 p-2 text-left w-2/5">氏名</th>
-                                            <th className="border border-slate-800 p-2 text-center w-1/5">リストバンド色</th>
-                                            <th className="border border-slate-800 p-2 text-center w-1/5">参加費 徴収</th>
-                                            <th className="border border-slate-800 p-2 text-center w-1/5">保険料 徴収</th>
+                                            <th className="border border-slate-800 p-2 text-left w-1/2">氏名</th>
+                                            <th className="border border-slate-800 p-2 text-center w-1/4">リストバンド色</th>
+                                            <th className="border border-slate-800 p-2 text-center w-1/4">参加費 徴収</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -249,12 +268,6 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                                             <tr key={num} className="h-12">
                                                 <td className="border border-slate-800 p-2"></td>
                                                 <td className="border border-slate-800 p-2 text-center"></td>
-                                                <td className="border border-slate-800 p-2 text-center">
-                                                    <div className="flex items-center justify-center gap-1">
-                                                        <div className="w-4 h-4 border border-slate-400 rounded-sm"></div>
-                                                        <span className="text-[10px] text-slate-400">済</span>
-                                                    </div>
-                                                </td>
                                                 <td className="border border-slate-800 p-2 text-center">
                                                     <div className="flex items-center justify-center gap-1">
                                                         <div className="w-4 h-4 border border-slate-400 rounded-sm"></div>

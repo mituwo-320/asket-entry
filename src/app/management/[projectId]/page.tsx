@@ -327,7 +327,7 @@ export default function ManagementProjectDetail() {
                             onClick={() => window.open(`/management/print-accounting?projectId=${projectId}`, '_blank')}
                         >
                             <Printer className="w-4 h-4 mr-2" />
-                            会計リスト (A4)
+                            受付リスト (A4)
                         </Button>
                         <Button
                             className="bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-400 border border-emerald-500/30"
