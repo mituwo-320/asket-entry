@@ -338,6 +338,14 @@ export default function ManagementProjectDetail() {
                             保険リスト (A4)
                         </Button>
                         <Button
+                            className="bg-purple-900/40 hover:bg-purple-800/60 text-purple-400 border border-purple-500/30"
+                            size="sm"
+                            onClick={() => window.open(`/management/print-lottery?projectId=${projectId}`, '_blank')}
+                        >
+                            <Printer className="w-4 h-4 mr-2" />
+                            抽選券 (A4)
+                        </Button>
+                        <Button
                             className="bg-slate-800 hover:bg-slate-700 text-slate-200"
                             size="sm"
                             onClick={() => window.open(`/management/print?projectId=${projectId}`, '_blank')}
