@@ -10,6 +10,7 @@ interface LotteryTicket {
     id: string;
     teamName: string;
     playerName: string;
+    furigana: string;
     wristbandColor: string;
     isBlank?: boolean;
 }
@@ -91,6 +92,7 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
                 id: `ticket-${eIdx}-${pIdx}`,
                 teamName: entry.teamName,
                 playerName: player.name,
+                furigana: player.furigana || "",
                 wristbandColor: player.wristbandColor || "未定"
             });
         });
@@ -102,6 +104,7 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
             id: `blank-${i}`,
             teamName: "",
             playerName: "",
+            furigana: "",
             wristbandColor: "",
             isBlank: true
         });
@@ -150,9 +153,12 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
                                 <div className="col-span-5 flex flex-col justify-center px-2 border-l border-slate-200">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">氏名</span>
                                     {ticket.isBlank ? (
-                                        <div className="border-b border-slate-300 h-6 w-full"></div>
+                                        <div className="border-b border-slate-300 h-6 w-full mt-2"></div>
                                     ) : (
-                                        <span className="text-lg font-black text-slate-900 truncate">{ticket.playerName}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-slate-500 leading-none mb-0.5">{ticket.furigana}</span>
+                                            <span className="text-lg font-black text-slate-900 truncate leading-tight">{ticket.playerName}</span>
+                                        </div>
                                     )}
                                 </div>
 
