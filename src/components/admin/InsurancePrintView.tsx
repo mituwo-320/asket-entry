@@ -120,10 +120,10 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
             </div>
 
             <div className="print-container">
-                <div className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[15mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col min-h-[297mm]">
+                <div className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-4 sm:p-[6mm] print:p-[5mm] shadow-xl my-4 print:my-0 print:shadow-none flex flex-col min-h-[297mm]">
                     
                     {/* Header Section */}
-                    <div className="border-b-2 border-slate-800 pb-4 mb-6">
+                    <div className="border-b-2 border-slate-800 pb-2 mb-4">
                         <h1 className="text-2xl font-black tracking-widest text-center text-slate-800">保険加入者リスト</h1>
                     </div>
 
@@ -132,11 +132,11 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
                         {insuredPlayers.length === 0 ? (
                             <p className="text-center text-slate-500 my-10">保険加入者はいません。</p>
                         ) : (
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-0.5">
                                 {insuredPlayers.map((p, idx) => (
-                                    <div key={idx} className="flex border-b border-slate-300 border-dashed py-1">
-                                        <div className="w-8 text-right text-slate-400 font-mono text-sm mr-2">{idx + 1}.</div>
-                                        <div className="font-bold text-sm flex-1">{p.name}</div>
+                                    <div key={idx} className="flex border-b border-slate-300 border-dashed py-0.5">
+                                        <div className="w-6 text-right text-slate-400 font-mono text-[10px] mr-1 mt-0.5">{idx + 1}.</div>
+                                        <div className="font-bold text-xs flex-1 truncate">{p.name}</div>
                                     </div>
                                 ))}
                             </div>
@@ -144,7 +144,7 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
                     </div>
 
                     {/* Footer Credits */}
-                    <div className="mt-8 pt-4 border-t-2 border-slate-800 flex justify-between items-end">
+                    <div className="mt-4 pt-2 border-t-2 border-slate-800 flex justify-between items-end">
                         <div className="text-sm leading-relaxed flex-1 max-w-md">
                             <div className="flex items-center mb-1">
                                 <span className="font-bold w-16 shrink-0">大会名：</span>

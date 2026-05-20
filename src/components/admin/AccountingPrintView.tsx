@@ -154,94 +154,94 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                     const teamGrandTotal = participationTotal + insuranceTotal;
                     
                     return (
-                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[10mm] shadow-xl my-8 print:my-0 print:shadow-none flex flex-col">
+                        <div key={entry.id} className="page-wrapper w-full max-w-[210mm] mx-auto bg-white p-4 sm:p-[6mm] print:p-[5mm] shadow-xl my-4 print:my-0 print:shadow-none flex flex-col">
                             
                             {/* Header Section */}
-                            <div className="border-b border-slate-800 pb-1 mb-2">
+                            <div className="border-b border-slate-800 pb-1 mb-1">
                                 <div className="flex justify-between items-end mb-1">
-                                    <h1 className="text-xl sm:text-2xl font-black tracking-wider text-slate-800 leading-tight">{project.name}</h1>
-                                    <div className="text-sm font-bold text-slate-600 whitespace-nowrap ml-4">
+                                    <h1 className="text-lg font-black tracking-wider text-slate-800 leading-tight">{project.name}</h1>
+                                    <div className="text-xs font-bold text-slate-600 whitespace-nowrap ml-2">
                                         実施日: {formattedDate || "＿＿年＿＿月＿＿日（＿＿）"}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Team Title & Wristband Summary */}
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="flex justify-between items-start mb-2">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-500 mb-0.5">{entry.teamNameKana || "フリガナ未登録"}</p>
-                                    <h2 className="text-2xl sm:text-3xl font-black mb-1 leading-tight">{entry.teamName}</h2>
+                                    <p className="text-[10px] font-bold text-slate-500 mb-0">{entry.teamNameKana || "フリガナ未登録"}</p>
+                                    <h2 className="text-xl font-black mb-0 leading-tight line-clamp-2">{entry.teamName}</h2>
                                     
-                                    <div className="mt-3 flex items-center gap-3">
-                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-1 rounded">チームのリストバンド配付数</span>
-                                        <div className="flex gap-4">
+                                    <div className="mt-1 flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-1 py-0.5 rounded">配付数</span>
+                                        <div className="flex gap-2">
                                             {Object.entries(teamColorCounts).map(([color, count]) => (
                                                 <div key={color} className="flex items-end gap-1">
-                                                    <span className="text-sm font-bold">{color}:</span>
-                                                    <span className="text-xl font-black leading-none">{count}</span>
+                                                    <span className="text-xs font-bold">{color}:</span>
+                                                    <span className="text-base font-black leading-none">{count}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="text-right flex items-end gap-4">
-                                    <div className="text-left text-xs font-bold text-slate-600 mb-1">
-                                        <div className="flex justify-between gap-4 border-b border-slate-300 pb-0.5 mb-0.5">
-                                            <span>参加費:</span>
+                                <div className="text-right flex items-end gap-2">
+                                    <div className="text-left text-[10px] font-bold text-slate-600">
+                                        <div className="flex justify-between gap-2 border-b border-slate-300 pb-0.5 mb-0.5">
+                                            <span>参加:</span>
                                             <span>¥{participationTotal.toLocaleString()}</span>
                                         </div>
-                                        <div className="flex justify-between gap-4 border-b border-slate-300 pb-0.5 mb-0.5">
-                                            <span>保険料:</span>
+                                        <div className="flex justify-between gap-2 border-b border-slate-300 pb-0.5 mb-0.5">
+                                            <span>保険:</span>
                                             <span>¥{insuranceTotal.toLocaleString()}</span>
                                         </div>
-                                        <div className="flex justify-between gap-4 text-sm text-slate-800">
+                                        <div className="flex justify-between gap-2 text-xs text-slate-800">
                                             <span>合計:</span>
                                             <span className="font-black">¥{teamGrandTotal.toLocaleString()}</span>
                                         </div>
                                     </div>
                                     
-                                    <div className="inline-block border-2 border-slate-800 rounded-lg p-2 text-center mb-1 min-w-[80px]">
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">登録数</p>
-                                        <p className="text-2xl font-black leading-none">{playerCount}<span className="text-xs font-medium ml-1 text-slate-600">名</span></p>
+                                    <div className="inline-block border border-slate-800 rounded p-1 text-center min-w-[60px]">
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0">登録数</p>
+                                        <p className="text-xl font-black leading-none">{playerCount}<span className="text-[10px] font-medium ml-0.5 text-slate-600">名</span></p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Player List */}
-                            <div className="mb-6">
-                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-slate-800 pl-2 text-sm flex justify-between items-end">
+                            <div className="mb-2">
+                                <h3 className="font-bold text-slate-800 mb-0.5 border-l-4 border-slate-800 pl-1.5 text-xs flex justify-between items-end">
                                     <span>登録選手一覧</span>
                                 </h3>
-                                <table className="w-full text-xs border-collapse border border-slate-800">
+                                <table className="w-full text-[11px] border-collapse border border-slate-800">
                                     <thead className="bg-slate-100">
                                         <tr>
-                                            <th className="border border-slate-800 p-1.5 text-center w-8">No.</th>
-                                            <th className="border border-slate-800 p-1.5 text-left">氏名 (フリガナ)</th>
-                                            <th className="border border-slate-800 p-1.5 text-center w-28">リストバンド色</th>
-                                            <th className="border border-slate-800 p-1.5 text-center w-16">保険</th>
-                                            <th className="border border-slate-800 p-1.5 text-center w-20 bg-slate-200">欠席確認</th>
+                                            <th className="border border-slate-800 px-1 py-0.5 text-center w-6">No.</th>
+                                            <th className="border border-slate-800 px-1 py-0.5 text-left">氏名 (フリガナ)</th>
+                                            <th className="border border-slate-800 px-1 py-0.5 text-center w-24">バンド色</th>
+                                            <th className="border border-slate-800 px-1 py-0.5 text-center w-12">保険</th>
+                                            <th className="border border-slate-800 px-1 py-0.5 text-center w-16 bg-slate-200">欠席</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {(entry.players || []).map((player, idx) => (
                                             <tr key={player.id || idx}>
-                                                <td className="border border-slate-800 p-1.5 text-center font-bold text-slate-500">{idx + 1}</td>
-                                                <td className="border border-slate-800 p-1.5">
+                                                <td className="border border-slate-800 px-1 py-0.5 text-center font-bold text-slate-500">{idx + 1}</td>
+                                                <td className="border border-slate-800 px-1 py-0.5">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] text-slate-500 leading-none">{player.furigana}</span>
-                                                        <span className="font-bold text-sm">{player.name}</span>
+                                                        <span className="text-[8px] text-slate-500 leading-none">{player.furigana}</span>
+                                                        <span className="font-bold">{player.name}</span>
                                                     </div>
                                                 </td>
-                                                <td className="border border-slate-800 p-1.5 text-center font-bold">
+                                                <td className="border border-slate-800 px-1 py-0.5 text-center font-bold">
                                                     {player.wristbandColor || "未定"}
                                                 </td>
-                                                <td className="border border-slate-800 p-1.5 text-center font-bold text-base leading-none">
+                                                <td className="border border-slate-800 px-1 py-0.5 text-center font-bold">
                                                     {player.insurance ? "〇" : "×"}
                                                 </td>
                                                 {/* Absent Checkbox Area */}
-                                                <td className="border border-slate-800 p-1.5 text-center align-middle">
-                                                    <div className="w-5 h-5 border-2 border-slate-300 mx-auto rounded-sm"></div>
+                                                <td className="border border-slate-800 px-1 py-0.5 text-center align-middle">
+                                                    <div className="w-4 h-4 border border-slate-300 mx-auto rounded-sm"></div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -250,28 +250,28 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                             </div>
 
                             {/* Additional Players Section */}
-                            <div className="mt-auto pt-4">
-                                <h3 className="font-bold text-slate-800 mb-1 border-l-4 border-emerald-600 pl-2 text-sm flex items-center gap-2">
+                            <div className="mt-auto pt-2">
+                                <h3 className="font-bold text-slate-800 mb-0.5 border-l-4 border-emerald-600 pl-1.5 text-xs flex items-center gap-2">
                                     <span>当日追加選手 記入欄</span>
-                                    <span className="text-xs font-normal text-slate-500">※参加費: ¥{settings.participationFee.toLocaleString()}</span>
+                                    <span className="text-[10px] font-normal text-slate-500">※参加費: ¥{settings.participationFee.toLocaleString()}</span>
                                 </h3>
                                 <table className="w-full text-xs border-collapse border border-slate-800">
                                     <thead className="bg-emerald-50">
                                         <tr>
-                                            <th className="border border-slate-800 p-2 text-left w-1/2">氏名</th>
-                                            <th className="border border-slate-800 p-2 text-center w-1/4">リストバンド色</th>
-                                            <th className="border border-slate-800 p-2 text-center w-1/4">参加費 徴収</th>
+                                            <th className="border border-slate-800 p-1 text-left w-1/2 text-emerald-900">氏名</th>
+                                            <th className="border border-slate-800 p-1 text-center w-1/4 text-emerald-900">リストバンド色</th>
+                                            <th className="border border-slate-800 p-1 text-center w-1/4 bg-emerald-100 text-emerald-900">参加費 徴収</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {[1, 2, 3].map((num) => (
-                                            <tr key={num} className="h-12">
-                                                <td className="border border-slate-800 p-2"></td>
-                                                <td className="border border-slate-800 p-2 text-center"></td>
-                                                <td className="border border-slate-800 p-2 text-center">
+                                            <tr key={num} className="h-8">
+                                                <td className="border border-slate-800 p-1"></td>
+                                                <td className="border border-slate-800 p-1 text-center"></td>
+                                                <td className="border border-slate-800 p-1 text-center">
                                                     <div className="flex items-center justify-center gap-1">
                                                         <div className="w-4 h-4 border border-slate-400 rounded-sm"></div>
-                                                        <span className="text-[10px] text-slate-400">済</span>
+                                                        <span className="text-[9px] text-slate-400">済</span>
                                                     </div>
                                                 </td>
                                             </tr>
