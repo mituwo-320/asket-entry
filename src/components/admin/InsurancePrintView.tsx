@@ -82,13 +82,17 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
     });
 
     // Format tournament date
-    let formattedDate = "";
+    let defaultFormattedDate = "";
     const targetDate = project.eventDate || project.entryStartDate;
     if (targetDate) {
         const d = new Date(targetDate);
         const days = ['日', '月', '火', '水', '木', '金', '土'];
-        formattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+        defaultFormattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
     }
+
+    const [editableProjectName, setEditableProjectName] = useState(project.name);
+    const [editableDate, setEditableDate] = useState(defaultFormattedDate || "＿＿年＿＿月＿＿日（＿＿）");
+    const [editableLocation, setEditableLocation] = useState("");
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
@@ -133,13 +137,38 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
 
                     {/* Footer Credits */}
                     <div className="mt-8 pt-4 border-t-2 border-slate-800 flex justify-between items-end">
-                        <div className="text-sm leading-relaxed">
-                            <p><span className="font-bold w-16 inline-block">大会名：</span>{project.name}</p>
-                            <p><span className="font-bold w-16 inline-block">日付：</span>{formattedDate || "＿＿年＿＿月＿＿日（＿＿）"}</p>
-                            <p><span className="font-bold w-16 inline-block">場所：</span>＿＿＿＿＿＿＿＿＿＿＿＿</p>
-                            <p><span className="font-bold w-16 inline-block">主催：</span>細本龍男</p>
-                            <p><span className="font-bold w-16 inline-block">代表：</span>細本龍男</p>
-                            <p><span className="font-bold w-16 inline-block">連絡先：</span>070-8369-8316</p>
+                        <div className="text-sm leading-relaxed flex-1 max-w-md">
+                            <div className="flex items-center mb-1">
+                                <span className="font-bold w-16 shrink-0">大会名：</span>
+                                <input 
+                                    type="text" 
+                                    className="print:border-none print:p-0 border-b border-slate-300 bg-transparent focus:outline-none flex-1 text-inherit p-1 hover:bg-slate-50 transition-colors" 
+                                    value={editableProjectName} 
+                                    onChange={e => setEditableProjectName(e.target.value)} 
+                                />
+                            </div>
+                            <div className="flex items-center mb-1">
+                                <span className="font-bold w-16 shrink-0">日付：</span>
+                                <input 
+                                    type="text" 
+                                    className="print:border-none print:p-0 border-b border-slate-300 bg-transparent focus:outline-none flex-1 text-inherit p-1 hover:bg-slate-50 transition-colors" 
+                                    value={editableDate} 
+                                    onChange={e => setEditableDate(e.target.value)} 
+                                />
+                            </div>
+                            <div className="flex items-center mb-1">
+                                <span className="font-bold w-16 shrink-0">場所：</span>
+                                <input 
+                                    type="text" 
+                                    className="print:border-none print:p-0 border-b border-slate-300 bg-transparent focus:outline-none flex-1 text-inherit p-1 hover:bg-slate-50 transition-colors" 
+                                    value={editableLocation} 
+                                    onChange={e => setEditableLocation(e.target.value)} 
+                                    placeholder="場所を入力..."
+                                />
+                            </div>
+                            <p className="p-1"><span className="font-bold w-16 inline-block">主催：</span>株式会社タツヲノコプロ</p>
+                            <p className="p-1"><span className="font-bold w-16 inline-block">代表：</span>細本龍男</p>
+                            <p className="p-1"><span className="font-bold w-16 inline-block">連絡先：</span>070-8369-8316</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm font-bold text-slate-500 mb-1">合計人数</p>
