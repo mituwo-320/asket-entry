@@ -49,9 +49,6 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
         fetchData();
     }, [teamId, projectId]);
 
-    if (!teamId && !projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;
-    if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
-
     // Filter target teams
     let targetEntries: TeamEntry[] = [];
     let projectContext: Project | undefined;
@@ -73,6 +70,17 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
         }
     }
 
+    useEffect(() => {
+        if (projectContext) {
+            document.title = `確定エントリー一覧_${projectContext.name}`;
+        } else if (targetEntries.length > 0) {
+            document.title = `チーム情報_${targetEntries[0].teamName}`;
+        }
+    }, [projectContext, targetEntries]);
+
+    if (!teamId && !projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;
+    if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+
     if (targetEntries.length === 0) return <div className="min-h-screen bg-white flex flex-col items-center justify-center">
         <p className="mb-4">印刷対象のチームが見つかりません</p>
         <Link href={backUrl} className="text-indigo-600 underline">戻る</Link>
@@ -85,14 +93,6 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
         const days = ['日', '月', '火', '水', '木', '金', '土'];
         formattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
     }
-
-    useEffect(() => {
-        if (projectContext) {
-            document.title = `確定エントリー一覧_${projectContext.name}`;
-        } else if (targetEntries.length > 0) {
-            document.title = `チーム情報_${targetEntries[0].teamName}`;
-        }
-    }, [projectContext, targetEntries]);
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
