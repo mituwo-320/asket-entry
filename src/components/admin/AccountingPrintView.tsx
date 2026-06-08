@@ -132,14 +132,21 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                     <div className="mt-4">
                         <h2 className="text-xl font-black text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">リストバンド準備数（全体合計）</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {Object.entries(globalWristbands)
-                                .sort((a, b) => b[1] - a[1]) // Sort by count descending
-                                .map(([color, count]) => (
-                                <div key={color} className="border-2 border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50">
-                                    <span className="text-sm font-bold text-slate-500 mb-1">{color}</span>
-                                    <span className="text-4xl font-black">{count} <span className="text-base font-bold ml-1">個</span></span>
-                                </div>
-                            ))}
+                            {(() => {
+                                const colorsToShow = ["赤", "青", "黄"];
+                                const otherColors = Object.keys(globalWristbands).filter(
+                                    c => !colorsToShow.includes(c) && globalWristbands[c] > 0
+                                );
+                                return [...colorsToShow, ...otherColors].map(color => {
+                                    const count = globalWristbands[color] || 0;
+                                    return (
+                                        <div key={color} className="border-2 border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50">
+                                            <span className="text-sm font-bold text-slate-500 mb-1">{color}</span>
+                                            <span className="text-4xl font-black">{count} <span className="text-base font-bold ml-1">個</span></span>
+                                        </div>
+                                    );
+                                });
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -175,12 +182,21 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                                     <div className="mt-1 flex items-center gap-2">
                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-1 py-0.5 rounded">配付数</span>
                                         <div className="flex gap-2">
-                                            {Object.entries(teamColorCounts).map(([color, count]) => (
-                                                <div key={color} className="flex items-end gap-1">
-                                                    <span className="text-xs font-bold">{color}:</span>
-                                                    <span className="text-base font-black leading-none">{count}</span>
-                                                </div>
-                                            ))}
+                                            {(() => {
+                                                const colorsToShow = ["赤", "青", "黄"];
+                                                const otherColors = Object.keys(teamColorCounts).filter(
+                                                    c => !colorsToShow.includes(c) && teamColorCounts[c] > 0
+                                                );
+                                                return [...colorsToShow, ...otherColors].map(color => {
+                                                    const count = teamColorCounts[color] || 0;
+                                                    return (
+                                                        <div key={color} className="flex items-end gap-1">
+                                                            <span className="text-xs font-bold">{color}:</span>
+                                                            <span className="text-base font-black leading-none">{count}</span>
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
