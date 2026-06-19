@@ -28,6 +28,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
             id: '',
             name: '新規プロジェクト (大会日程)',
             isActive: true,
+            isTestProject: false,
             createdAt: new Date().toISOString()
         };
         setLocalProjects([...localProjects, newProj]);
@@ -168,6 +169,21 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                         </select>
                                                     </div>
                                                     <div className="space-y-1">
+                                                        <label className="text-[10px] text-slate-400 uppercase tracking-widest">プロジェクト種別</label>
+                                                        <select
+                                                            value={p.isTestProject ? 'true' : 'false'}
+                                                            onChange={(e) => {
+                                                                const updated = [...localProjects];
+                                                                updated[index].isTestProject = e.target.value === 'true';
+                                                                setLocalProjects(updated);
+                                                            }}
+                                                            className="w-full h-9 bg-slate-900 border border-slate-700 rounded-md text-sm px-3 text-slate-200"
+                                                        >
+                                                            <option value="false">本番用プロジェクト</option>
+                                                            <option value="true">テスト用プロジェクト</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">募集開始日時</label>
                                                         <Input
                                                             type="datetime-local"
@@ -268,8 +284,11 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                             ) : (
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <h3 className="text-white font-medium flex items-center gap-2">
+                                                        <h3 className="text-white font-medium flex items-center gap-2 flex-wrap">
                                                             {p.name}
+                                                            {p.isTestProject && (
+                                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">TEST</span>
+                                                            )}
                                                             {p.isActive ? (
                                                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">有効</span>
                                                             ) : (

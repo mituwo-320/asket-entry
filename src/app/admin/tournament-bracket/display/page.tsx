@@ -24,11 +24,29 @@ export default function BracketDisplayPage() {
     const [isConnected, setIsConnected] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [tournamentId, setTournamentId] = useState<string>('');
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     // Determine tournamentId from URL param
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         setTournamentId(params.get('id') || '2024-Spring');
+
+        // Load theme preference from localStorage so the loading screens match
+        const savedTheme = localStorage.getItem('tournament-bracket-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+            setTheme(savedTheme);
+        }
+    }, []);
+
+    // Listen for storage changes in case the admin changes theme in another tab
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'tournament-bracket-theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
+                setTheme(e.newValue);
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
     const fetchData = useCallback(async () => {
@@ -73,23 +91,23 @@ export default function BracketDisplayPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
+            <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} flex flex-col items-center justify-center gap-4`}>
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-2xl shadow-indigo-500/30">
                     <Trophy className="w-10 h-10 text-white" />
                 </div>
-                <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-                <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">接続中...</p>
+                <Loader2 className={`w-8 h-8 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'} animate-spin`} />
+                <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} text-sm font-bold tracking-widest uppercase`}>接続中...</p>
             </div>
         );
     }
 
     if (!data) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 text-center px-8">
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/5">
-                    <Trophy className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <h2 className="text-xl font-black text-white mb-2">トーナメント表がありません</h2>
-                    <p className="text-slate-500 text-sm">管理画面でトーナメント表を作成してください</p>
+            <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} flex flex-col items-center justify-center gap-6 text-center px-8`}>
+                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900/60 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                    <Trophy className={`w-16 h-16 ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} mx-auto mb-4`} />
+                    <h2 className="text-xl font-black mb-2">トーナメント表がありません</h2>
+                    <p className={`${theme === 'dark' ? 'text-slate-500' : 'text-slate-450'} text-sm`}>管理画面でトーナメント表を作成してください</p>
                 </div>
                 <button
                     onClick={fetchData}
@@ -103,15 +121,15 @@ export default function BracketDisplayPage() {
     }
 
     return (
-        <div className="relative min-h-screen bg-slate-950">
-            {/* Status indicator (top-right corner, very subtle) */}
-            <div className="fixed top-3 right-4 z-50 flex items-center gap-2 opacity-30 hover:opacity-80 transition-opacity">
+        <div className={`relative min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
+            {/* Status indicator (top-right corner, very subtle, matching background) */}
+            <div className="fixed top-3 right-4 z-[210] flex items-center gap-2 opacity-30 hover:opacity-85 transition-opacity">
                 {isConnected ? (
-                    <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                    <Wifi className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
-                    <WifiOff className="w-3.5 h-3.5 text-rose-400" />
+                    <WifiOff className="w-3.5 h-3.5 text-rose-500" />
                 )}
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className={`text-[10px] ${theme === 'dark' ? 'text-slate-500' : 'text-slate-650'} font-mono`}>
                     {lastUpdated ? lastUpdated.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--'}
                 </span>
             </div>

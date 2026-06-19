@@ -10,6 +10,7 @@ export async function GET() {
         // Return only active projects and those that are currently within the entry period
         const activeProjects = allProjects.filter(p => {
             if (!p.isActive) return false;
+            if (p.isTestProject) return false; // NEW: テストプロジェクトを除外
             if (p.entryStartDate && new Date(p.entryStartDate) > now) return false;
             if (p.entryEndDate && new Date(p.entryEndDate) < now) return false;
             return true;

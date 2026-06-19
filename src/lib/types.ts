@@ -25,6 +25,7 @@ export interface Project {
     name: string;
     isActive: boolean;
     isWaitlistEnabled?: boolean; // NEW: Enable/Disable waitlist registration
+    isTestProject?: boolean; // NEW: テスト用プロジェクトかどうか
     entryStartDate?: string;
     entryEndDate?: string;
     eventDate?: string; // NEW: 大会本番日程
@@ -121,12 +122,66 @@ export interface BracketMatch {
     scoreB?: string | number;// NEW: Score for team B
 }
 
+export interface BlockStandingRow {
+    teamId: string;
+    teamName: string;
+    played: number;
+    won: number;
+    lost: number;
+    pointsFor: number;
+    pointsAgainst: number;
+    diff: number;
+    rank?: number;
+}
+
+export interface BlockMatch {
+    matchId: string; // e.g. "B-A-M1" (Block A Match 1)
+    type: 'league' | 'semifinal' | 'final' | 'third_place' | 'placement';
+    round: number;
+    court?: string;
+    referee?: string;
+    slotA: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
+    slotB: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
+    scoreA?: string | number;
+    scoreB?: string | number;
+    winnerId?: string;
+    loserId?: string;
+    status: 'pending' | 'ready' | 'completed';
+    nextWinMatchId?: string;
+    nextLoseMatchId?: string;
+}
+
+export interface TournamentBlock {
+    id: string; // "A" | "B" | "C"
+    name: string; // "Aブロック", "Bブロック", etc.
+    type: 'league' | 'tournament';
+    slots: { slotId: string; teamId?: string; teamName?: string }[]; // Draft slots for dragging teams
+    matches: BlockMatch[];
+    standings?: BlockStandingRow[]; // Dynamically computed standings
+}
+
+export interface PlacementGroup {
+    id: string; // e.g. "1st-place"
+    name: string; // "1位決定リーグ", "4位決定戦", etc.
+    rankTarget: number; // 1 for 1st place group, etc.
+    teams: { id: string; name: string; blockId: string }[]; // Populated when block rankings are ready
+    matches: BlockMatch[];
+    standings?: BlockStandingRow[];
+}
+
 export interface TournamentBracketData {
+    format?: 'double_elimination' | 'blocks_and_placement';
     teamCount: number;
+    // For double_elimination:
     initialMatches: BracketMatch[];  // First round (center)
-    winnersMatches: BracketMatch[];  // Winners bracket (right)
-    losersMatches: BracketMatch[];   // Losers bracket (left)
+    winnersMatches: BracketMatch[];  // Winners bracket (left)
+    losersMatches: BracketMatch[];   // Losers bracket (right)
     eliminatedTeams: string[];       // Teams that lost in losers bracket
     champion?: string;               // Final champion team ID
+    
+    // For blocks_and_placement:
+    blocks?: TournamentBlock[];
+    placementGroups?: PlacementGroup[];
 }
+
 

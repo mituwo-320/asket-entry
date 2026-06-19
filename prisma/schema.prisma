@@ -28,6 +28,7 @@ model Project {
   name             String // "1日目", "4月10日大会", etc.
   isActive         Boolean   @default(true) // Open for general registration
   isWaitlistEnabled Boolean  @default(true) // NEW: Enable/Disable waitlist registration
+  isTestProject    Boolean   @default(false) // NEW: テスト用プロジェクトかどうか
   entryStartDate   DateTime?
   entryEndDate     DateTime?
   eventDate        DateTime? // NEW: 大会本番日程

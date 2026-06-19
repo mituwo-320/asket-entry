@@ -47,3 +47,11 @@ next-env.d.ts
 .local_xdg/
 .local_cache/
 *.bak
+
+# Temporary scripts
+investigate-db.ts
+restore-db.ts
+verify-changes.ts
+
+# Backups
+/backups

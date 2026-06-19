@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Settings, Save, AlertCircle, Plus, Copy, Trash2, Link as LinkIcon, RefreshCcw, Bell, ShieldCheck, Mail, LogOut, Loader2, LayoutDashboard, Target, Users, Megaphone, Smartphone, CheckCircle2, MessageSquare, Menu, Calendar, X, FileEdit, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft } from "lucide-react";
+import { Settings, Save, AlertCircle, Plus, Copy, Trash2, Link as LinkIcon, RefreshCcw, Bell, ShieldCheck, Mail, LogOut, Loader2, LayoutDashboard, Target, Users, Megaphone, Smartphone, CheckCircle2, MessageSquare, Menu, Calendar, X, FileEdit, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft, HardDrive } from "lucide-react";
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
 
 import ProjectManagerModal from '@/components/admin/ProjectManagerModal'; // NEW
+import BackupManagerModal from '@/components/admin/BackupManagerModal'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
 import { TeamEntry, User, Match, Project } from "@/lib/types";
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
     const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false); // NEW
+    const [isBackupModalOpen, setIsBackupModalOpen] = useState(false); // NEW
 
     // NEW: Settings State
     const [settings, setSettings] = useState<{ participationFee: number | string, insuranceFee: number | string, lineOpenChatLink?: string, entryDeadline?: string }>({ participationFee: 15000, insuranceFee: 800, lineOpenChatLink: "", entryDeadline: "" });
@@ -436,11 +438,29 @@ export default function AdminDashboard() {
                                 className="bg-slate-950/50 border-none text-slate-200 text-sm rounded focus:ring-1 focus:ring-indigo-500 outline-none h-8 px-2"
                             >
                                 <option value="" disabled>---</option>
-                                {projects.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
-                                ))}
+                                <optgroup label="🏆 本番用プロジェクト">
+                                    {projects.filter(p => !p.isTestProject).map(p => (
+                                        <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                                    ))}
+                                </optgroup>
+                                {projects.filter(p => p.isTestProject).length > 0 && (
+                                    <optgroup label="🧪 テスト用プロジェクト">
+                                        {projects.filter(p => p.isTestProject).map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                                        ))}
+                                    </optgroup>
+                                )}
                             </select>
                         </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs border-slate-700 text-slate-300 hover:bg-white/5 hover:text-white"
+                            onClick={() => setIsBackupModalOpen(true)}
+                        >
+                            <HardDrive className="w-4 h-4 mr-1.5" />
+                            バックアップ復元
+                        </Button>
                         <Button
                             variant="primary"
                             size="sm"
@@ -473,9 +493,18 @@ export default function AdminDashboard() {
                         className="w-full bg-slate-950/80 border border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 outline-none h-12 px-3 transition-colors"
                     >
                         <option value="" disabled>プロジェクトを選択...</option>
-                        {projects.map(p => (
-                            <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
-                        ))}
+                        <optgroup label="🏆 本番用プロジェクト">
+                            {projects.filter(p => !p.isTestProject).map(p => (
+                                <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                            ))}
+                        </optgroup>
+                        {projects.filter(p => p.isTestProject).length > 0 && (
+                            <optgroup label="🧪 テスト用プロジェクト">
+                                {projects.filter(p => p.isTestProject).map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} {p.isActive ? '' : '(無効)'}</option>
+                                ))}
+                            </optgroup>
+                        )}
                     </select>
                 </div>
 
@@ -1325,6 +1354,13 @@ export default function AdminDashboard() {
                 onClose={() => setIsProjectManagerOpen(false)}
                 projects={projects}
                 onProjectsUpdate={setProjects}
+            />
+
+            <BackupManagerModal
+                isOpen={isBackupModalOpen}
+                onClose={() => setIsBackupModalOpen(false)}
+                onRestoreSuccess={loadData}
+                projects={projects}
             />
 
         </div>

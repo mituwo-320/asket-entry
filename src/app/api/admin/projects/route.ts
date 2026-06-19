@@ -38,6 +38,7 @@ export async function POST(request: Request) {
             name: body.name,
             isActive: body.isActive !== undefined ? body.isActive : true,
             isWaitlistEnabled: body.isWaitlistEnabled !== undefined ? body.isWaitlistEnabled : true,
+            isTestProject: body.isTestProject !== undefined ? body.isTestProject : false,
             entryStartDate: body.entryStartDate ? new Date(body.entryStartDate).toISOString() : undefined,
             entryEndDate: body.entryEndDate ? new Date(body.entryEndDate).toISOString() : undefined,
             eventDate: body.eventDate ? new Date(body.eventDate).toISOString() : undefined,

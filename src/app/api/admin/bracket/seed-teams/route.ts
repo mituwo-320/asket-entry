@@ -1,37 +1,44 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { backupTournamentData } from '@/lib/backup';
 
-// POST: Seed 16 test teams for development/testing
+// POST: Seed test teams for development/testing
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { tournamentId } = body;
+        const { tournamentId, teamCount = 16 } = body;
 
         if (!tournamentId) {
             return NextResponse.json({ error: 'tournamentId is required' }, { status: 400 });
         }
+
+        // Check if the project is a test project to prevent wiping production data
+        const project = await db.project.findUnique({
+            where: { id: tournamentId }
+        });
+
+        if (!project) {
+            return NextResponse.json({ error: 'プロジェクトが見つかりません。' }, { status: 404 });
+        }
+
+        if (!project.isTestProject) {
+            return NextResponse.json({
+                error: '本番用プロジェクトにテストデータを流し込むことはできません。テスト用プロジェクトとして設定した大会でのみ実行可能です。'
+            }, { status: 400 });
+        }
+
+        const count = Math.min(Math.max(2, teamCount), 32);
 
         const teamNames = [
             'レッドドラゴン', 'ブルーフェニックス', 'ゴールデンイーグル', 'シルバーウルフ',
             'サンダーホーク', 'ライトニングボルト', 'ファイアストーム', 'アイスブレイカー',
             'ストームライダー', 'ナイトシャドウ', 'サンライズ', 'ムーンライト',
             'スターダスト', 'ダークマター', 'クリスタルウォリアー', 'アイアンフィスト',
+            'キングコブラ', 'シャドーキャット', 'ワイルドベア', 'ディープシーフォース',
+            'マウンテンジャイアント', 'ファイアバード', 'スカイウォーカー', 'オーシャンディフェンダー',
+            'アースクエイク', 'ボルケーノ', 'ハリケーン', 'ブラストエッジ',
+            'サイレントアサシン', 'コスミックゲイル', 'ブレイクアウト', 'ネオジェネシス'
         ];
-
-        // Check how many already exist for this tournament
-        const existing = await db.teamEntry.findMany({
-            where: { tournamentId },
-            select: { id: true }
-        });
-
-        if (existing.length >= 16) {
-            return NextResponse.json({
-                success: true,
-                created: 0,
-                total: existing.length,
-                message: `既に ${existing.length} チーム存在します（追加なし）`
-            });
-        }
 
         // Get any user to assign entries to
         const anyUser = await db.user.findFirst({
@@ -42,17 +49,25 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'ユーザーが見つかりません。先にログインしてください。' }, { status: 404 });
         }
 
-        // Create teams up to 16 total
-        const needed = Math.max(0, 16 - existing.length);
-        const toCreate = teamNames.slice(existing.length, existing.length + needed);
+        // Automatically backup existing data before wiping
+        const backupPath = await backupTournamentData(tournamentId);
+        if (backupPath) {
+            console.log(`Automatic backup created before seed wiping: ${backupPath}`);
+        }
 
+        // Delete existing entries for this tournament to ensure a clean size switch
+        await db.teamEntry.deleteMany({
+            where: { tournamentId }
+        });
+
+        // Create exactly 'count' teams
         const created = [];
-        for (let i = 0; i < toCreate.length; i++) {
+        for (let i = 0; i < count; i++) {
             const team = await db.teamEntry.create({
                 data: {
                     userId: anyUser.id,
                     tournamentId,
-                    teamName: toCreate[i],
+                    teamName: teamNames[i] || `テストチーム-${String(i + 1).padStart(2, '0')}`,
                     teamNameKana: '',
                     teamIntroduction: '',
                     isBeginnerFriendlyAccepted: false,
@@ -66,8 +81,8 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             created: created.length,
-            total: existing.length + created.length,
-            message: `${created.length} チームを追加しました（合計 ${existing.length + created.length} チーム）`
+            total: created.length,
+            message: `${created.length} チームを追加しました。トーナメント表を自動再生成しました。`
         });
     } catch (error) {
         console.error('Failed to seed test teams:', error);

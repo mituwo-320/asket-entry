@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Loader2, Calendar, ArrowLeft, ChevronRight } from "lucide-react";
+import { Loader2, Calendar, ArrowLeft, ChevronRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { Project, TeamEntry } from "@/lib/types";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -14,6 +14,7 @@ export default function ManagementProjectList() {
     const [entries, setEntries] = useState<TeamEntry[]>([]);
     const [settings, setSettings] = useState<{ participationFee: number, insuranceFee: number }>({ participationFee: 0, insuranceFee: 0 });
     const [isLoading, setIsLoading] = useState(true);
+    const [showTestProjects, setShowTestProjects] = useState(false);
     const router = useRouter();
 
     const loadData = async () => {
@@ -103,69 +104,179 @@ export default function ManagementProjectList() {
                         <p className="text-slate-500">現在有効なプロジェクトがありません。</p>
                     </div>
                 ) : (
-                    <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {projects.map(project => {
-                            const projectEntries = entries
-                                .filter(e => e.tournamentId === project.id && e.status !== 'cancelled')
-                                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                                
-                            const max = project.maxTeams || projectEntries.length;
-                            const confirmedEntriesList = projectEntries.slice(0, max);
-                            const confirmedCount = confirmedEntriesList.length;
-                            const waitlistCount = Math.max(0, projectEntries.length - max);
-                            
-                            let projectTotalAmount = 0;
-                            confirmedEntriesList.forEach(e => {
-                                const playerCount = e.players ? e.players.length : 0;
-                                const insCount = e.players ? e.players.filter(p => p.insurance).length : 0;
-                                projectTotalAmount += (playerCount * settings.participationFee) + (insCount * settings.insuranceFee);
-                            });
-                            
-                            return (
-                                <motion.div variants={itemVariants} key={project.id}>
-                                    <Link href={`/management/${project.id}`}>
-                                        <Card className="group relative overflow-hidden bg-slate-900/60 hover:bg-slate-800/80 border-slate-700/50 hover:border-emerald-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-transform">
-                                                <Calendar className="w-16 h-16 text-emerald-400" />
-                                            </div>
+                    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
+                        {/* 🏆 本番用プロジェクト */}
+                        {projects.filter(p => !p.isTestProject).length > 0 && (
+                            <div className="space-y-3">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">🏆 大会（本番）</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {projects.filter(p => !p.isTestProject).map(project => {
+                                        const projectEntries = entries
+                                            .filter(e => e.tournamentId === project.id && e.status !== 'cancelled')
+                                            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                                             
-                                            <div className="flex-1 relative z-10">
-                                                <h3 className="text-xl font-bold text-white mb-4 line-clamp-2">{project.name}</h3>
-                                                
-                                                <div className="flex flex-wrap items-center gap-3 mb-2">
-                                                    <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5">
-                                                        <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">エントリー状況</span>
-                                                        <span className="text-lg font-black text-white">
-                                                            {confirmedCount}
-                                                            {project.maxTeams && <span className="text-sm font-medium text-slate-400 ml-1">/ {project.maxTeams} 枠</span>}
-                                                        </span>
-                                                    </div>
-                                                    
-                                                    {waitlistCount > 0 && (
-                                                        <div className="bg-amber-900/20 rounded-lg px-3 py-2 border border-amber-500/20">
-                                                            <span className="text-[10px] text-amber-500 block uppercase tracking-wider font-bold mb-0.5">キャンセル待ち</span>
-                                                            <span className="text-lg font-bold text-amber-400">{waitlistCount} <span className="text-xs">組</span></span>
+                                        const max = project.maxTeams || projectEntries.length;
+                                        const confirmedEntriesList = projectEntries.slice(0, max);
+                                        const confirmedCount = confirmedEntriesList.length;
+                                        const waitlistCount = Math.max(0, projectEntries.length - max);
+                                        
+                                        let projectTotalAmount = 0;
+                                        confirmedEntriesList.forEach(e => {
+                                            const playerCount = e.players ? e.players.length : 0;
+                                            const insCount = e.players ? e.players.filter(p => p.insurance).length : 0;
+                                            projectTotalAmount += (playerCount * settings.participationFee) + (insCount * settings.insuranceFee);
+                                        });
+                                        
+                                        return (
+                                            <motion.div variants={itemVariants} key={project.id}>
+                                                <Link href={`/management/${project.id}`}>
+                                                    <Card className="group relative overflow-hidden bg-slate-900/60 hover:bg-slate-800/80 border-slate-700/50 hover:border-emerald-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
+                                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-transform">
+                                                            <Calendar className="w-16 h-16 text-emerald-400" />
                                                         </div>
-                                                    )}
-                                                    
-                                                    <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
-                                                        <span className="text-[10px] text-emerald-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
-                                                        <span className="text-lg font-black text-emerald-400">¥{projectTotalAmount.toLocaleString()}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                        
+                                                        <div className="flex-1 relative z-10">
+                                                            <h3 className="text-xl font-bold text-white mb-4 line-clamp-2">{project.name}</h3>
+                                                            
+                                                            <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                                <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5">
+                                                                    <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">エントリー状況</span>
+                                                                    <span className="text-lg font-black text-white">
+                                                                        {confirmedCount}
+                                                                        {project.maxTeams && <span className="text-sm font-medium text-slate-400 ml-1">/ {project.maxTeams} 枠</span>}
+                                                                    </span>
+                                                                </div>
+                                                                
+                                                                {waitlistCount > 0 && (
+                                                                    <div className="bg-amber-900/20 rounded-lg px-3 py-2 border border-amber-500/20">
+                                                                        <span className="text-[10px] text-amber-500 block uppercase tracking-wider font-bold mb-0.5">キャンセル待ち</span>
+                                                                        <span className="text-lg font-bold text-amber-400">{waitlistCount} <span className="text-xs">組</span></span>
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
+                                                                    <span className="text-[10px] text-emerald-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
+                                                                    <span className="text-lg font-black text-emerald-400">¥{projectTotalAmount.toLocaleString()}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+             
+                                                        <div className="mt-4 flex items-center justify-between text-emerald-400 relative z-10 font-bold text-sm">
+                                                            <span>リストを確認する</span>
+                                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                                                                <ChevronRight className="w-5 h-5" />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Link>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
-                                            <div className="mt-4 flex items-center justify-between text-emerald-400 relative z-10 font-bold text-sm">
-                                                <span>リストを確認する</span>
-                                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                                                    <ChevronRight className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                </motion.div>
-                            );
-                        })}
+                        {/* 🧪 テスト用プロジェクト */}
+                        {projects.filter(p => p.isTestProject).length > 0 && (
+                            <div className="space-y-3 pt-4 border-t border-white/5">
+                                <div className="flex items-center justify-between pl-1">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <span>🧪 テスト用プロジェクト</span>
+                                        <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 uppercase font-black tracking-wide">Test Mode</span>
+                                    </h3>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-8 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900 flex items-center gap-1.5"
+                                        onClick={() => setShowTestProjects(!showTestProjects)}
+                                    >
+                                        {showTestProjects ? (
+                                            <>
+                                                <EyeOff className="w-3.5 h-3.5" />
+                                                <span>テストプロジェクトを隠す</span>
+                                                <ChevronUp className="w-3.5 h-3.5 ml-0.5" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Eye className="w-3.5 h-3.5" />
+                                                <span>テストプロジェクトを表示 ({projects.filter(p => p.isTestProject).length})</span>
+                                                <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                                
+                                {showTestProjects && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {projects.filter(p => p.isTestProject).map(project => {
+                                            const projectEntries = entries
+                                                .filter(e => e.tournamentId === project.id && e.status !== 'cancelled')
+                                                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                                                
+                                            const max = project.maxTeams || projectEntries.length;
+                                            const confirmedEntriesList = projectEntries.slice(0, max);
+                                            const confirmedCount = confirmedEntriesList.length;
+                                            const waitlistCount = Math.max(0, projectEntries.length - max);
+                                            
+                                            let projectTotalAmount = 0;
+                                            confirmedEntriesList.forEach(e => {
+                                                const playerCount = e.players ? e.players.length : 0;
+                                                const insCount = e.players ? e.players.filter(p => p.insurance).length : 0;
+                                                projectTotalAmount += (playerCount * settings.participationFee) + (insCount * settings.insuranceFee);
+                                            });
+                                            
+                                            return (
+                                                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} key={project.id}>
+                                                    <Link href={`/management/${project.id}`}>
+                                                        <Card className="group relative overflow-hidden bg-slate-900/40 hover:bg-slate-800/60 border-slate-800/80 hover:border-amber-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
+                                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-transform">
+                                                                <Calendar className="w-16 h-16 text-amber-400" />
+                                                            </div>
+                                                            
+                                                            <div className="flex-1 relative z-10">
+                                                                <h3 className="text-xl font-bold text-slate-300 group-hover:text-white mb-4 line-clamp-2 flex items-center gap-2">
+                                                                    <span>{project.name}</span>
+                                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">TEST</span>
+                                                                </h3>
+                                                                
+                                                                <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                                    <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5">
+                                                                        <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">エントリー状況</span>
+                                                                        <span className="text-lg font-black text-white">
+                                                                            {confirmedCount}
+                                                                            {project.maxTeams && <span className="text-sm font-medium text-slate-400 ml-1">/ {project.maxTeams} 枠</span>}
+                                                                        </span>
+                                                                    </div>
+                                                                    
+                                                                    {waitlistCount > 0 && (
+                                                                        <div className="bg-amber-900/20 rounded-lg px-3 py-2 border border-amber-500/20">
+                                                                            <span className="text-[10px] text-amber-500 block uppercase tracking-wider font-bold mb-0.5">キャンセル待ち</span>
+                                                                            <span className="text-lg font-bold text-amber-400">{waitlistCount} <span className="text-xs">組</span></span>
+                                                                        </div>
+                                                                    )}
+                                                                    
+                                                                    <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
+                                                                        <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
+                                                                        <span className="text-lg font-black text-slate-400">¥{projectTotalAmount.toLocaleString()}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                 
+                                                            <div className="mt-4 flex items-center justify-between text-amber-400 relative z-10 font-bold text-sm">
+                                                                <span>リストを確認する</span>
+                                                                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                                                    <ChevronRight className="w-5 h-5" />
+                                                                </div>
+                                                            </div>
+                                                        </Card>
+                                                    </Link>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </main>

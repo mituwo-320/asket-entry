@@ -77,19 +77,40 @@ export default function TournamentBracketPage() {
     };
 
     const seedTestTeams = async () => {
-        if (!confirm(`「${selectedProjectId}」にテストチーム16チームを追加します。よろしいですか？`)) return;
+        const input = prompt("検証したいテストチーム数を指定してください (8〜16):", "16");
+        if (input === null) return;
+        const count = parseInt(input);
+        if (isNaN(count) || count < 2 || count > 32) {
+            alert("2〜32の有効な数字を入力してください。");
+            return;
+        }
+
+        if (!confirm(`「${selectedProjectId}」の既存チームデータを一度すべて削除し、新しくテストチームを ${count} チーム作成してトーナメント表を初期化します。よろしいですか？`)) return;
         setIsSeedingTeams(true);
         setSeedMessage(null);
         try {
             const res = await fetch('/api/admin/bracket/seed-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tournamentId: selectedProjectId }),
+                body: JSON.stringify({ tournamentId: selectedProjectId, teamCount: count }),
             });
             const data = await res.json();
             if (data.success) {
                 setSeedMessage({ type: 'success', text: data.message });
                 await loadData(); // Refresh entries
+                
+                // Automatically generate a new bracket matching the seeded team count
+                setTeamCount(count);
+                const genRes = await fetch('/api/admin/bracket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tournamentId: selectedProjectId, teamCount: count }),
+                });
+                const genData = await genRes.json();
+                if (genData.success) {
+                    setBracketId(genData.bracket.id);
+                    setBracketData(genData.bracket.brackets as TournamentBracketData);
+                }
             } else {
                 setSeedMessage({ type: 'error', text: data.error || '失敗しました' });
             }
@@ -168,17 +189,37 @@ export default function TournamentBracketPage() {
     const handleFullscreenScoreChange = async (matchId: string, isSlotA: boolean, score: string) => {
         if (!bracketData || !bracketId) return;
         
-        // Find existing match to preserve the other score
-        const allMatches = [...bracketData.initialMatches, ...bracketData.winnersMatches, ...bracketData.losersMatches];
-        const match = allMatches.find(m => m.matchId === matchId);
-        if (!match) return;
+        let currentScoreA: string | number | undefined = undefined;
+        let currentScoreB: string | number | undefined = undefined;
 
-        const updated = updateMatchScore(
-            bracketData, 
-            matchId, 
-            isSlotA ? (score === '' ? undefined : Number(score)) : match.scoreA,
-            !isSlotA ? (score === '' ? undefined : Number(score)) : match.scoreB
-        );
+        if (bracketData.format === 'blocks_and_placement') {
+            bracketData.blocks?.forEach(block => {
+                const match = block.matches.find(m => m.matchId === matchId);
+                if (match) {
+                    currentScoreA = match.scoreA;
+                    currentScoreB = match.scoreB;
+                }
+            });
+            bracketData.placementGroups?.forEach(group => {
+                const match = group.matches.find(m => m.matchId === matchId);
+                if (match) {
+                    currentScoreA = match.scoreA;
+                    currentScoreB = match.scoreB;
+                }
+            });
+        } else {
+            const allMatches = [...bracketData.initialMatches, ...bracketData.winnersMatches, ...bracketData.losersMatches];
+            const match = allMatches.find(m => m.matchId === matchId);
+            if (match) {
+                currentScoreA = match.scoreA;
+                currentScoreB = match.scoreB;
+            }
+        }
+
+        const newScoreA = isSlotA ? (score === '' ? undefined : Number(score)) : currentScoreA;
+        const newScoreB = !isSlotA ? (score === '' ? undefined : Number(score)) : currentScoreB;
+
+        const updated = updateMatchScore(bracketData, matchId, newScoreA, newScoreB);
         setBracketData(updated);
         fetch('/api/admin/bracket/update', {
             method: 'POST',
@@ -220,9 +261,18 @@ export default function TournamentBracketPage() {
                             onChange={(e) => setSelectedProjectId(e.target.value)}
                             className="bg-slate-950/50 border border-slate-800 text-slate-200 text-sm rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none h-9 px-3"
                         >
-                            {projects.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
+                            <optgroup label="🏆 本番用プロジェクト">
+                                {projects.filter(p => !p.isTestProject).map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </optgroup>
+                            {projects.filter(p => p.isTestProject).length > 0 && (
+                                <optgroup label="🧪 テスト用プロジェクト">
+                                    {projects.filter(p => p.isTestProject).map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </optgroup>
+                            )}
                         </select>
 
                         {/* Display page link */}
@@ -327,11 +377,11 @@ export default function TournamentBracketPage() {
                                         className="w-full text-slate-400 hover:text-blue-300 hover:bg-blue-500/10 border border-slate-800 hover:border-blue-500/30 font-bold text-sm h-11"
                                     >
                                         {isSeedingTeams
-                                            ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />追加中...</>
-                                            : <><FlaskConical className="w-4 h-4 mr-2" />テスト用16チームを生成</>}
+                                            ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />生成中...</>
+                                            : <><FlaskConical className="w-4 h-4 mr-2" />テスト用チームを生成/リセット</>}
                                     </Button>
                                     <p className="text-[11px] text-slate-600 text-center mt-1">
-                                        開発・動作確認用。本番環境では使用しないでください。
+                                        開発・動作確認用。チーム数を指定して対戦表ごと初期化します。
                                     </p>
                                 </div>
                             </div>

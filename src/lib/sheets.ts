@@ -14,6 +14,7 @@ export async function getProjects(): Promise<Project[]> {
             name: p.name,
             isActive: p.isActive,
             isWaitlistEnabled: p.isWaitlistEnabled !== false, // Default to true if undefined
+            isTestProject: p.isTestProject || false, // NEW: テスト用プロジェクトかどうか
             entryStartDate: p.entryStartDate ? p.entryStartDate.toISOString() : undefined,
             entryEndDate: p.entryEndDate ? p.entryEndDate.toISOString() : undefined,
             eventDate: p.eventDate ? p.eventDate.toISOString() : undefined,
@@ -47,6 +48,7 @@ export async function saveProject(project: Project): Promise<boolean> {
                 name: project.name,
                 isActive: project.isActive,
                 isWaitlistEnabled: project.isWaitlistEnabled !== false,
+                isTestProject: project.isTestProject || false,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
                 eventDate: project.eventDate ? new Date(project.eventDate) : null,
@@ -58,6 +60,7 @@ export async function saveProject(project: Project): Promise<boolean> {
                 name: project.name,
                 isActive: project.isActive,
                 isWaitlistEnabled: project.isWaitlistEnabled !== false,
+                isTestProject: project.isTestProject || false,
                 entryStartDate: project.entryStartDate ? new Date(project.entryStartDate) : null,
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
                 eventDate: project.eventDate ? new Date(project.eventDate) : null,
