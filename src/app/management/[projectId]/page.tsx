@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer } from "lucide-react";
+import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -297,6 +297,16 @@ export default function ManagementProjectDetail() {
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                         <h1 className="text-base sm:text-lg font-bold text-white tracking-tight line-clamp-1">{project.name}</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            className="bg-indigo-900/40 hover:bg-indigo-800/60 text-indigo-400 border border-indigo-500/30"
+                            size="sm"
+                            onClick={() => router.push(`/management/${projectId}/bracket`)}
+                        >
+                            <Trophy className="w-4 h-4 mr-2" />
+                            トーナメント表
+                        </Button>
                     </div>
                 </div>
             </header>
