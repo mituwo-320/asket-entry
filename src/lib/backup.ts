@@ -20,16 +20,11 @@ export async function backupTournamentData(tournamentId: string): Promise<string
       include: { players: true }
     });
 
-    if (entries.length === 0) {
-      console.log(`No team entries found to backup for tournamentId: ${tournamentId}`);
-      return null;
-    }
-
     // 2. Fetch unique user IDs from entries
     const userIds = Array.from(new Set(entries.map(e => e.userId)));
 
     // 3. Fetch user details
-    const users = await prisma.user.findMany({
+    const users = userIds.length > 0 ? await prisma.user.findMany({
       where: {
         id: { in: userIds }
       },
@@ -43,7 +38,7 @@ export async function backupTournamentData(tournamentId: string): Promise<string
         wristbandColor: true,
         role: true
       }
-    });
+    }) : [];
 
     const backupData = {
       timestamp: new Date().toISOString(),
