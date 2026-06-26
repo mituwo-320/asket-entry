@@ -126,3 +126,15 @@ model TournamentBracket {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model PrintChecklistItem {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  isPrinted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name])
+}
+

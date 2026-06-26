@@ -11,6 +11,7 @@ import LotteryModal from '@/components/admin/LotteryModal';
 
 import ProjectManagerModal from '@/components/admin/ProjectManagerModal'; // NEW
 import BackupManagerModal from '@/components/admin/BackupManagerModal'; // NEW
+import PrintChecklist from '@/components/admin/PrintChecklist'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
 import { TeamEntry, User, Match, Project } from "@/lib/types";
@@ -999,114 +1000,128 @@ export default function AdminDashboard() {
 
 
 
-                    {/* Quick Actions */}
-                    <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Download Center */}
-                        <Card className="p-6 bg-slate-900/40 border-white/5 relative overflow-hidden">
-                            <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-white relative z-10">
-                                <FileDown className="w-5 h-5 text-indigo-400" /> 出力・ダウンロード
-                            </h2>
+                    {/* Quick Actions & Checklist Grid */}
+                    <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Column 1: Print Checklist */}
+                        <div className="lg:col-span-1">
+                            <PrintChecklist projectId={selectedProjectId} />
+                        </div>
 
-                            <div className="space-y-3 relative z-10">
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
-                                    <div className="min-w-0">
-                                        <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">保険加入者リスト</p>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
-                                    </div>
-                                    <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadInsuranceList}>
-                                        <Download className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
-                                    <div className="min-w-0">
-                                        <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">個人名抽選券</p>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">印刷用 PDF</p>
-                                    </div>
-                                    <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={() => window.open('/admin/print/lottery', '_blank')}>
-                                        <Printer className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
-                                    <div className="min-w-0">
-                                        <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">詳細チーム・選手情報一覧</p>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
-                                    </div>
-                                    <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadDetailedTeamList}>
-                                        <Download className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                        {/* Column 2: Outputs & Checks */}
+                        <div className="flex flex-col gap-6">
+                            {/* Download Center */}
+                            <Card className="p-6 bg-slate-900/40 border-white/5 relative overflow-hidden flex-1 flex flex-col justify-between">
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                                <div>
+                                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-white relative z-10">
+                                        <FileDown className="w-5 h-5 text-indigo-400" /> 出力・ダウンロード
+                                    </h2>
 
-                        {/* Lottery Trigger */}
-                        <Card className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 border-none shadow-xl shadow-indigo-500/20 flex flex-col justify-center relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-3 mb-2 relative z-10">
-                                <Ticket className="w-6 h-6 text-white" />
-                                <h3 className="text-xl font-bold text-white tracking-tight">抽選システム</h3>
-                            </div>
-                            <p className="text-indigo-100/80 text-sm mb-6 relative z-10 leading-relaxed">
-                                大会イベントで使用する、演出付きの全選手対象のランダム抽選画面を起動します。
-                            </p>
-                            <Button className="w-full bg-white text-indigo-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10" onClick={() => setIsLotteryOpen(true)}>
-                                抽選画面をフルスクリーン起動
-                            </Button>
-                        </Card>
-
-                        {/* Tournament Bracket Link */}
-                        <Card className="p-6 bg-gradient-to-br from-emerald-600 to-teal-700 border-none shadow-xl shadow-emerald-500/20 flex flex-col justify-center relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex items-center gap-3 mb-2 relative z-10">
-                                <Trophy className="w-6 h-6 text-white" />
-                                <h3 className="text-xl font-bold text-white tracking-tight">トーナメント表</h3>
-                            </div>
-                            <p className="text-emerald-100/80 text-sm mb-6 relative z-10 leading-relaxed">
-                                ダブルエリミネーション方式のトーナメント表を作成・管理し、プロジェクター投影にも対応。
-                            </p>
-                            <Link href="/admin/tournament-bracket" className="block w-full">
-                                <Button className="w-full bg-white text-emerald-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10">
-                                    トーナメント表を管理
-                                </Button>
-                            </Link>
-                        </Card>
-
-                        {/* Injury Check */}
-                        <Card className="p-6 bg-slate-900/40 border-white/5">
-                            <div className="flex items-center gap-2 mb-4">
-                                <ShieldAlert className="w-5 h-5 text-emerald-400" />
-                                <h3 className="text-white font-bold tracking-wide">保険加入 即時チェック</h3>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="flex gap-2">
-                                    <Input
-                                        placeholder="選手名またはフリガナ"
-                                        className="flex-1 text-sm bg-slate-800/50"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                    />
-                                    <Button variant="primary" onClick={handleSearch} className="px-4 shadow-none">検索</Button>
-                                </div>
-                                {searchResult && (
-                                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 p-3 rounded-xl bg-slate-800/50 border border-white/5 text-sm">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-bold text-slate-500 tracking-wider uppercase mb-1">{searchResult.teamName}</span>
-                                            <div className="flex items-center justify-between">
-                                                <span className="font-bold text-white text-base">{searchResult.playerName}</span>
-                                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${searchResult.insurance ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
-                                                    {searchResult.insurance ? "保険加入済" : "未加入・対象外"}
-                                                </span>
+                                    <div className="space-y-3 relative z-10">
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">保険加入者リスト</p>
+                                                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
                                             </div>
+                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadInsuranceList}>
+                                                <Download className="w-4 h-4" />
+                                            </Button>
                                         </div>
-                                    </motion.div>
-                                )}
-                                {searchQuery && !searchResult && (
-                                    <div className="mt-4 text-sm text-slate-500 text-center bg-slate-800/30 py-3 rounded-xl border border-white/5">
-                                        一致するデータが見つかりません
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">個人名抽選券</p>
+                                                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">印刷用 PDF</p>
+                                            </div>
+                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={() => window.open('/admin/print/lottery', '_blank')}>
+                                                <Printer className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-white/5 group hover:border-indigo-500/30 transition-colors">
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">詳細チーム・選手情報一覧</p>
+                                                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
+                                            </div>
+                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadDetailedTeamList}>
+                                                <Download className="w-4 h-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        </Card>
+                                </div>
+                            </Card>
+
+                            {/* Injury Check */}
+                            <Card className="p-6 bg-slate-900/40 border-white/5">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <ShieldAlert className="w-5 h-5 text-emerald-400" />
+                                    <h3 className="text-white font-bold tracking-wide">保険加入 即時チェック</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="選手名またはフリガナ"
+                                            className="flex-1 text-sm bg-slate-800/50"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        />
+                                        <Button variant="primary" onClick={handleSearch} className="px-4 shadow-none">検索</Button>
+                                    </div>
+                                    {searchResult && (
+                                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 p-3 rounded-xl bg-slate-800/50 border border-white/5 text-sm">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-slate-500 tracking-wider uppercase mb-1">{searchResult.teamName}</span>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-white text-base">{searchResult.playerName}</span>
+                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${searchResult.insurance ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                                                        {searchResult.insurance ? "保険加入済" : "未加入・対象外"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                    {searchQuery && !searchResult && (
+                                        <div className="mt-4 text-sm text-slate-500 text-center bg-slate-800/30 py-3 rounded-xl border border-white/5">
+                                            一致するデータが見つかりません
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        </div>
+
+                        {/* Column 3: Interactive Systems */}
+                        <div className="flex flex-col gap-6">
+                            {/* Lottery Trigger */}
+                            <Card className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 border-none shadow-xl shadow-indigo-500/20 flex-1 flex flex-col justify-center relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex items-center gap-3 mb-2 relative z-10">
+                                    <Ticket className="w-6 h-6 text-white" />
+                                    <h3 className="text-xl font-bold text-white tracking-tight">抽選システム</h3>
+                                </div>
+                                <p className="text-indigo-100/80 text-sm mb-6 relative z-10 leading-relaxed flex-1">
+                                    大会イベントで使用する、演出付きの全選手対象のランダム抽選画面を起動します。
+                                </p>
+                                <Button className="w-full bg-white text-indigo-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10" onClick={() => setIsLotteryOpen(true)}>
+                                    抽選画面をフルスクリーン起動
+                                </Button>
+                            </Card>
+
+                            {/* Tournament Bracket Link */}
+                            <Card className="p-6 bg-gradient-to-br from-emerald-600 to-teal-700 border-none shadow-xl shadow-emerald-500/20 flex-1 flex flex-col justify-center relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex items-center gap-3 mb-2 relative z-10">
+                                    <Trophy className="w-6 h-6 text-white" />
+                                    <h3 className="text-xl font-bold text-white tracking-tight">トーナメント表</h3>
+                                </div>
+                                <p className="text-emerald-100/80 text-sm mb-6 relative z-10 leading-relaxed flex-1">
+                                    ダブルエリミネーション方式のトーナメント表を作成・管理し、プロジェクター投影にも対応。
+                                </p>
+                                <Link href="/admin/tournament-bracket" className="block w-full">
+                                    <Button className="w-full bg-white text-emerald-600 hover:bg-slate-50 font-bold shadow-lg transition-transform active:scale-95 relative z-10">
+                                        トーナメント表を管理
+                                    </Button>
+                                </Link>
+                            </Card>
+                        </div>
                     </motion.div>
 
                     {/* NEW: Match Management Section (Stacked Layout) */}

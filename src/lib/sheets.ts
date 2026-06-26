@@ -82,6 +82,7 @@ export async function deleteProject(projectId: string): Promise<boolean> {
             db.event.deleteMany({ where: { tournamentId: projectId } }),
             db.match.deleteMany({ where: { tournamentId: projectId } }),
             db.teamEntry.deleteMany({ where: { tournamentId: projectId } }),
+            db.printChecklistItem.deleteMany({ where: { projectId } }),
             db.project.delete({ where: { id: projectId } })
         ]);
         return true;

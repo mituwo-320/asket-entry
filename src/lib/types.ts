@@ -184,4 +184,14 @@ export interface TournamentBracketData {
     placementGroups?: PlacementGroup[];
 }
 
+export interface PrintChecklistItem {
+    id: string;
+    projectId: string;
+    name: string;
+    isPrinted: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+
 

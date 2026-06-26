@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
+import PrintChecklist from "@/components/admin/PrintChecklist"; // NEW
 
 export default function ManagementProjectDetail() {
     const params = useParams();
@@ -21,6 +22,7 @@ export default function ManagementProjectDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [teamSearchQuery, setTeamSearchQuery] = useState("");
     const [selectedEntry, setSelectedEntry] = useState<TeamEntry | null>(null);
+    const [isChecklistOpen, setIsChecklistOpen] = useState(false); // NEW: Checklist Collapsible state
 
     const loadData = async () => {
         try {
@@ -324,6 +326,35 @@ export default function ManagementProjectDetail() {
                             className="pl-11 bg-slate-900/80 border-slate-700 h-12 text-base focus-visible:ring-emerald-500 shadow-xl rounded-2xl"
                         />
                     </div>
+                </div>
+
+                {/* Print Checklist Section */}
+                <div className="mb-6 relative z-30">
+                    <button
+                        onClick={() => setIsChecklistOpen(!isChecklistOpen)}
+                        className="w-full flex items-center justify-between p-4 bg-slate-900/60 border border-slate-700/50 rounded-2xl hover:bg-slate-900/80 transition-colors shadow-lg"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Printer className="w-5 h-5 text-indigo-400" />
+                            <span className="text-sm font-bold text-white tracking-wide">印刷確認チェックリスト</span>
+                        </div>
+                        <span className="text-xs text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full font-bold border border-indigo-500/20">
+                            {isChecklistOpen ? "閉じる" : "表示する"}
+                        </span>
+                    </button>
+
+                    <AnimatePresence>
+                        {isChecklistOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="mt-3"
+                            >
+                                <PrintChecklist projectId={projectId} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 px-1 gap-4">
