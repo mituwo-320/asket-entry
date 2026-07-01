@@ -180,6 +180,9 @@ export default function AdminDashboard() {
     const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId);
     const activeMatches = matches.filter(m => m.tournamentId === selectedProjectId);
 
+    const clinicParticipatingTeams = activeEntries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
+
     const activeProjectData = projects.find(p => p.id === selectedProjectId);
 
     // Calculate Waitlist & Confirmed
@@ -528,6 +531,56 @@ export default function AdminDashboard() {
                             <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">設定</span>
                         </Button>
                     </motion.div>
+
+                    {selectedProjectId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <Card className="p-5 bg-indigo-950/20 border-indigo-500/30 text-indigo-200 shadow-xl rounded-2xl md:col-span-1">
+                                <h3 className="font-extrabold text-white text-base mb-3 flex items-center gap-2 font-sans">
+                                    🏀 夜間クリニック参加希望状況
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
+                                        <p className="text-xs text-slate-400 font-medium">希望チーム数</p>
+                                        <p className="text-2xl font-black text-indigo-400 mt-1">{clinicParticipatingTeams.length} <span className="text-xs font-normal text-slate-500">チーム</span></p>
+                                    </div>
+                                    <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
+                                        <p className="text-xs text-slate-400 font-medium">参加希望者 総数</p>
+                                        <p className="text-2xl font-black text-emerald-400 mt-1">{totalClinicCount} <span className="text-xs font-normal text-slate-500">名</span></p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {clinicParticipatingTeams.length > 0 && (
+                                <Card className="p-0 overflow-hidden border-slate-800 bg-slate-900/40 md:col-span-2">
+                                    <div className="p-4 border-b border-white/5 bg-slate-900/60">
+                                        <h4 className="text-sm font-bold text-white font-sans">夜間クリニック 参加希望チーム一覧</h4>
+                                    </div>
+                                    <div className="overflow-y-auto max-h-[180px]">
+                                        <table className="w-full text-left text-xs text-slate-400">
+                                            <thead className="bg-slate-950 text-slate-300 uppercase font-medium sticky top-0 z-10">
+                                                <tr>
+                                                    <th className="px-4 py-2.5">チーム名</th>
+                                                    <th className="px-4 py-2.5">代表者</th>
+                                                    <th className="px-4 py-2.5">電話番号</th>
+                                                    <th className="px-4 py-2.5 text-right">希望人数</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-800/60">
+                                                {clinicParticipatingTeams.map((e) => (
+                                                    <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
+                                                        <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
+                                                        <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
+                                                        <td className="px-4 py-2.5 font-mono">{getRepPhone(e.userId)}</td>
+                                                        <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </Card>
+                            )}
+                        </motion.div>
+                    )}
 
                     {/* Stats Grid */}
                     <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
@@ -892,6 +945,11 @@ export default function AdminDashboard() {
                                                     {selectedEntry.isOpenChatJoined ? <CheckCircle2 className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
                                                     <span className="text-xs font-bold">OPチャット{selectedEntry.isOpenChatJoined ? '参加済' : '未参加'}</span>
                                                 </div>
+                                                {selectedEntry.tournamentId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                                                    <div className={`p-3 rounded-xl border flex items-center gap-2 ${selectedEntry.clinicParticipation ? 'bg-indigo-900/20 border-indigo-500/30 text-indigo-300' : 'bg-slate-800/30 border-slate-700 text-slate-400'}`}>
+                                                        <span className="text-xs font-bold">🏀 Clinic: {selectedEntry.clinicParticipation ? `参加 (${selectedEntry.clinicCount}名)` : '不参加'}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             {selectedEntry.managementMemo ? (
                                                 <div className="bg-amber-900/10 border border-amber-500/20 p-4 rounded-xl">
@@ -963,6 +1021,31 @@ export default function AdminDashboard() {
                                                     仮エントリーに戻す
                                                 </button>
                                             )}
+
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。登録された選手データもすべて物理削除され、募集枠が解放されます。")) return;
+                                                    try {
+                                                        const res = await fetch('/api/admin/entry/delete', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ entryId: selectedEntry.id })
+                                                        });
+                                                        if (res.ok) {
+                                                            setEntries((prev) => prev.filter(e => e.id !== selectedEntry.id));
+                                                            setSelectedEntry(null);
+                                                            alert("チームデータを完全に削除し、募集枠を解放しました。");
+                                                        } else {
+                                                            alert("削除に失敗しました");
+                                                        }
+                                                    } catch (e) {
+                                                        alert("エラーが発生しました");
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-red-950/40 hover:bg-red-900/60 text-red-400 text-sm font-medium border border-red-900/30 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                <Trash2 className="w-4 h-4" /> 完全に削除する
+                                            </button>
 
                                             <a
                                                 href={`/team/dashboard?id=${selectedEntry.id}`}

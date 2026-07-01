@@ -78,6 +78,8 @@ export async function POST(request: Request) {
             players: [repPlayer], // Add Rep immediately
             status: 'draft',
             preliminaryNumber: body.preliminaryNumber ? parseInt(body.preliminaryNumber, 10) : undefined, // NEW
+            clinicParticipation: body.clinicParticipation || false,
+            clinicCount: body.clinicCount ? parseInt(body.clinicCount.toString(), 10) : 0,
             createdAt: new Date().toISOString()
         };
 

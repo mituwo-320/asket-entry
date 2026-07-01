@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy } from "lucide-react";
+import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy, Trash2 } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import PrintChecklist from "@/components/admin/PrintChecklist"; // NEW
@@ -149,6 +149,9 @@ export default function ManagementProjectDetail() {
 
     const confirmedEntries = filteredEntries.filter(e => !isWaitlisted(e) && e.status !== 'cancelled');
     const otherEntries = filteredEntries.filter(e => isWaitlisted(e) || e.status === 'cancelled');
+
+    const clinicParticipatingTeams = entries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
 
     const renderEntryCard = (entry: TeamEntry) => {
         const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
@@ -314,6 +317,56 @@ export default function ManagementProjectDetail() {
             </header>
 
             <main className="container mx-auto px-4 py-6 max-w-4xl">
+                {projectId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                    <div className="mb-8 space-y-4">
+                        <Card className="p-5 bg-indigo-950/20 border-indigo-500/30 text-indigo-200 shadow-xl rounded-2xl">
+                            <h3 className="font-extrabold text-white text-base mb-3 flex items-center gap-2">
+                                🏀 7月19日 夜間クリニック参加希望状況
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
+                                    <p className="text-xs text-slate-400 font-medium">希望チーム数</p>
+                                    <p className="text-2xl font-black text-indigo-400 mt-1">{clinicParticipatingTeams.length} <span className="text-xs font-normal text-slate-500">チーム</span></p>
+                                </div>
+                                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
+                                    <p className="text-xs text-slate-400 font-medium">参加希望者 総数</p>
+                                    <p className="text-2xl font-black text-emerald-400 mt-1">{totalClinicCount} <span className="text-xs font-normal text-slate-500">名</span></p>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {clinicParticipatingTeams.length > 0 && (
+                            <Card className="p-0 overflow-hidden border-slate-800 bg-slate-900/40">
+                                <div className="p-4 border-b border-white/5 bg-slate-900/60">
+                                    <h4 className="text-sm font-bold text-white">夜間クリニック 参加希望チーム一覧</h4>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs text-slate-400">
+                                        <thead className="bg-slate-950 text-slate-300 uppercase font-medium">
+                                            <tr>
+                                                <th className="px-4 py-2.5">チーム名</th>
+                                                <th className="px-4 py-2.5">代表者</th>
+                                                <th className="px-4 py-2.5">電話番号</th>
+                                                <th className="px-4 py-2.5 text-right">希望人数</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800/60">
+                                            {clinicParticipatingTeams.map((e) => (
+                                                <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
+                                                    <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
+                                                    <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
+                                                    <td className="px-4 py-2.5 font-mono">{getRepPhone(e.userId)}</td>
+                                                    <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+                        )}
+                    </div>
+                )}
+
                 {/* Search Bar - Sticky on mobile */}
                 <div className="sticky top-[72px] z-40 bg-slate-950/90 backdrop-blur-sm py-2 mb-6">
                     <div className="relative">
@@ -467,6 +520,17 @@ export default function ManagementProjectDetail() {
                                         <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{selectedEntry.teamIntroduction || "（未記入）"}</p>
                                     </div>
 
+                                    {selectedEntry.tournamentId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                                        <div className="bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
+                                            <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">🏀 夜間クリニック参加希望状況 (7月19日夜)</p>
+                                            <p className="text-slate-200 text-sm font-bold">
+                                                {(selectedEntry as any).clinicParticipation
+                                                    ? `✅ 参加する (${(selectedEntry as any).clinicCount}名)`
+                                                    : "▫️ 参加しない"}
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {/* Editable Management Section */}
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2 border-b border-white/5 pb-2 uppercase tracking-widest pl-1">
@@ -532,6 +596,31 @@ export default function ManagementProjectDetail() {
                                                     }}
                                                 >
                                                     仮エントリーに戻す
+                                                </Button>
+                                                <Button
+                                                    className="w-full h-12 border bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-900/30 font-bold flex items-center justify-center gap-2"
+                                                    onClick={async () => {
+                                                        if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。選手データもすべて物理削除され、募集枠が解放されます。")) return;
+                                                        try {
+                                                            const res = await fetch('/api/admin/entry/delete', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ entryId: selectedEntry.id })
+                                                            });
+                                                            if (res.ok) {
+                                                                setEntries((prev) => prev.filter(e => e.id !== selectedEntry.id));
+                                                                setSelectedEntry(null);
+                                                                alert("チームデータを完全に削除し、募集枠を解放しました。");
+                                                            } else {
+                                                                alert("削除に失敗しました");
+                                                            }
+                                                        } catch (e) {
+                                                            alert("エラーが発生しました");
+                                                        }
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                    このチームを完全に削除する
                                                 </Button>
                                             </div>
                                         </div>

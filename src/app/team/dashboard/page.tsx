@@ -286,6 +286,21 @@ function DashboardContent() {
                             </div>
                             <p className="text-2xl font-bold text-emerald-400">{insuranceCount}<span className="text-sm font-normal text-slate-500 ml-1">名</span></p>
                         </Card>
+                        {teamEntry.tournamentId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                            <Card className="p-4 bg-indigo-950/20 border-indigo-500/20 col-span-2 md:col-span-2 flex flex-col justify-between">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs text-indigo-300 font-bold">🏀 7/19夜 クリニック参加希望</span>
+                                </div>
+                                <p className="text-xl font-black text-indigo-400 leading-tight">
+                                    {teamEntry.clinicParticipation 
+                                        ? `参加する (${teamEntry.clinicCount}名)` 
+                                        : "参加しない"}
+                                </p>
+                                {teamEntry.status === 'draft' && (
+                                    <p className="text-[9px] text-slate-500 mt-1">※上部の「チーム設定」から変更できます</p>
+                                )}
+                            </Card>
+                        )}
                     </div>
 
                     {/* Team Introduction Section */}

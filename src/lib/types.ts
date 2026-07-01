@@ -53,6 +53,8 @@ export interface TeamEntry {
     receiptName?: string; // 領収書の宛名（御社名）
     receiptIssuedAt?: string; // 領収書発行日時
     receiptViewedAt?: string; // 領収書閲覧日時
+    clinicParticipation?: boolean; // クリニック参加希望有無
+    clinicCount?: number; // クリニック参加人数
 
     createdAt: string;
 }

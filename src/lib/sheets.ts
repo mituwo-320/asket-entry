@@ -188,7 +188,9 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 uniformColor: entry.uniformColor || null,
                 receiptName: entry.receiptName || null,
                 receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
-                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null
+                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null,
+                clinicParticipation: entry.clinicParticipation || false,
+                clinicCount: entry.clinicCount || 0
             },
             create: {
                 id: entry.id,
@@ -207,7 +209,9 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 uniformColor: entry.uniformColor || null,
                 receiptName: entry.receiptName || null,
                 receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
-                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null
+                receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null,
+                clinicParticipation: entry.clinicParticipation || false,
+                clinicCount: entry.clinicCount || 0
             }
         });
 
@@ -265,6 +269,8 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             receiptName: e.receiptName || undefined,
             receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
             receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
+            clinicParticipation: e.clinicParticipation,
+            clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -307,6 +313,8 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             receiptName: e.receiptName || undefined,
             receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
             receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
+            clinicParticipation: e.clinicParticipation,
+            clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -516,6 +524,8 @@ export async function getAllAdminData() {
             receiptName: e.receiptName || undefined,
             receiptIssuedAt: e.receiptIssuedAt ? e.receiptIssuedAt.toISOString() : undefined,
             receiptViewedAt: e.receiptViewedAt ? e.receiptViewedAt.toISOString() : undefined,
+            clinicParticipation: e.clinicParticipation,
+            clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
             players: e.players.map((p: any) => ({
                 id: p.id,
@@ -589,6 +599,18 @@ export async function updateSetting(data: { participationFee: number; insuranceF
         return true;
     } catch (e) {
         console.error("updateSetting error:", e);
+        return false;
+    }
+}
+
+export async function deleteTeamEntry(entryId: string): Promise<boolean> {
+    try {
+        await db.teamEntry.delete({
+            where: { id: entryId }
+        });
+        return true;
+    } catch (e) {
+        console.error('deleteTeamEntry error:', e);
         return false;
     }
 }

@@ -38,6 +38,8 @@ export async function POST(request: Request) {
             teamName: body.teamName !== undefined ? body.teamName : existingEntry.teamName,
             teamNameKana: body.teamNameKana !== undefined ? body.teamNameKana : existingEntry.teamNameKana,
             teamIntroduction: body.teamIntroduction !== undefined ? body.teamIntroduction : existingEntry.teamIntroduction,
+            clinicParticipation: body.clinicParticipation !== undefined ? body.clinicParticipation : existingEntry.clinicParticipation,
+            clinicCount: body.clinicCount !== undefined ? (body.clinicCount ? parseInt(body.clinicCount.toString(), 10) : 0) : existingEntry.clinicCount,
         };
 
         // 3. Update Representative Player

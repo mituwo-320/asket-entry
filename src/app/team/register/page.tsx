@@ -36,7 +36,9 @@ export default function RegisterPage() {
         wristbandColor: "赤",
         insurance: true,
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        clinicParticipation: false,
+        clinicCount: 0
     });
     const [error, setError] = useState("");
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: "", message: "", onConfirm: () => {} });
@@ -120,7 +122,9 @@ export default function RegisterPage() {
                     preliminaryNumber: parseInt(formData.preliminaryNumber, 10),
                     wristbandColor: formData.wristbandColor,
                     insurance: formData.insurance,
-                    password: formData.password
+                    password: formData.password,
+                    clinicParticipation: formData.clinicParticipation,
+                    clinicCount: formData.clinicCount
                 })
             });
 
@@ -666,7 +670,7 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                                        <div className="space-y-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">チーム紹介・意気込み <span className="text-red-400 ml-1">*必須</span></label>
                             <textarea
                                 placeholder="今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）"
@@ -676,6 +680,55 @@ export default function RegisterPage() {
                                 className="w-full bg-slate-950/50 border border-slate-800 rounded-md p-3 min-h-[120px] focus:border-indigo-500/50 focus:ring-indigo-500/20 text-sm"
                             />
                         </div>
+
+                        {formData.projectId === "proj_7b3c4072-840c-4f4c-879d-52f0e89c243e" && (
+                            <div className="space-y-4 p-5 bg-indigo-950/20 border border-indigo-500/30 rounded-xl">
+                                <label className="text-sm font-extrabold text-indigo-300 flex items-center gap-2">
+                                    🏀 夜間クリニックへの参加希望 (7月19日 18:00開始予定)
+                                </label>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    7月19日の夜、大会終了後にBリーガーによるクリニック（参加費無料、対象制限なし、ヴァンキーカップ参加者優先）を開催予定です。おおよその参加人数を把握するため、ご希望を入力してください。
+                                </p>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                        <input
+                                            type="radio"
+                                            name="clinicParticipation"
+                                            checked={formData.clinicParticipation === true}
+                                            onChange={() => setFormData({ ...formData, clinicParticipation: true, clinicCount: 1 })}
+                                            className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                        />
+                                        7月19日の夜クリニックに参加する
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                        <input
+                                            type="radio"
+                                            name="clinicParticipation"
+                                            checked={formData.clinicParticipation === false}
+                                            onChange={() => setFormData({ ...formData, clinicParticipation: false, clinicCount: 0 })}
+                                            className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                        />
+                                        参加しない
+                                    </label>
+                                </div>
+                                {formData.clinicParticipation && (
+                                    <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <label className="text-xs font-bold text-slate-400">参加予定人数</label>
+                                        <select
+                                            value={formData.clinicCount}
+                                            onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
+                                            className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
+                                        >
+                                            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                                <option key={n} value={n}>
+                                                    {n} 名
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="space-y-4 pt-2">
                             <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">参加同意 <span className="text-red-400 ml-1">*必須</span></label>

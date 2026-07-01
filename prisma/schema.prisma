@@ -57,6 +57,8 @@ model TeamEntry {
   receiptName                String?  // 領収書の宛名（御社名）ユーザーが設定可能
   receiptIssuedAt            DateTime? // 領収書発行日時（一度発行したら変更不可）
   receiptViewedAt            DateTime? // 領収書閲覧日時（ユーザーが領収書を開いた日時、以降は表示不可）
+  clinicParticipation        Boolean  @default(false) // クリニック参加希望有無
+  clinicCount                Int      @default(0)     // クリニック参加人数
   createdAt                  DateTime @default(now())
 
   updatedAt                  DateTime @updatedAt

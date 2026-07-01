@@ -22,6 +22,7 @@ function EditTeamContent() {
     const [successMsg, setSuccessMsg] = useState("");
     const [projectEndDate, setProjectEndDate] = useState<string | null>(null);
 
+    const [tournamentId, setTournamentId] = useState("");
     const [formData, setFormData] = useState({
         // Team
         teamName: "",
@@ -34,6 +35,9 @@ function EditTeamContent() {
         repFurigana: "",
         wristbandColor: "赤",
         insurance: false,
+        // Clinic
+        clinicParticipation: false,
+        clinicCount: 0,
     });
 
     useEffect(() => {
@@ -59,49 +63,24 @@ function EditTeamContent() {
 
                 const data = await res.json();
                 const team: TeamEntry = data.teamEntry;
+                setTournamentId(team.tournamentId);
                 setProjectEndDate((team as any).projectEndDate || null);
-                const user: User | undefined = data.user; // We might need to fetch user separately or API/team/data returns it?
-                // Checking api/team/data/route.ts -> it returns { teamEntry: ... } only. 
-                // We need the User object too. But api/team/data usually finds entry by userId if no header?
-                // Actually, let's look at api/team/data... 
-                // It fetches via userId from session or x-team-id.
-                // It currently only returns `teamEntry`. 
-                // AND the rep player is the first player in `teamEntry.players`.
-                // BUT User object has phone/address/email/postalCode. TeamEntry doesn't have address.
-
-                // CRITICAL: We need the User object to edit phone/address.
-                // `api/team/data` might need to be updated to return User, or we fetch it here.
-                // However, since we are in a hurry, I will Implement a fetch strategy.
-                // `teamEntry.userId` gives us the user ID.
-
-                // Actually, the `User` object is NOT returned by default `api/team/data`.
-                // Let's assume for now we can get the Rep Player data from `teamEntry`.
-                // The User specific data (Address/Phone) is in `User` object.
-                // For this task, "Edit Team Information", usually implies Team info. 
-                // User asked "Team name etc representative edit function". which implies rep fields.
-                // If `api/team/data` doesn't return User, we might need to update it or create `api/team/update` to handle fetching too?
-                // No, better to update `api/team/data` to return user if needed.
-                // Let's check `api/team/data` first. 
-
-                // Wait, I can't check it right now inside this tool call.
-                // I will code this optimistically assuming I will update `api/team/data` to return `user` object as well, 
-                // OR I will fetch it in a separate call if needed.
-                // Update: I will update `api/team/data` in the next step to return `user` as well.
-
+                const user: User | undefined = data.user;
                 const repPlayer = team.players.find(p => p.isRepresentative) || team.players[0];
 
                 setFormData({
                     teamName: team.teamName,
                     teamNameKana: team.teamNameKana || "",
                     teamIntroduction: team.teamIntroduction || "",
-                    representativeName: repPlayer.name, // Edit Rep Name on Player
-                    phone: "", // Will be filled if API returns user
+                    representativeName: repPlayer.name,
+                    phone: "",
                     repFurigana: repPlayer.furigana,
                     wristbandColor: repPlayer.wristbandColor || "赤",
                     insurance: repPlayer.insurance,
+                    clinicParticipation: (team as any).clinicParticipation || false,
+                    clinicCount: (team as any).clinicCount || 0,
                 });
 
-                // If API returns user data (I will ensure this next)
                 if ((data as any).user) {
                     const u = (data as any).user as User;
                     setFormData(prev => ({
@@ -217,6 +196,55 @@ function EditTeamContent() {
                                     className="w-full bg-slate-950/50 border border-slate-800 rounded-md p-3 min-h-[100px] focus:border-indigo-500/50 focus:ring-indigo-500/20 text-sm text-slate-200"
                                 />
                             </div>
+
+                            {tournamentId === "proj_7b3c4072-840c-4f4c-879d-52f0e89c243e" && (
+                                <div className="space-y-4 p-5 bg-indigo-950/20 border border-indigo-500/30 rounded-xl">
+                                    <label className="text-sm font-extrabold text-indigo-300 flex items-center gap-2">
+                                        🏀 夜間クリニックへの参加希望 (7月19日 18:00開始予定)
+                                    </label>
+                                    <p className="text-xs text-slate-400 leading-relaxed">
+                                        7月19日の夜、大会終了後にBリーガーによるクリニック（参加費無料、対象制限なし、ヴァンキーカップ参加者優先）を開催予定です。おおよその参加人数を把握するため、ご希望を入力してください。
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                            <input
+                                                type="radio"
+                                                name="clinicParticipation"
+                                                checked={formData.clinicParticipation === true}
+                                                onChange={() => setFormData({ ...formData, clinicParticipation: true, clinicCount: 1 })}
+                                                className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                            />
+                                            7月19日の夜クリニックに参加する
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                            <input
+                                                type="radio"
+                                                name="clinicParticipation"
+                                                checked={formData.clinicParticipation === false}
+                                                onChange={() => setFormData({ ...formData, clinicParticipation: false, clinicCount: 0 })}
+                                                className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                            />
+                                            参加しない
+                                        </label>
+                                    </div>
+                                    {formData.clinicParticipation && (
+                                        <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <label className="text-xs font-bold text-slate-400">参加予定人数</label>
+                                            <select
+                                                value={formData.clinicCount}
+                                                onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
+                                                className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
+                                            >
+                                                {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                                    <option key={n} value={n}>
+                                                        {n} 名
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Representative Info */}
