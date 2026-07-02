@@ -212,6 +212,37 @@ function DashboardContent() {
         }
     };
 
+    const handleUpdateClinicOnly = async () => {
+        if (!teamEntry || tempClinicParticipation === null) return;
+        setIsLoading(true);
+        try {
+            const updateRes = await fetch('/api/team/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
+                body: JSON.stringify({
+                    clinicParticipation: tempClinicParticipation,
+                    clinicCount: tempClinicParticipation ? tempClinicCount : 0
+                })
+            });
+            if (updateRes.ok) {
+                const updated = {
+                    ...teamEntry,
+                    clinicParticipation: tempClinicParticipation,
+                    clinicCount: tempClinicParticipation ? tempClinicCount : 0
+                };
+                setTeamEntry(updated);
+                setClinicModalOpen(false);
+                showAlert("完了", "クリニックの参加希望を更新しました。");
+            } else {
+                showAlert("エラー", "クリニック情報の保存に失敗しました。");
+            }
+        } catch (e) {
+            showAlert("エラー", "通信エラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // 領収書を発行する（初回のみ宛名を保存）
     const handleIssueReceipt = async (customName?: string) => {
         if (!teamEntry) return;
@@ -356,9 +387,24 @@ function DashboardContent() {
                                             ? `参加する (${teamEntry.clinicCount}名)`
                                             : "参加しない"}
                                 </p>
-                                {teamEntry.status === 'draft' && (
-                                    <p className="text-[9px] text-slate-500 mt-1">※上部の「チーム設定」から変更できます</p>
-                                )}
+                                <div className="flex justify-between items-end mt-2">
+                                    {teamEntry.status === 'draft' ? (
+                                        <p className="text-[9px] text-slate-500">※上部の「チーム設定」から変更できます</p>
+                                    ) : (
+                                        !isDeadlinePassed && (
+                                            <button
+                                                onClick={() => {
+                                                    setTempClinicParticipation(teamEntry.clinicParticipation);
+                                                    setTempClinicCount(teamEntry.clinicCount || 1);
+                                                    setClinicModalOpen(true);
+                                                }}
+                                                className="text-xs text-indigo-400 hover:text-indigo-300 font-bold underline transition-colors"
+                                            >
+                                                {teamEntry.clinicParticipation === null ? "希望を回答する" : "変更する"}
+                                            </button>
+                                        )
+                                    )}
+                                </div>
                             </Card>
                         )}
                     </div>
@@ -654,10 +700,12 @@ function DashboardContent() {
                     <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                         <div className="text-center">
                             <h3 className="text-lg font-black text-white flex items-center justify-center gap-2">
-                                🏀 バスケクリニック参加希望の確認
+                                🏀 {teamEntry.status === 'submitted' ? 'バスケクリニック参加希望の変更' : 'バスケクリニック参加希望の確認'}
                             </h3>
                             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                                本エントリーを完了する前に、{(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。
+                                {teamEntry.status === 'submitted'
+                                    ? `${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を変更してください。`
+                                    : `本エントリーを完了する前に、${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。`}
                             </p>
                         </div>
 
@@ -708,13 +756,23 @@ function DashboardContent() {
 
                         {/* アクションボタン */}
                         <div className="flex flex-col gap-2 pt-2">
-                            <button
-                                onClick={handleFinalizeWithClinic}
-                                disabled={tempClinicParticipation === null || isLoading}
-                                className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
-                            >
-                                {isLoading ? '処理中...' : '希望を確定して、本エントリーを完了する'}
-                            </button>
+                            {teamEntry.status === 'submitted' ? (
+                                <button
+                                    onClick={handleUpdateClinicOnly}
+                                    disabled={tempClinicParticipation === null || isLoading}
+                                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? '処理中...' : '希望を更新する'}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleFinalizeWithClinic}
+                                    disabled={tempClinicParticipation === null || isLoading}
+                                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? '処理中...' : '希望を確定して、本エントリーを完了する'}
+                                </button>
+                            )}
                             <button
                                 onClick={() => !isLoading && setClinicModalOpen(false)}
                                 className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-colors"

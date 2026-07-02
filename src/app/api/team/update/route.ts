@@ -25,7 +25,12 @@ export async function POST(request: Request) {
         const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
 
         if (existingEntry.status === 'submitted' && !isAdmin) {
-            return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
+            // Only allow updating clinic fields
+            const keys = Object.keys(body);
+            const nonClinicKeys = keys.filter(k => k !== 'clinicParticipation' && k !== 'clinicCount');
+            if (nonClinicKeys.length > 0) {
+                return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
+            }
         }
 
         const projects = await getProjects();
