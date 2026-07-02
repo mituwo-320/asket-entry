@@ -114,12 +114,6 @@ function EditTeamContent() {
         setIsSaving(true);
         setError("");
         setSuccessMsg("");
-        if (hasClinic && formData.clinicParticipation === null) {
-            setError(`${clinicTitle || 'バスケクリニック'}の参加・不参加を選択してください`);
-            setIsSaving(false);
-            return;
-        }
-
         try {
             const res = await fetch('/api/team/update', {
                 method: 'POST',
@@ -256,6 +250,9 @@ function EditTeamContent() {
                                             </select>
                                         </div>
                                     )}
+                                    <p className="text-[10px] text-slate-500 leading-normal mt-2">
+                                        ※現時点で参加人数等が決まっていない場合は、未選択のままでも保存可能です。参加・不参加および人数は、仮エントリー完了後にマイページよりいつでもご変更いただけます（メンバー確定時までに最終決定をお願いします）。
+                                    </p>
                                 </div>
                             )}
                         </div>

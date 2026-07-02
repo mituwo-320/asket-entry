@@ -102,12 +102,6 @@ export default function RegisterPage() {
             return;
         }
 
-        const activeProj = projects.find(p => p.id === formData.projectId);
-        if (activeProj?.hasClinic && formData.clinicParticipation === null) {
-            setError(`${activeProj.clinicTitle || 'バスケクリニック'}の参加・不参加を選択してください`);
-            return;
-        }
-
         setIsLoading(true);
 
         try {
@@ -733,6 +727,9 @@ export default function RegisterPage() {
                                         </select>
                                     </div>
                                 )}
+                                <p className="text-[10px] text-slate-500 leading-normal mt-2">
+                                    ※新規エントリー時点で参加人数等が決まっていない場合は、未選択のままでも登録可能です。参加・不参加および人数は、仮エントリー完了後にマイページよりいつでもご変更いただけます（メンバー確定時までに最終決定をお願いします）。
+                                </p>
                             </div>
                         )}
 
