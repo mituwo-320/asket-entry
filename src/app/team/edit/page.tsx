@@ -40,7 +40,7 @@ function EditTeamContent() {
         wristbandColor: "赤",
         insurance: false,
         // Clinic
-        clinicParticipation: false,
+        clinicParticipation: null as boolean | null,
         clinicCount: 0,
     });
 
@@ -85,7 +85,7 @@ function EditTeamContent() {
                     repFurigana: repPlayer.furigana,
                     wristbandColor: repPlayer.wristbandColor || "赤",
                     insurance: repPlayer.insurance,
-                    clinicParticipation: (team as any).clinicParticipation || false,
+                    clinicParticipation: (team as any).clinicParticipation !== undefined && (team as any).clinicParticipation !== null ? (team as any).clinicParticipation : null,
                     clinicCount: (team as any).clinicCount || 0,
                 });
 
@@ -114,6 +114,11 @@ function EditTeamContent() {
         setIsSaving(true);
         setError("");
         setSuccessMsg("");
+        if (hasClinic && formData.clinicParticipation === null) {
+            setError(`${clinicTitle || 'バスケクリニック'}の参加・不参加を選択してください`);
+            setIsSaving(false);
+            return;
+        }
 
         try {
             const res = await fetch('/api/team/update', {

@@ -29,6 +29,10 @@ function DashboardContent() {
     const [receiptNameInput, setReceiptNameInput] = useState("");
     const [isEditingReceiptName, setIsEditingReceiptName] = useState(false);
     const [isIssuingReceipt, setIsIssuingReceipt] = useState(false);
+    // バスケクリニック確約モーダル
+    const [clinicModalOpen, setClinicModalOpen] = useState(false);
+    const [tempClinicParticipation, setTempClinicParticipation] = useState<boolean | null>(null);
+    const [tempClinicCount, setTempClinicCount] = useState<number>(1);
 
     const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
     const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
@@ -135,22 +139,74 @@ function DashboardContent() {
         );
     };
 
-    const handleFinalizeEntry = async () => {
-        if (!teamEntry) return;
+    const handleFinalizeEntry = async (updatedEntry?: TeamEntry) => {
+        const targetEntry = updatedEntry || teamEntry;
+        if (!targetEntry) return;
         try {
             const res = await fetch('/api/team/submit', {
                 method: 'POST',
-                headers: { 'x-team-id': teamEntry.id }
+                headers: { 'x-team-id': targetEntry.id }
             });
             if (res.ok) {
-                setTeamEntry({ ...teamEntry, status: 'submitted' });
+                setTeamEntry({ ...targetEntry, status: 'submitted' });
                 // Automatically open the invoice page in a new tab after submission
-                window.open(`/team/invoice?id=${teamEntry.id}`, '_blank');
+                window.open(`/team/invoice?id=${targetEntry.id}`, '_blank');
             } else {
                 showAlert("エラー", "本エントリーの処理に失敗しました。");
             }
         } catch (e) {
             showAlert("エラー", "通信エラーが発生しました。");
+        }
+    };
+
+    const handleFinalizeClick = () => {
+        if (!teamEntry) return;
+        
+        // If clinic is active for this project, and the selection is still null, open the selector modal
+        if ((teamEntry as any).hasClinic && teamEntry.clinicParticipation === null) {
+            setTempClinicParticipation(null);
+            setTempClinicCount(1);
+            setClinicModalOpen(true);
+            return;
+        }
+        
+        showConfirm(
+            "本エントリー確認",
+            "これ以降メンバーの編集ができなくなりますが、本エントリーを完了して請求書を発行してよろしいですか？",
+            () => handleFinalizeEntry(),
+            false,
+            "完了する"
+        );
+    };
+
+    const handleFinalizeWithClinic = async () => {
+        if (!teamEntry || tempClinicParticipation === null) return;
+        setIsLoading(true);
+        try {
+            const updateRes = await fetch('/api/team/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
+                body: JSON.stringify({
+                    clinicParticipation: tempClinicParticipation,
+                    clinicCount: tempClinicParticipation ? tempClinicCount : 0
+                })
+            });
+            if (updateRes.ok) {
+                const updated = {
+                    ...teamEntry,
+                    clinicParticipation: tempClinicParticipation,
+                    clinicCount: tempClinicParticipation ? tempClinicCount : 0
+                };
+                setTeamEntry(updated);
+                setClinicModalOpen(false);
+                await handleFinalizeEntry(updated);
+            } else {
+                showAlert("エラー", "クリニック情報の保存に失敗しました。");
+            }
+        } catch (e) {
+            showAlert("エラー", "通信エラーが発生しました。");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -291,10 +347,12 @@ function DashboardContent() {
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-xs text-indigo-300 font-bold">{(teamEntry as any).clinicTitle || "🏀 バスケクリニック参加希望"}</span>
                                 </div>
-                                <p className="text-xl font-black text-indigo-400 leading-tight">
-                                    {teamEntry.clinicParticipation 
-                                        ? `参加する (${teamEntry.clinicCount}名)` 
-                                        : "参加しない"}
+                                <p className={`text-xl font-black leading-tight ${teamEntry.clinicParticipation === null ? 'text-amber-400' : 'text-indigo-400'}`}>
+                                    {teamEntry.clinicParticipation === null
+                                        ? "未回答 (要選択)"
+                                        : teamEntry.clinicParticipation
+                                            ? `参加する (${teamEntry.clinicCount}名)`
+                                            : "参加しない"}
                                 </p>
                                 {teamEntry.status === 'draft' && (
                                     <p className="text-[9px] text-slate-500 mt-1">※上部の「チーム設定」から変更できます</p>
@@ -439,13 +497,7 @@ function DashboardContent() {
                                 </div>
                                 <Button
                                     size="lg"
-                                    onClick={() => showConfirm(
-                                        "本エントリー確認",
-                                        "これ以降メンバーの編集ができなくなりますが、本エントリーを完了して請求書を発行してよろしいですか？",
-                                        () => handleFinalizeEntry(),
-                                        false,
-                                        "完了する"
-                                    )}
+                                    onClick={handleFinalizeClick}
                                     className="w-full md:w-auto min-w-[300px] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-6 text-lg shadow-lg shadow-indigo-500/30"
                                 >
                                     <CheckCircle className="w-5 h-5 mr-2" /> 本エントリーを完了し、請求書を発行する
@@ -594,6 +646,84 @@ function DashboardContent() {
                 title={alertDialog.title}
                 message={alertDialog.message}
             />
+            {/* バスケクリニック参加確認モーダル */}
+            {clinicModalOpen && teamEntry && (
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="text-center">
+                            <h3 className="text-lg font-black text-white flex items-center justify-center gap-2">
+                                🏀 バスケクリニック参加希望の確認
+                            </h3>
+                            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                                本エントリーを完了する前に、{(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。
+                            </p>
+                        </div>
+
+                        <div className="space-y-4 bg-slate-950/50 p-4 rounded-xl border border-white/5">
+                            <div className="flex flex-col gap-3">
+                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-slate-200">
+                                    <input
+                                        type="radio"
+                                        name="tempClinicParticipation"
+                                        checked={tempClinicParticipation === true}
+                                        onChange={() => setTempClinicParticipation(true)}
+                                        className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500 cursor-pointer"
+                                    />
+                                    クリニックに参加する
+                                </label>
+                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-slate-200">
+                                    <input
+                                        type="radio"
+                                        name="tempClinicParticipation"
+                                        checked={tempClinicParticipation === false}
+                                        onChange={() => {
+                                            setTempClinicParticipation(false);
+                                            setTempClinicCount(0);
+                                        }}
+                                        className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500 cursor-pointer"
+                                    />
+                                    参加しない
+                                </label>
+                            </div>
+
+                            {tempClinicParticipation === true && (
+                                <div className="space-y-2 pt-2 border-t border-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <label className="text-xs font-bold text-slate-400 block mb-1">参加予定人数 (1〜{(teamEntry as any).clinicLimit || 20}名)</label>
+                                    <select
+                                        value={tempClinicCount}
+                                        onChange={(e) => setTempClinicCount(parseInt(e.target.value, 10))}
+                                        className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
+                                    >
+                                        {Array.from({ length: (teamEntry as any).clinicLimit || 20 }, (_, i) => i + 1).map((n) => (
+                                            <option key={n} value={n}>
+                                                {n} 名
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* アクションボタン */}
+                        <div className="flex flex-col gap-2 pt-2">
+                            <button
+                                onClick={handleFinalizeWithClinic}
+                                disabled={tempClinicParticipation === null || isLoading}
+                                className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                            >
+                                {isLoading ? '処理中...' : '希望を確定して、本エントリーを完了する'}
+                            </button>
+                            <button
+                                onClick={() => !isLoading && setClinicModalOpen(false)}
+                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-colors"
+                            >
+                                キャンセル
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ConfirmDialog
                 isOpen={confirmDialog.open}
                 onClose={() => setConfirmDialog(d => ({ ...d, open: false }))}

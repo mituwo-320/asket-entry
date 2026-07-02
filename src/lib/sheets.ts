@@ -201,7 +201,7 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 receiptName: entry.receiptName || null,
                 receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
                 receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null,
-                clinicParticipation: entry.clinicParticipation || false,
+                clinicParticipation: entry.clinicParticipation !== undefined ? entry.clinicParticipation : null,
                 clinicCount: entry.clinicCount || 0
             },
             create: {
@@ -222,7 +222,7 @@ export async function saveTeamEntry(entry: TeamEntry): Promise<boolean> {
                 receiptName: entry.receiptName || null,
                 receiptIssuedAt: entry.receiptIssuedAt ? new Date(entry.receiptIssuedAt) : null,
                 receiptViewedAt: entry.receiptViewedAt ? new Date(entry.receiptViewedAt) : null,
-                clinicParticipation: entry.clinicParticipation || false,
+                clinicParticipation: entry.clinicParticipation !== undefined ? entry.clinicParticipation : null,
                 clinicCount: entry.clinicCount || 0
             }
         });

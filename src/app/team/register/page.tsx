@@ -37,7 +37,7 @@ export default function RegisterPage() {
         insurance: true,
         password: "",
         confirmPassword: "",
-        clinicParticipation: false,
+        clinicParticipation: null as boolean | null,
         clinicCount: 0
     });
     const [error, setError] = useState("");
@@ -99,6 +99,12 @@ export default function RegisterPage() {
         }
         if (!formData.preliminaryNumber) {
             setError("予選抽選用の数字を選択してください");
+            return;
+        }
+
+        const activeProj = projects.find(p => p.id === formData.projectId);
+        if (activeProj?.hasClinic && formData.clinicParticipation === null) {
+            setError(`${activeProj.clinicTitle || 'バスケクリニック'}の参加・不参加を選択してください`);
             return;
         }
 

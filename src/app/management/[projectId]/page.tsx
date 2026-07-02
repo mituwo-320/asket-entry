@@ -220,6 +220,32 @@ export default function ManagementProjectDetail() {
                             </div>
                         </div>
 
+                        {project?.hasClinic && (
+                            <div className="mb-4">
+                                {entry.clinicParticipation === null ? (
+                                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-red-500/30 bg-red-950/20 text-red-400">
+                                        <span className="text-[10px] font-extrabold tracking-wider flex items-center gap-1">
+                                            🏀 クリニック希望：未回答
+                                        </span>
+                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500 text-white font-bold animate-pulse">要催促</span>
+                                    </div>
+                                ) : entry.clinicParticipation === true ? (
+                                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-indigo-500/30 bg-indigo-950/20 text-indigo-300">
+                                        <span className="text-[10px] font-extrabold tracking-wider">
+                                            🏀 クリニック希望：参加する
+                                        </span>
+                                        <span className="text-xs font-black text-indigo-400">{(entry as any).clinicCount}名</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-700 bg-slate-950/50 text-slate-400">
+                                        <span className="text-[10px] font-bold tracking-wider">
+                                            🏀 クリニック希望：不参加
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Memo Snippet */}
                         {entry.managementMemo && (
                             <div className="mb-4 bg-amber-900/10 border border-amber-500/20 rounded-lg p-3 relative hover:bg-amber-900/20 transition-colors cursor-pointer" onClick={() => setSelectedEntry(entry)}>
