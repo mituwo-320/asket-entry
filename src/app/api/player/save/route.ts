@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { savePlayerToEntry, findTeamEntry } from '@/lib/sheets';
 import { Player } from '@/lib/types';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
     try {
@@ -11,7 +12,11 @@ export async function POST(request: Request) {
         if (!existingEntry) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
         }
-        if (existingEntry.status === 'submitted') {
+
+        const cookieStore = await cookies();
+        const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
+
+        if (existingEntry.status === 'submitted' && !isAdmin) {
             return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
         }
 

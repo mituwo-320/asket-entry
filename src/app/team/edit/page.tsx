@@ -22,6 +22,7 @@ function EditTeamContent() {
     const [successMsg, setSuccessMsg] = useState("");
     const [projectEndDate, setProjectEndDate] = useState<string | null>(null);
     const [teamStatus, setTeamStatus] = useState<string | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const [tournamentId, setTournamentId] = useState("");
     const [hasClinic, setHasClinic] = useState(false);
@@ -75,6 +76,7 @@ function EditTeamContent() {
                 setClinicLimit((team as any).clinicLimit !== undefined ? (team as any).clinicLimit : 20);
                 setProjectEndDate((team as any).projectEndDate || null);
                 setTeamStatus(team.status);
+                if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
                 const user: User | undefined = data.user;
                 const repPlayer = team.players.find(p => p.isRepresentative) || team.players[0];
 
@@ -140,7 +142,7 @@ function EditTeamContent() {
     if (isLoading || !isSettingsLoaded) return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div>;
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid ID</div>;
 
-    if (teamStatus === 'submitted') {
+    if (teamStatus === 'submitted' && !isAdmin) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
                 <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
@@ -155,7 +157,7 @@ function EditTeamContent() {
         );
     }
 
-    if (projectEndDate && new Date() > new Date(projectEndDate)) {
+    if (projectEndDate && new Date() > new Date(projectEndDate) && !isAdmin) {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
                 <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">

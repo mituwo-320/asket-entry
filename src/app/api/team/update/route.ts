@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { findTeamEntry, saveTeamEntry, findUserById, saveUser, getSetting, getProjects } from '@/lib/sheets';
 import { TeamEntry, User } from '@/lib/types';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
     try {
@@ -20,13 +21,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
         }
 
-        if (existingEntry.status === 'submitted') {
+        const cookieStore = await cookies();
+        const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
+
+        if (existingEntry.status === 'submitted' && !isAdmin) {
             return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
         }
 
         const projects = await getProjects();
         const project = projects.find(p => p.id === existingEntry.tournamentId);
-        if (project?.entryEndDate && new Date() > new Date(project.entryEndDate)) {
+        if (project?.entryEndDate && new Date() > new Date(project.entryEndDate) && !isAdmin) {
             return NextResponse.json({ error: 'この大会のエントリー期間は終了しました' }, { status: 403 });
         }
 

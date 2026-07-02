@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
     try {
@@ -17,7 +18,11 @@ export async function POST(request: Request) {
         if (!teamEntry) {
             return NextResponse.json({ success: false, error: 'Team entry not found' }, { status: 404 });
         }
-        if (teamEntry.status === 'submitted') {
+
+        const cookieStore = await cookies();
+        const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
+
+        if (teamEntry.status === 'submitted' && !isAdmin) {
             return NextResponse.json({ success: false, error: '本エントリー完了後の編集はできません' }, { status: 403 });
         }
 

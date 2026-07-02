@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { findTeamEntry, findUserById, getProjects } from '@/lib/sheets';
 import { db } from '@/lib/db';
 
+import { cookies } from 'next/headers';
+
 export async function GET(request: Request) {
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
     const entryId = request.headers.get('x-team-id');
 
     if (!entryId) {
@@ -38,7 +42,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json({
             teamEntry: { ...entry, projectName, projectEndDate, isWaitlist, hasClinic, clinicTitle, clinicDescription, clinicLimit },
-            user
+            user,
+            isAdmin
         });
     } else {
         return NextResponse.json({ error: 'Entry not found' }, { status: 404 });

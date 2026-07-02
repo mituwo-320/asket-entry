@@ -33,6 +33,7 @@ function DashboardContent() {
     const [clinicModalOpen, setClinicModalOpen] = useState(false);
     const [tempClinicParticipation, setTempClinicParticipation] = useState<boolean | null>(null);
     const [tempClinicCount, setTempClinicCount] = useState<number>(1);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const showAlert = (title: string, message: string) => setAlertDialog({ open: true, title, message });
     const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
@@ -52,6 +53,7 @@ function DashboardContent() {
                 if (res.ok) {
                     const data = await res.json();
                     setTeamEntry(data.teamEntry);
+                    if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
                 } else {
                     console.error("Failed to fetch");
                 }
@@ -265,7 +267,7 @@ function DashboardContent() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        {!isDeadlinePassed && teamEntry.status !== 'submitted' && (
+                        {!isDeadlinePassed && (teamEntry.status !== 'submitted' || isAdmin) && (
                             <div className="text-right">
                                 <Link href={`/team/edit?id=${entryId}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 justify-end">
                                     チーム設定
@@ -279,7 +281,7 @@ function DashboardContent() {
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-5xl mx-auto space-y-8">
 
-                    {teamEntry.status === 'submitted' ? (
+                    {teamEntry.status === 'submitted' && !isAdmin ? (
                         <div className="p-5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 flex items-start gap-4">
                             <CheckCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                             <div>
@@ -401,9 +403,9 @@ function DashboardContent() {
                         <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-lg font-bold text-white mb-1">選手リスト</h2>
-                                <p className="text-sm text-slate-400">{teamEntry.status === 'submitted' ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'}</p>
+                                <p className="text-sm text-slate-400">{(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'}</p>
                             </div>
-                            {teamEntry.status !== 'submitted' && (
+                            {(teamEntry.status !== 'submitted' || isAdmin) && (
                                 <Button onClick={() => {
                                     setEditingPlayer(null);
                                     setIsModalOpen(true);
@@ -417,7 +419,7 @@ function DashboardContent() {
                             {teamEntry.players.length === 0 ? (
                                 <div className="p-8 text-center bg-slate-950/50 rounded-xl border border-slate-800">
                                     <p className="text-slate-500">選手が登録されていません</p>
-                                    {teamEntry.status !== 'submitted' && (
+                                    {(teamEntry.status !== 'submitted' || isAdmin) && (
                                         <Button onClick={() => {
                                             setEditingPlayer(null);
                                             setIsModalOpen(true);
@@ -441,7 +443,7 @@ function DashboardContent() {
                                                 </div>
                                                 <p className="text-xs text-slate-500">{player.furigana}</p>
                                             </div>
-                                            {teamEntry.status !== 'submitted' && (
+                                            {(teamEntry.status !== 'submitted' || isAdmin) && (
                                                 <div className="flex gap-2">
                                                     <button onClick={() => {
                                                         setEditingPlayer(player);
