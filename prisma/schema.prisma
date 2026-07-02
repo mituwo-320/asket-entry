@@ -145,3 +145,11 @@ model PrintChecklistItem {
   @@unique([projectId, name])
 }
 
+model Backup {
+  id           String   @id @default(uuid())
+  tournamentId String
+  fileName     String
+  data         String   // JSON string of backup data
+  createdAt    DateTime @default(now())
+}
+

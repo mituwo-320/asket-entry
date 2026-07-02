@@ -1,21 +1,17 @@
-import { PrismaClient } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 /**
  * Backs up tournament entry data (team entries, players, and related users)
- * to a local JSON file inside the backups/ directory.
+ * to the Backup table in the database.
  * @param tournamentId The ID of the tournament to backup
- * @returns The file path of the saved backup, or null if failed / no data to back up
+ * @returns The fileName of the saved backup, or null if failed / no data to back up
  */
 export async function backupTournamentData(tournamentId: string): Promise<string | null> {
   try {
     console.log(`Starting backup for tournamentId: ${tournamentId}`);
 
     // 1. Fetch entries with players
-    const entries = await prisma.teamEntry.findMany({
+    const entries = await db.teamEntry.findMany({
       where: { tournamentId },
       include: { players: true }
     });
@@ -24,7 +20,7 @@ export async function backupTournamentData(tournamentId: string): Promise<string
     const userIds = Array.from(new Set(entries.map(e => e.userId)));
 
     // 3. Fetch user details
-    const users = userIds.length > 0 ? await prisma.user.findMany({
+    const users = userIds.length > 0 ? await db.user.findMany({
       where: {
         id: { in: userIds }
       },
@@ -47,23 +43,24 @@ export async function backupTournamentData(tournamentId: string): Promise<string
       entries
     };
 
-    // 4. Create backups directory if it doesn't exist
-    const backupDir = path.join(process.cwd(), 'backups');
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    // 5. Save backup to JSON file
+    // 4. Generate filename
     const formattedDate = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = `backup_${tournamentId}_${formattedDate}.json`;
-    const filePath = path.join(backupDir, fileName);
 
-    fs.writeFileSync(filePath, JSON.stringify(backupData, null, 2), 'utf-8');
-    console.log(`Backup successfully saved to ${filePath}`);
+    // 5. Save backup to database
+    await db.backup.create({
+      data: {
+        tournamentId,
+        fileName,
+        data: JSON.stringify(backupData)
+      }
+    });
 
-    return filePath;
+    console.log(`Backup successfully saved to database: ${fileName}`);
+
+    return fileName;
   } catch (error) {
-    console.error('Failed to create backup:', error);
+    console.error('Failed to create backup in database:', error);
     return null;
   }
 }

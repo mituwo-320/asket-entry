@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
@@ -13,17 +11,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'fileName is required' }, { status: 400 });
     }
 
-    const backupsDir = path.join(process.cwd(), 'backups');
-    const filePath = path.join(backupsDir, fileName);
+    // Find backup in database
+    const backup = await db.backup.findFirst({
+      where: { fileName }
+    });
 
-    // Prevent directory traversal attacks
-    if (!filePath.startsWith(backupsDir) || !fs.existsSync(filePath)) {
-      return NextResponse.json({ error: 'バックアップファイルが見つかりません。' }, { status: 404 });
+    if (!backup) {
+      return NextResponse.json({ error: 'バックアップデータが見つかりません。' }, { status: 404 });
     }
 
-    const rawData = fs.readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(rawData);
-
+    const data = JSON.parse(backup.data);
     const { tournamentId, users, entries } = data;
 
     if (!tournamentId || !users || !entries) {
@@ -130,6 +127,8 @@ export async function POST(req: Request) {
           receiptName: e.receiptName || null,
           receiptIssuedAt: e.receiptIssuedAt ? new Date(e.receiptIssuedAt) : null,
           receiptViewedAt: e.receiptViewedAt ? new Date(e.receiptViewedAt) : null,
+          clinicParticipation: e.clinicParticipation !== undefined ? e.clinicParticipation : null,
+          clinicCount: e.clinicCount || 0,
           createdAt: e.createdAt ? new Date(e.createdAt) : new Date(),
         },
       });
