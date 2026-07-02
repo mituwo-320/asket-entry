@@ -32,6 +32,9 @@ export interface Project {
     lineOpenChatLink?: string;
     maxTeams?: number; // NEW: Maximum number of teams allowed
     createdAt?: string;
+    hasClinic?: boolean;
+    clinicTitle?: string;
+    clinicDescription?: string;
 }
 
 export interface TeamEntry {

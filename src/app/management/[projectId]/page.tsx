@@ -317,11 +317,11 @@ export default function ManagementProjectDetail() {
             </header>
 
             <main className="container mx-auto px-4 py-6 max-w-4xl">
-                {projectId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                {project?.hasClinic && (
                     <div className="mb-8 space-y-4">
                         <Card className="p-5 bg-indigo-950/20 border-indigo-500/30 text-indigo-200 shadow-xl rounded-2xl">
                             <h3 className="font-extrabold text-white text-base mb-3 flex items-center gap-2">
-                                🏀 7月19日 夜間クリニック参加希望状況
+                                {project.clinicTitle || '🏀 バスケクリニック参加希望状況'}
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
@@ -338,7 +338,7 @@ export default function ManagementProjectDetail() {
                         {clinicParticipatingTeams.length > 0 && (
                             <Card className="p-0 overflow-hidden border-slate-800 bg-slate-900/40">
                                 <div className="p-4 border-b border-white/5 bg-slate-900/60">
-                                    <h4 className="text-sm font-bold text-white">夜間クリニック 参加希望チーム一覧</h4>
+                                    <h4 className="text-sm font-bold text-white font-sans">バスケクリニック 参加希望チーム一覧</h4>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-xs text-slate-400">
@@ -520,9 +520,9 @@ export default function ManagementProjectDetail() {
                                         <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{selectedEntry.teamIntroduction || "（未記入）"}</p>
                                     </div>
 
-                                    {selectedEntry.tournamentId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                                    {project?.hasClinic && (
                                         <div className="bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
-                                            <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">🏀 夜間クリニック参加希望状況 (7月19日夜)</p>
+                                            <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">{project.clinicTitle || '🏀 バスケクリニック参加希望状況'}</p>
                                             <p className="text-slate-200 text-sm font-bold">
                                                 {(selectedEntry as any).clinicParticipation
                                                     ? `✅ 参加する (${(selectedEntry as any).clinicCount}名)`

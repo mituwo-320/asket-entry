@@ -43,7 +43,10 @@ export async function POST(request: Request) {
             entryEndDate: body.entryEndDate ? new Date(body.entryEndDate).toISOString() : undefined,
             eventDate: body.eventDate ? new Date(body.eventDate).toISOString() : undefined,
             lineOpenChatLink: body.lineOpenChatLink || undefined,
-            maxTeams: body.maxTeams ? parseInt(body.maxTeams.toString(), 10) : undefined
+            maxTeams: body.maxTeams ? parseInt(body.maxTeams.toString(), 10) : undefined,
+            hasClinic: body.hasClinic !== undefined ? body.hasClinic : false,
+            clinicTitle: body.clinicTitle || undefined,
+            clinicDescription: body.clinicDescription || undefined
         };
 
         const success = await saveProject(project);

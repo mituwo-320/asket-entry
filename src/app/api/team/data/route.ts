@@ -31,8 +31,12 @@ export async function GET(request: Request) {
             }
         }
 
+        const hasClinic = project?.hasClinic || false;
+        const clinicTitle = project?.clinicTitle || undefined;
+        const clinicDescription = project?.clinicDescription || undefined;
+
         return NextResponse.json({
-            teamEntry: { ...entry, projectName, projectEndDate, isWaitlist },
+            teamEntry: { ...entry, projectName, projectEndDate, isWaitlist, hasClinic, clinicTitle, clinicDescription },
             user
         });
     } else {

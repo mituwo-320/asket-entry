@@ -271,6 +271,60 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                         />
                                                     </div>
 
+                                                    <div className="space-y-1 sm:col-span-2">
+                                                        <label className="text-[10px] text-indigo-400 uppercase tracking-widest font-extrabold flex items-center gap-1">🏀 バスケクリニック開催設定</label>
+                                                        <div className="flex items-center gap-2 mt-1 bg-slate-900/40 p-3 rounded-lg border border-slate-800">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`hasClinic-${index}`}
+                                                                checked={p.hasClinic || false}
+                                                                onChange={(e) => {
+                                                                    const updated = [...localProjects];
+                                                                    updated[index].hasClinic = e.target.checked;
+                                                                    // Set default clinic info if enabling for the first time
+                                                                    if (e.target.checked && !updated[index].clinicTitle) {
+                                                                        updated[index].clinicTitle = "🏀 山下泰弘さんによる バスケクリニック 🏀";
+                                                                        updated[index].clinicDescription = `「初心者にもっとバスケを好きになってほしい！」という想いから、元島根スサノオマジック・レジェンドの山下泰弘さんによる無料クリニックを開催します！\n\n💡プロの技術を間近で見たい！\n\n💡もっとシュートを決めてみたい！\n\n💡とにかくバスケを楽しく学びたい！\n\n【開催概要】\n\n日時： 7月19日 18:00開始予定（試合終了後）\n\n参加費： 無料（対象制限なし／ヴァンキーカップ参加者優先）\n\n当日の人数把握のため、参加をご希望の方は以下のフォームに【参加人数】をご入力ください！`;
+                                                                    }
+                                                                    setLocalProjects(updated);
+                                                                }}
+                                                                className="w-4 h-4 rounded text-indigo-600 bg-slate-950 border-slate-700 focus:ring-indigo-500 cursor-pointer"
+                                                            />
+                                                            <label htmlFor={`hasClinic-${index}`} className="text-xs text-slate-300 cursor-pointer">バスケクリニック開催情報を入力する</label>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {p.hasClinic && (
+                                                        <>
+                                                            <div className="space-y-1 sm:col-span-2">
+                                                                <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック タイトル</label>
+                                                                <Input
+                                                                    value={p.clinicTitle || ''}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...localProjects];
+                                                                        updated[index].clinicTitle = e.target.value;
+                                                                        setLocalProjects(updated);
+                                                                    }}
+                                                                    className="h-9 bg-slate-900 border-slate-700"
+                                                                    placeholder="例: 🏀 山下泰弘さんによる バスケクリニック 🏀"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1 sm:col-span-2">
+                                                                <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック 案内文・概要</label>
+                                                                <textarea
+                                                                    value={p.clinicDescription || ''}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...localProjects];
+                                                                        updated[index].clinicDescription = e.target.value;
+                                                                        setLocalProjects(updated);
+                                                                    }}
+                                                                    className="w-full bg-slate-900 border border-slate-700 rounded-md p-2.5 text-xs text-slate-200 min-h-[140px] focus:border-indigo-500/50 focus:ring-indigo-500/20 outline-none resize-y"
+                                                                    placeholder="クリニックの開催概要や案内文を入力してください。"
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    )}
+
                                                     <div className="col-span-full flex justify-end gap-2 mt-2">
                                                         {p.id !== '' && (
                                                             <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>キャンセル</Button>

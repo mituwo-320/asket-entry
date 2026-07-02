@@ -20,7 +20,10 @@ export async function getProjects(): Promise<Project[]> {
             eventDate: p.eventDate ? p.eventDate.toISOString() : undefined,
             lineOpenChatLink: p.lineOpenChatLink || undefined,
             maxTeams: p.maxTeams || undefined,
-            createdAt: p.createdAt.toISOString()
+            createdAt: p.createdAt.toISOString(),
+            hasClinic: p.hasClinic || false,
+            clinicTitle: p.clinicTitle || undefined,
+            clinicDescription: p.clinicDescription || undefined
         }));
     } catch (e) {
         console.error('getProjects error:', e);
@@ -53,7 +56,10 @@ export async function saveProject(project: Project): Promise<boolean> {
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
                 eventDate: project.eventDate ? new Date(project.eventDate) : null,
                 lineOpenChatLink: project.lineOpenChatLink || null,
-                maxTeams: project.maxTeams || null
+                maxTeams: project.maxTeams || null,
+                hasClinic: project.hasClinic || false,
+                clinicTitle: project.clinicTitle || null,
+                clinicDescription: project.clinicDescription || null
             },
             create: {
                 id: project.id,
@@ -65,7 +71,10 @@ export async function saveProject(project: Project): Promise<boolean> {
                 entryEndDate: project.entryEndDate ? new Date(project.entryEndDate) : null,
                 eventDate: project.eventDate ? new Date(project.eventDate) : null,
                 lineOpenChatLink: project.lineOpenChatLink || null,
-                maxTeams: project.maxTeams || null
+                maxTeams: project.maxTeams || null,
+                hasClinic: project.hasClinic || false,
+                clinicTitle: project.clinicTitle || null,
+                clinicDescription: project.clinicDescription || null
             }
         });
         return true;

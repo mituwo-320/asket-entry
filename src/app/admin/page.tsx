@@ -532,11 +532,11 @@ export default function AdminDashboard() {
                         </Button>
                     </motion.div>
 
-                    {selectedProjectId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
+                    {activeProjectData?.hasClinic && (
                         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                             <Card className="p-5 bg-indigo-950/20 border-indigo-500/30 text-indigo-200 shadow-xl rounded-2xl md:col-span-1">
                                 <h3 className="font-extrabold text-white text-base mb-3 flex items-center gap-2 font-sans">
-                                    🏀 夜間クリニック参加希望状況
+                                    {activeProjectData.clinicTitle || '🏀 バスケクリニック参加希望状況'}
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-slate-900/60 p-3.5 rounded-xl border border-indigo-500/10">
@@ -553,7 +553,7 @@ export default function AdminDashboard() {
                             {clinicParticipatingTeams.length > 0 && (
                                 <Card className="p-0 overflow-hidden border-slate-800 bg-slate-900/40 md:col-span-2">
                                     <div className="p-4 border-b border-white/5 bg-slate-900/60">
-                                        <h4 className="text-sm font-bold text-white font-sans">夜間クリニック 参加希望チーム一覧</h4>
+                                        <h4 className="text-sm font-bold text-white font-sans">バスケクリニック 参加希望チーム一覧</h4>
                                     </div>
                                     <div className="overflow-y-auto max-h-[180px]">
                                         <table className="w-full text-left text-xs text-slate-400">
@@ -945,11 +945,15 @@ export default function AdminDashboard() {
                                                     {selectedEntry.isOpenChatJoined ? <CheckCircle2 className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-current" />}
                                                     <span className="text-xs font-bold">OPチャット{selectedEntry.isOpenChatJoined ? '参加済' : '未参加'}</span>
                                                 </div>
-                                                {selectedEntry.tournamentId === 'proj_7b3c4072-840c-4f4c-879d-52f0e89c243e' && (
-                                                    <div className={`p-3 rounded-xl border flex items-center gap-2 ${selectedEntry.clinicParticipation ? 'bg-indigo-900/20 border-indigo-500/30 text-indigo-300' : 'bg-slate-800/30 border-slate-700 text-slate-400'}`}>
-                                                        <span className="text-xs font-bold">🏀 Clinic: {selectedEntry.clinicParticipation ? `参加 (${selectedEntry.clinicCount}名)` : '不参加'}</span>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const entryProj = projects.find(p => p.id === selectedEntry.tournamentId);
+                                                    if (!entryProj?.hasClinic) return null;
+                                                    return (
+                                                        <div className={`p-3 rounded-xl border flex items-center gap-2 ${selectedEntry.clinicParticipation ? 'bg-indigo-900/20 border-indigo-500/30 text-indigo-300' : 'bg-slate-800/30 border-slate-700 text-slate-400'}`}>
+                                                            <span className="text-xs font-bold">🏀 Clinic: {selectedEntry.clinicParticipation ? `参加 (${selectedEntry.clinicCount}名)` : '不参加'}</span>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                             {selectedEntry.managementMemo ? (
                                                 <div className="bg-amber-900/10 border border-amber-500/20 p-4 rounded-xl">

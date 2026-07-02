@@ -681,13 +681,13 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        {formData.projectId === "proj_7b3c4072-840c-4f4c-879d-52f0e89c243e" && (
+                        {activeProject?.hasClinic && (
                             <div className="space-y-4 p-5 bg-indigo-950/20 border border-indigo-500/30 rounded-xl">
                                 <label className="text-sm font-extrabold text-indigo-300 flex items-center gap-2">
-                                    🏀 夜間クリニックへの参加希望 (7月19日 18:00開始予定)
+                                    {activeProject.clinicTitle || '🏀 バスケクリニックへの参加希望'}
                                 </label>
-                                <p className="text-xs text-slate-400 leading-relaxed">
-                                    7月19日の夜、大会終了後にBリーガーによるクリニック（参加費無料、対象制限なし、ヴァンキーカップ参加者優先）を開催予定です。おおよその参加人数を把握するため、ご希望を入力してください。
+                                <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-line">
+                                    {activeProject.clinicDescription}
                                 </p>
                                 <div className="flex gap-4">
                                     <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
@@ -698,7 +698,7 @@ export default function RegisterPage() {
                                             onChange={() => setFormData({ ...formData, clinicParticipation: true, clinicCount: 1 })}
                                             className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
                                         />
-                                        7月19日の夜クリニックに参加する
+                                        クリニックに参加する
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
                                         <input
