@@ -10,6 +10,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Team ID or Player ID missing' }, { status: 400 });
         }
 
+        // Find the team entry to check status
+        const teamEntry = await db.teamEntry.findUnique({
+            where: { id: teamId }
+        });
+        if (!teamEntry) {
+            return NextResponse.json({ success: false, error: 'Team entry not found' }, { status: 404 });
+        }
+        if (teamEntry.status === 'submitted') {
+            return NextResponse.json({ success: false, error: '本エントリー完了後の編集はできません' }, { status: 403 });
+        }
+
         // Find the player and verify it belongs to this team
         const player = await db.player.findUnique({
             where: { id: playerId }

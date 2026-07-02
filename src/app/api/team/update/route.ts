@@ -20,6 +20,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
         }
 
+        if (existingEntry.status === 'submitted') {
+            return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
+        }
+
         const projects = await getProjects();
         const project = projects.find(p => p.id === existingEntry.tournamentId);
         if (project?.entryEndDate && new Date() > new Date(project.entryEndDate)) {

@@ -21,6 +21,7 @@ function EditTeamContent() {
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [projectEndDate, setProjectEndDate] = useState<string | null>(null);
+    const [teamStatus, setTeamStatus] = useState<string | null>(null);
 
     const [tournamentId, setTournamentId] = useState("");
     const [hasClinic, setHasClinic] = useState(false);
@@ -73,6 +74,7 @@ function EditTeamContent() {
                 setClinicDescription((team as any).clinicDescription || "");
                 setClinicLimit((team as any).clinicLimit !== undefined ? (team as any).clinicLimit : 20);
                 setProjectEndDate((team as any).projectEndDate || null);
+                setTeamStatus(team.status);
                 const user: User | undefined = data.user;
                 const repPlayer = team.players.find(p => p.isRepresentative) || team.players[0];
 
@@ -137,6 +139,21 @@ function EditTeamContent() {
 
     if (isLoading || !isSettingsLoaded) return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div>;
     if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid ID</div>;
+
+    if (teamStatus === 'submitted') {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
+                <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
+                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">本エントリー完了済み</h2>
+                    <p className="text-slate-400">本エントリーが完了しているため、チーム設定の変更はできません。</p>
+                    <Button onClick={() => router.push(`/team/dashboard?id=${entryId}`)} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">ダッシュボードへ戻る</Button>
+                </Card>
+            </div>
+        );
+    }
 
     if (projectEndDate && new Date() > new Date(projectEndDate)) {
         return (

@@ -265,7 +265,7 @@ function DashboardContent() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        {!isDeadlinePassed && (
+                        {!isDeadlinePassed && teamEntry.status !== 'submitted' && (
                             <div className="text-right">
                                 <Link href={`/team/edit?id=${entryId}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 justify-end">
                                     チーム設定
