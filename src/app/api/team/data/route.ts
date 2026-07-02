@@ -34,9 +34,10 @@ export async function GET(request: Request) {
         const hasClinic = project?.hasClinic || false;
         const clinicTitle = project?.clinicTitle || undefined;
         const clinicDescription = project?.clinicDescription || undefined;
+        const clinicLimit = project?.clinicLimit !== undefined ? project.clinicLimit : 20;
 
         return NextResponse.json({
-            teamEntry: { ...entry, projectName, projectEndDate, isWaitlist, hasClinic, clinicTitle, clinicDescription },
+            teamEntry: { ...entry, projectName, projectEndDate, isWaitlist, hasClinic, clinicTitle, clinicDescription, clinicLimit },
             user
         });
     } else {

@@ -23,7 +23,8 @@ export async function getProjects(): Promise<Project[]> {
             createdAt: p.createdAt.toISOString(),
             hasClinic: p.hasClinic || false,
             clinicTitle: p.clinicTitle || undefined,
-            clinicDescription: p.clinicDescription || undefined
+            clinicDescription: p.clinicDescription || undefined,
+            clinicLimit: p.clinicLimit !== undefined ? p.clinicLimit : 20
         }));
     } catch (e) {
         console.error('getProjects error:', e);
@@ -59,7 +60,8 @@ export async function saveProject(project: Project): Promise<boolean> {
                 maxTeams: project.maxTeams || null,
                 hasClinic: project.hasClinic || false,
                 clinicTitle: project.clinicTitle || null,
-                clinicDescription: project.clinicDescription || null
+                clinicDescription: project.clinicDescription || null,
+                clinicLimit: project.clinicLimit !== undefined ? project.clinicLimit : 20
             },
             create: {
                 id: project.id,
@@ -74,7 +76,8 @@ export async function saveProject(project: Project): Promise<boolean> {
                 maxTeams: project.maxTeams || null,
                 hasClinic: project.hasClinic || false,
                 clinicTitle: project.clinicTitle || null,
-                clinicDescription: project.clinicDescription || null
+                clinicDescription: project.clinicDescription || null,
+                clinicLimit: project.clinicLimit !== undefined ? project.clinicLimit : 20
             }
         });
         return true;

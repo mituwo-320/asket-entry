@@ -322,6 +322,21 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                                     placeholder="クリニックの開催概要や案内文を入力してください。"
                                                                 />
                                                             </div>
+                                                            <div className="space-y-1 sm:col-span-2">
+                                                                <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック上限人数 (1チームあたり)</label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={p.clinicLimit !== undefined ? p.clinicLimit : 20}
+                                                                    onChange={(e) => {
+                                                                        const updated = [...localProjects];
+                                                                        updated[index].clinicLimit = e.target.value ? parseInt(e.target.value, 10) : 20;
+                                                                        setLocalProjects(updated);
+                                                                    }}
+                                                                    className="h-9 bg-slate-900 border-slate-700"
+                                                                    placeholder="例: 20"
+                                                                />
+                                                            </div>
                                                         </>
                                                     )}
 

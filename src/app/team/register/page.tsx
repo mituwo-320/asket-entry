@@ -719,7 +719,7 @@ export default function RegisterPage() {
                                             onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
                                             className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
                                         >
-                                            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                            {Array.from({ length: activeProject.clinicLimit !== undefined ? activeProject.clinicLimit : 20 }, (_, i) => i + 1).map((n) => (
                                                 <option key={n} value={n}>
                                                     {n} 名
                                                 </option>

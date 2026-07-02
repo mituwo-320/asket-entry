@@ -46,7 +46,8 @@ export async function POST(request: Request) {
             maxTeams: body.maxTeams ? parseInt(body.maxTeams.toString(), 10) : undefined,
             hasClinic: body.hasClinic !== undefined ? body.hasClinic : false,
             clinicTitle: body.clinicTitle || undefined,
-            clinicDescription: body.clinicDescription || undefined
+            clinicDescription: body.clinicDescription || undefined,
+            clinicLimit: body.clinicLimit ? parseInt(body.clinicLimit.toString(), 10) : 20
         };
 
         const success = await saveProject(project);

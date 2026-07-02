@@ -35,6 +35,7 @@ export interface Project {
     hasClinic?: boolean;
     clinicTitle?: string;
     clinicDescription?: string;
+    clinicLimit?: number;
 }
 
 export interface TeamEntry {

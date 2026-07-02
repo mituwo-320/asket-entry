@@ -26,6 +26,7 @@ function EditTeamContent() {
     const [hasClinic, setHasClinic] = useState(false);
     const [clinicTitle, setClinicTitle] = useState("");
     const [clinicDescription, setClinicDescription] = useState("");
+    const [clinicLimit, setClinicLimit] = useState(20);
     const [formData, setFormData] = useState({
         // Team
         teamName: "",
@@ -70,6 +71,7 @@ function EditTeamContent() {
                 setHasClinic((team as any).hasClinic || false);
                 setClinicTitle((team as any).clinicTitle || "");
                 setClinicDescription((team as any).clinicDescription || "");
+                setClinicLimit((team as any).clinicLimit !== undefined ? (team as any).clinicLimit : 20);
                 setProjectEndDate((team as any).projectEndDate || null);
                 const user: User | undefined = data.user;
                 const repPlayer = team.players.find(p => p.isRepresentative) || team.players[0];
@@ -241,7 +243,7 @@ function EditTeamContent() {
                                                 onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
                                                 className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
                                             >
-                                                {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                                {Array.from({ length: clinicLimit }, (_, i) => i + 1).map((n) => (
                                                     <option key={n} value={n}>
                                                         {n} 名
                                                     </option>

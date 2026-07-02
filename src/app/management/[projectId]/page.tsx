@@ -346,7 +346,6 @@ export default function ManagementProjectDetail() {
                                             <tr>
                                                 <th className="px-4 py-2.5">チーム名</th>
                                                 <th className="px-4 py-2.5">代表者</th>
-                                                <th className="px-4 py-2.5">電話番号</th>
                                                 <th className="px-4 py-2.5 text-right">希望人数</th>
                                             </tr>
                                         </thead>
@@ -355,7 +354,6 @@ export default function ManagementProjectDetail() {
                                                 <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
                                                     <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
                                                     <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
-                                                    <td className="px-4 py-2.5 font-mono">{getRepPhone(e.userId)}</td>
                                                     <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
                                                 </tr>
                                             ))}
