@@ -173,8 +173,8 @@ export default function RegisterPage() {
 
     if (!isSettingsLoaded) {
         return (
-            <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4">
-                <Loader2 className="w-8 h-8 text-emerald-800 animate-spin" />
+            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4">
+                <Loader2 className="w-8 h-8 text-[#f18a5c] animate-spin" />
             </div>
         );
     }
@@ -183,14 +183,14 @@ export default function RegisterPage() {
 
     if (projects.length === 0) {
         return (
-            <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4 text-stone-800">
-                <Card className="w-full max-w-md p-8 bg-white border-stone-200 text-center space-y-4">
+            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace]">
+                <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740] text-center space-y-4">
                     <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-amber-800" />
+                        <CheckCircle2 className="w-8 h-8 text-amber-300" />
                     </div>
-                    <h2 className="text-xl font-bold text-stone-900">募集期間外です</h2>
-                    <p className="text-stone-600">現在、エントリーを受け付けている大会日程はありません。</p>
-                    <Button onClick={() => router.push("/")} className="w-full mt-4 bg-stone-100 hover:bg-stone-100">トップへ戻る</Button>
+                    <h2 className="text-xl font-bold text-[#f3f0e8]">募集期間外です</h2>
+                    <p className="text-[#b6b8ad]">現在、エントリーを受け付けている大会日程はありません。</p>
+                    <Button onClick={() => router.push("/")} className="w-full mt-4 bg-[#353731] hover:bg-[#353731]">トップへ戻る</Button>
                 </Card>
             </div>
         );
@@ -198,49 +198,49 @@ export default function RegisterPage() {
 
     if (teamId) {
         return (
-            <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4 text-stone-800 font-sans selection:bg-emerald-800/30">
+            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
 
-                <Card className="w-full max-w-md p-8 bg-white border-stone-200  relative z-10 shadow-none">
+                <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740]  relative z-10 shadow-none">
                     <div className="text-center space-y-6">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ring-1 ${isWaitlist ? 'bg-amber-500/10 ring-amber-500/20' : 'bg-emerald-500/10 ring-emerald-500/20'}`}>
-                            {isWaitlist ? <AlertCircle className="w-8 h-8 text-amber-800" /> : <CheckCircle2 className="w-8 h-8 text-emerald-800" />}
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ring-1 ${isWaitlist ? 'bg-amber-500/10 ring-amber-500/20' : 'bg-[#f18a5c]/100/10 ring-orange-500/20'}`}>
+                            {isWaitlist ? <AlertCircle className="w-8 h-8 text-amber-300" /> : <CheckCircle2 className="w-8 h-8 text-[#f18a5c]" />}
                         </div>
 
                         <div>
-                            <h2 className="text-2xl font-bold text-stone-900 mb-2">
+                            <h2 className="text-2xl font-bold text-[#f3f0e8] mb-2">
                                 {isWaitlist ? "キャンセル待ち受付完了" : "登録完了！"}
                             </h2>
                             {isWaitlist && (
-                                <p className="text-amber-800 font-bold mb-4 text-sm bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
+                                <p className="text-amber-300 font-bold mb-4 text-sm bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
                                     この大会は満員のため、<br />キャンセル待ち枠として受け付けました。<br />空きが出た場合は管理者よりご連絡いたします。
                                 </p>
                             )}
-                            <p className="text-stone-600">アカウントが作成され、自動的にログインしました。<br />次回ログインのために以下の情報は必ず保存しておいてください。</p>
+                            <p className="text-[#b6b8ad]">アカウントが作成され、自動的にログインしました。<br />次回ログインのために以下の情報は必ず保存しておいてください。</p>
                         </div>
 
-                        <div className="bg-stone-50 rounded-lg p-6 border border-stone-200 space-y-4">
+                        <div className="bg-[#20211f] rounded-lg p-6 border border-[#454740] space-y-4">
                             <div>
-                                <p className="text-xs text-stone-600 uppercase tracking-wider mb-1">ログインメールアドレス</p>
+                                <p className="text-xs text-[#b6b8ad] uppercase tracking-wider mb-1">ログインメールアドレス</p>
                                 <div className="flex items-center gap-2">
-                                    <p className="flex-1 text-lg  font-bold text-emerald-800 tracking-wider bg-white rounded p-2 select-all break-all m-0">{registeredEmail}</p>
-                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-white border-stone-200 hover:bg-stone-100 hover:text-stone-900" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
-                                        {copiedEmail ? <Check className="w-4 h-4 text-emerald-800" /> : <Copy className="w-4 h-4 text-stone-600" />}
+                                    <p className="flex-1 text-lg  font-bold text-[#f18a5c] tracking-wider bg-[#292b28] rounded p-2 select-all break-all m-0">{registeredEmail}</p>
+                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-[#292b28] border-[#454740] hover:bg-[#353731] hover:text-[#f3f0e8]" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
+                                        {copiedEmail ? <Check className="w-4 h-4 text-[#f18a5c]" /> : <Copy className="w-4 h-4 text-[#b6b8ad]" />}
                                     </Button>
                                 </div>
                             </div>
                             <div>
-                                <p className="text-xs text-stone-600 uppercase tracking-wider mb-1">ログインパスワード</p>
+                                <p className="text-xs text-[#b6b8ad] uppercase tracking-wider mb-1">ログインパスワード</p>
                                 <div className="flex items-center gap-2">
-                                    <p className="flex-1 text-lg  font-bold text-emerald-800 tracking-wider bg-white rounded p-2 m-0">
+                                    <p className="flex-1 text-lg  font-bold text-[#f18a5c] tracking-wider bg-[#292b28] rounded p-2 m-0">
                                         {registeredPassword ? (
                                             <span className="select-all">{registeredPassword}</span>
                                         ) : (
-                                            <span className="text-sm font-sans tracking-normal font-normal text-stone-600">登録済みのパスワードをご利用ください</span>
+                                            <span className="text-sm font-sans tracking-normal font-normal text-[#b6b8ad]">登録済みのパスワードをご利用ください</span>
                                         )}
                                     </p>
                                     {registeredPassword && (
-                                        <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-white border-stone-200 hover:bg-stone-100 hover:text-stone-900" onClick={() => handleCopy(registeredPassword, 'password')}>
-                                            {copiedPassword ? <Check className="w-4 h-4 text-emerald-800" /> : <Copy className="w-4 h-4 text-stone-600" />}
+                                        <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-[#292b28] border-[#454740] hover:bg-[#353731] hover:text-[#f3f0e8]" onClick={() => handleCopy(registeredPassword, 'password')}>
+                                            {copiedPassword ? <Check className="w-4 h-4 text-[#f18a5c]" /> : <Copy className="w-4 h-4 text-[#b6b8ad]" />}
                                         </Button>
                                     )}
                                 </div>
@@ -253,43 +253,43 @@ export default function RegisterPage() {
                                 <div className="bg-red-500/10 border-2 border-red-500/60 rounded-xl p-5 text-left space-y-4 animate-in fade-in">
                                     <div className="flex items-start gap-3">
                                         <div className="p-2 bg-red-500/20 rounded-lg mt-0.5 flex-shrink-0">
-                                            <AlertCircle className="w-5 h-5 text-red-700" />
+                                            <AlertCircle className="w-5 h-5 text-red-300" />
                                         </div>
                                         <div>
-                                            <p className="font-extrabold text-red-700 text-base leading-tight">
+                                            <p className="font-extrabold text-red-300 text-base leading-tight">
                                                 ⚠️ 必須：LINEオープンチャットへの参加
                                             </p>
-                                            <p className="text-xs text-red-700 mt-0.5 font-bold">
+                                            <p className="text-xs text-red-300 mt-0.5 font-bold">
                                                 参加しないと大会当日の重要連絡が届きません！
                                             </p>
-                                            <p className="text-sm text-red-700 mt-1.5">
+                                            <p className="text-sm text-red-300 mt-1.5">
                                                 リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="bg-red-950/50 rounded-lg p-3 text-sm text-red-700 border border-red-500/20">
+                                    <div className="bg-red-950/50 rounded-lg p-3 text-sm text-red-300 border border-red-500/20">
                                         <ul className="space-y-1.5 list-none">
-                                            <li className="flex items-center gap-2"><span className="text-red-700 font-bold">✕</span> 集合時間・場所の案内が届かない</li>
-                                            <li className="flex items-center gap-2"><span className="text-red-700 font-bold">✕</span> 緊急の変更・中止情報が届かない</li>
-                                            <li className="flex items-center gap-2"><span className="text-red-700 font-bold">✕</span> ルールや持ち物の案内が届かない</li>
+                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> 集合時間・場所の案内が届かない</li>
+                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> 緊急の変更・中止情報が届かない</li>
+                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> ルールや持ち物の案内が届かない</li>
                                         </ul>
                                     </div>
                                     <a
                                         href={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 w-full bg-[#06C755] hover:bg-[#05b34c] text-stone-900 font-extrabold py-4 px-4 rounded-lg transition-colors text-base shadow-none shadow-green-900/30"
+                                        className="flex items-center justify-center gap-2 w-full bg-[#06C755] hover:bg-[#05b34c] text-[#f3f0e8] font-extrabold py-4 px-4 rounded-lg transition-colors text-base shadow-none shadow-green-900/30"
                                     >
                                         <MessageCircle className="w-5 h-5" />
                                         今すぐLINEオープンチャットに参加する
                                     </a>
-                                    <p className="text-center text-xs text-red-700">
+                                    <p className="text-center text-xs text-red-300">
                                         ※ リーダー（代表者）の方のみ参加が必要です
                                     </p>
                                 </div>
 
                                 <Button
-                                    className="w-full bg-stone-100 hover:bg-stone-100 text-stone-600 hover:text-stone-800 font-medium py-4 transition-all duration-300 text-sm"
+                                    className="w-full bg-[#353731] hover:bg-[#353731] text-[#b6b8ad] hover:text-[#d9dace] font-medium py-4 transition-all duration-300 text-sm"
                                     onClick={() => router.push("/dashboard")}
                                 >
                                     LINEを後で参加する（推奨しません）
@@ -297,7 +297,7 @@ export default function RegisterPage() {
                             </>
                         ) : (
                             <Button
-                                className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-medium py-6 shadow-none transition-all duration-300"
+                                className="w-full bg-[#f18a5c] hover:bg-[#f6a078] text-white font-medium py-6 shadow-none transition-all duration-300"
                                 onClick={() => router.push("/dashboard")}
                             >
                                 マイページへ進む
@@ -311,65 +311,65 @@ export default function RegisterPage() {
 
     return (
         <>
-        <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4 text-stone-800 font-sans selection:bg-emerald-800/30">
+        <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
 
-            <Card className="w-full max-w-md p-8 bg-white border-stone-200  relative z-10 shadow-none">
+            <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740]  relative z-10 shadow-none">
                 <div className="mb-8">
-                    <Link href="/" className="inline-flex items-center text-sm text-stone-600 hover:text-stone-900 transition-colors mb-6">
+                    <Link href="/" className="inline-flex items-center text-sm text-[#b6b8ad] hover:text-[#f3f0e8] transition-colors mb-6">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         トップへ戻る
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-emerald-50 rounded-lg">
-                            <Users className="w-6 h-6 text-emerald-800" />
+                        <div className="p-2 bg-[#f18a5c]/10 rounded-lg">
+                            <Users className="w-6 h-6 text-[#f18a5c]" />
                         </div>
-                        <h1 className="text-2xl font-bold text-stone-900">
+                        <h1 className="text-2xl font-bold text-[#f3f0e8]">
                             チームの参加申し込み
                         </h1>
                     </div>
-                    <p className="text-stone-600 text-sm pl-11 mb-6">
+                    <p className="text-[#b6b8ad] text-sm pl-11 mb-6">
                         大会への参加申し込みを行います。<br />
                         登録後、すぐにマイページをご利用いただけます。
                     </p>
 
                     {/* NEW: Registration Flow Guide */}
-                    <div className="bg-emerald-50 border border-emerald-500/20 rounded-xl p-5 mb-8">
-                        <h3 className="font-bold text-emerald-800 mb-4 flex items-center gap-2">
+                    <div className="bg-[#f18a5c]/10 border border-orange-500/20 rounded-xl p-5 mb-8">
+                        <h3 className="font-bold text-[#f18a5c] mb-4 flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5" />
                             まずはリーダーのエントリーから
                         </h3>
                         <div className="space-y-4">
                             <div className="flex gap-4">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold">1</div>
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f18a5c] text-[#20211f] flex items-center justify-center font-bold">1</div>
                                 <div>
-                                    <p className="font-medium text-stone-800">リーダー（連絡担当者）がエントリー</p>
-                                    <p className="text-sm text-stone-600 mt-1">この画面でチーム情報と、リーダーご自身の情報を「1人目のメンバー」として登録します。</p>
+                                    <p className="font-medium text-[#d9dace]">リーダー（連絡担当者）がエントリー</p>
+                                    <p className="text-sm text-[#b6b8ad] mt-1">この画面でチーム情報と、リーダーご自身の情報を「1人目のメンバー」として登録します。</p>
                                 </div>
                             </div>
                             <div className="flex gap-4">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-stone-100 text-stone-600 border border-stone-200 flex items-center justify-center font-bold">2</div>
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#353731] text-[#b6b8ad] border border-[#454740] flex items-center justify-center font-bold">2</div>
                                 <div>
-                                    <p className="font-medium text-stone-800">他のメンバーを追加登録</p>
-                                    <p className="text-sm text-stone-600 mt-1">エントリー完了後に画面が切り替わります。<br />マイページから他のメンバーの情報を追加してください。</p>
+                                    <p className="font-medium text-[#d9dace]">他のメンバーを追加登録</p>
+                                    <p className="text-sm text-[#b6b8ad] mt-1">エントリー完了後に画面が切り替わります。<br />マイページから他のメンバーの情報を追加してください。</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     {formData.projectId && projects.find(p => p.id === formData.projectId)?.entryEndDate && (
-                        <div className="mt-4 pl-11 text-amber-800 text-sm font-medium">
+                        <div className="mt-4 pl-11 text-amber-300 text-sm font-medium">
                             締切: {new Date(projects.find(p => p.id === formData.projectId)!.entryEndDate!).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                     )}
                 </div>
                     {formData.existingUserId && (
-                        <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="bg-[#353731] border border-[#454740] rounded-xl p-4 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center shrink-0">
-                                    <UserCheck className="w-5 h-5 text-stone-800" />
+                                <div className="w-10 h-10 rounded-full bg-[#353731] flex items-center justify-center shrink-0">
+                                    <UserCheck className="w-5 h-5 text-[#d9dace]" />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-xs text-stone-600 mb-0.5">現在ログイン中のアカウント</p>
-                                    <p className="font-bold text-stone-900 truncate">{formData.representative} <span className="text-xs font-normal text-stone-600">({formData.email})</span></p>
+                                    <p className="text-xs text-[#b6b8ad] mb-0.5">現在ログイン中のアカウント</p>
+                                    <p className="font-bold text-[#f3f0e8] truncate">{formData.representative} <span className="text-xs font-normal text-[#b6b8ad]">({formData.email})</span></p>
                                 </div>
                             </div>
                             <Button 
@@ -394,7 +394,7 @@ export default function RegisterPage() {
                                         }
                                     );
                                 }}
-                                className="text-xs border-stone-200 text-stone-800 hover:text-stone-900 hover:bg-stone-100 shrink-0"
+                                className="text-xs border-[#454740] text-[#d9dace] hover:text-[#f3f0e8] hover:bg-[#353731] shrink-0"
                             >
                                 別のアカウントで登録
                             </Button>
@@ -404,7 +404,7 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">参加する大会日程 <span className="text-red-700 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">参加する大会日程 <span className="text-red-300 ml-1">*必須</span></label>
 
                             {formData.projectId && (() => {
                                 const selectedProject = projects.find(p => p.id === formData.projectId);
@@ -417,7 +417,7 @@ export default function RegisterPage() {
                                     const isWaitlistOff = selectedProject.isWaitlistEnabled === false;
 
                                     return (
-                                        <div className="p-3 rounded-lg border flex items-center gap-3 text-sm font-medium mb-3 transition-colors bg-red-500/10 border-red-500/20 text-red-700">
+                                        <div className="p-3 rounded-lg border flex items-center gap-3 text-sm font-medium mb-3 transition-colors bg-red-500/10 border-red-500/20 text-red-300">
                                             <div className="flex-1">
                                                 <span className="flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />
                                                 {isWaitlistOff 
@@ -425,9 +425,9 @@ export default function RegisterPage() {
                                                     : "大変申し訳ありません。現在満員枠となっております。（キャンセル待ちとして登録されます）"}
                                                 </span>
                                             </div>
-                                            <div className="text-lg tabular-nums tracking-tighter shrink-0 flex items-baseline gap-1 bg-white px-3 py-1 rounded-md border border-stone-200">
-                                                <span className="text-red-700">{selectedProject.currentEntryCount || 0}</span>
-                                                <span className="text-xs text-stone-600 font-normal">/ {selectedProject.maxTeams} チーム</span>
+                                            <div className="text-lg tabular-nums tracking-tighter shrink-0 flex items-baseline gap-1 bg-[#292b28] px-3 py-1 rounded-md border border-[#454740]">
+                                                <span className="text-red-300">{selectedProject.currentEntryCount || 0}</span>
+                                                <span className="text-xs text-[#b6b8ad] font-normal">/ {selectedProject.maxTeams} チーム</span>
                                             </div>
                                         </div>
                                     );
@@ -439,7 +439,7 @@ export default function RegisterPage() {
                                 value={formData.projectId}
                                 onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
                                 required
-                                className="bg-stone-50 border border-stone-200 text-stone-800 text-sm rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 h-11 outline-none"
+                                className="bg-[#20211f] border border-[#454740] text-[#d9dace] text-sm rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5 h-11 outline-none"
                             >
                                 <option value="" disabled>選択してください</option>
                                 {projects.map(p => {
@@ -453,39 +453,39 @@ export default function RegisterPage() {
                                     );
                                 })}
                             </select>
-                            <p className="text-xs text-stone-600 px-1">募集中の日程から選択してください。</p>
+                            <p className="text-xs text-[#b6b8ad] px-1">募集中の日程から選択してください。</p>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">チーム情報 <span className="text-red-700 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">チーム情報 <span className="text-red-300 ml-1">*必須</span></label>
                             <Input
                                 placeholder="チーム名"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 required
-                                className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
-                            <p className="text-xs text-stone-600 px-1">※ チーム名は後から変更可能です</p>
+                            <p className="text-xs text-[#b6b8ad] px-1">※ チーム名は後から変更可能です</p>
                             <Input
                                 placeholder="チーム名 (フリガナ)"
                                 value={formData.nameKana}
                                 onChange={(e) => setFormData({ ...formData, nameKana: e.target.value })}
                                 required
-                                className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
                         </div>
 
                         <div className="space-y-2 pt-2 pb-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-700 ml-1">*必須</span></label>
-                            <p className="text-xs text-stone-600 px-1 mb-1">※ 1〜{activeProject?.maxTeams || 16}の枠から好きな数字を選択してください。重複した場合はエントリー順により繰り上がりとなります。</p>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">予選抽選用 数字選択 <span className="text-red-300 ml-1">*必須</span></label>
+                            <p className="text-xs text-[#b6b8ad] px-1 mb-1">※ 1〜{activeProject?.maxTeams || 16}の枠から好きな数字を選択してください。重複した場合はエントリー順により繰り上がりとなります。</p>
                             <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                                 {Array.from({ length: activeProject?.maxTeams || 16 }, (_, i) => i + 1).map(num => (
                                     <div
                                         key={num}
                                         onClick={() => setFormData({ ...formData, preliminaryNumber: num.toString() })}
                                         className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.preliminaryNumber === num.toString()
-                                            ? "border-amber-500 bg-amber-500/20 text-amber-800 font-bold"
-                                            : "border-stone-200 bg-white hover:bg-stone-100 text-stone-800"
+                                            ? "border-amber-500 bg-amber-500/20 text-amber-300 font-bold"
+                                            : "border-[#454740] bg-[#292b28] hover:bg-[#353731] text-[#d9dace]"
                                             }`}
                                     >
                                         {num}
@@ -497,24 +497,24 @@ export default function RegisterPage() {
                         {/* --- NEW: Section Break for Leader Info --- */}
                         <div className="relative py-4">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-stone-200"></div>
+                                <div className="w-full border-t border-[#454740]"></div>
                             </div>
                             <div className="relative flex justify-center">
-                                <span className="bg-white px-3 text-xs font-medium text-emerald-800 border border-stone-200 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <span className="bg-[#292b28] px-3 text-xs font-medium text-[#f18a5c] border border-[#454740] rounded-full flex items-center gap-1.5 shadow-sm">
                                     <UserCheck className="w-3.5 h-3.5" />
                                     ここからはあなた自身（リーダー）の登録です
                                 </span>
                             </div>
                         </div>
 
-                        <div className="space-y-4 bg-stone-50 border border-stone-200 rounded-xl p-5">
-                            <h3 className="text-sm font-bold text-stone-800 mb-2">1人目のメンバー（リーダー情報）</h3>
+                        <div className="space-y-4 bg-[#20211f] border border-[#454740] rounded-xl p-5">
+                            <h3 className="text-sm font-bold text-[#d9dace] mb-2">1人目のメンバー（リーダー情報）</h3>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">氏名 <span className="text-red-700 ml-1">*必須</span></label>
+                                <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">氏名 <span className="text-red-300 ml-1">*必須</span></label>
                                 {formData.existingUserId ? (
-                                    <div className="p-3 bg-white border border-stone-200 rounded-md text-stone-800 text-sm mt-2">
-                                        <p className="text-xs text-stone-600 mb-1">リーダー (連絡担当者) 氏名</p>
+                                    <div className="p-3 bg-[#292b28] border border-[#454740] rounded-md text-[#d9dace] text-sm mt-2">
+                                        <p className="text-xs text-[#b6b8ad] mb-1">リーダー (連絡担当者) 氏名</p>
                                         <p>{formData.representative}</p>
                                     </div>
                                 ) : (
@@ -524,14 +524,14 @@ export default function RegisterPage() {
                                             value={formData.representative}
                                             onChange={(e) => setFormData({ ...formData, representative: e.target.value })}
                                             required
-                                            className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                            className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                         />
                                         <Input
                                             placeholder="リーダー (連絡担当者) 氏名 (フリガナ)"
                                             value={formData.furigana}
                                             onChange={(e) => setFormData({ ...formData, furigana: e.target.value })}
                                             required
-                                            className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                            className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                         />
                                     </>
                                 )}
@@ -541,14 +541,14 @@ export default function RegisterPage() {
 
                         {!formData.existingUserId ? (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">連絡先 <span className="text-red-700 ml-1">*必須</span></label>
+                                <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">連絡先 <span className="text-red-300 ml-1">*必須</span></label>
                                 <Input
                                     type="email"
                                     placeholder="メールアドレス"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     required
-                                    className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                    className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                 />
                                 <Input
                                     type="tel"
@@ -556,44 +556,44 @@ export default function RegisterPage() {
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     required
-                                    className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                    className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                 />
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">連絡先</label>
-                                <div className="p-3 bg-white border border-stone-200 rounded-md text-stone-800 text-sm">
-                                    <p className="text-xs text-stone-600 mb-1">ログイン中のアカウントのアドレスを使用します</p>
+                                <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">連絡先</label>
+                                <div className="p-3 bg-[#292b28] border border-[#454740] rounded-md text-[#d9dace] text-sm">
+                                    <p className="text-xs text-[#b6b8ad] mb-1">ログイン中のアカウントのアドレスを使用します</p>
                                     <p>{formData.email}</p>
                                 </div>
                             </div>
                         )}
 
                         <div className="space-y-3 pt-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">スポーツ保険の加入状況 <span className="text-red-700 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">スポーツ保険の加入状況 <span className="text-red-300 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Option 1: Join Insurance */}
                                 <div
                                     onClick={() => setFormData({ ...formData, insurance: true })}
                                     className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all ${formData.insurance
-                                        ? "border-emerald-500 bg-emerald-500/10"
-                                        : "border-stone-200 bg-white hover:border-stone-200"
+                                        ? "border-orange-500 bg-[#f18a5c]/100/10"
+                                        : "border-[#454740] bg-[#292b28] hover:border-[#454740]"
                                         }`}
                                 >
                                     {formData.insurance && (
-                                        <div className="absolute top-3 right-3 text-emerald-800">
+                                        <div className="absolute top-3 right-3 text-[#f18a5c]">
                                             <CheckCircle2 className="w-5 h-5" />
                                         </div>
                                     )}
                                     <div className="flex flex-col gap-2">
-                                        <div className={`p-2 w-fit rounded-lg ${formData.insurance ? "bg-emerald-800 text-white" : "bg-stone-100 text-stone-600"}`}>
+                                        <div className={`p-2 w-fit rounded-lg ${formData.insurance ? "bg-[#f18a5c] text-[#20211f]" : "bg-[#353731] text-[#b6b8ad]"}`}>
                                             <ShieldCheck className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className={`font-bold ${formData.insurance ? "text-emerald-800" : "text-stone-800"}`}>大会保険に加入</h3>
-                                            <p className="text-xs text-stone-600 mt-1">大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</p>
-                                            <p className="text-xs text-amber-800/80 mt-1">※腰痛や鞭打ちなどは対象外</p>
-                                            <p className="text-xs font-bold text-emerald-800 mt-1">※ 別途{settings?.insuranceFee || 150}円が必要です</p>
+                                            <h3 className={`font-bold ${formData.insurance ? "text-[#f18a5c]" : "text-[#d9dace]"}`}>大会保険に加入</h3>
+                                            <p className="text-xs text-[#b6b8ad] mt-1">大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</p>
+                                            <p className="text-xs text-amber-300/80 mt-1">※腰痛や鞭打ちなどは対象外</p>
+                                            <p className="text-xs font-bold text-[#f18a5c] mt-1">※ 別途{settings?.insuranceFee || 150}円が必要です</p>
                                         </div>
                                     </div>
                                 </div>
@@ -602,22 +602,22 @@ export default function RegisterPage() {
                                 <div
                                     onClick={() => setFormData({ ...formData, insurance: false })}
                                     className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all ${!formData.insurance
-                                        ? "border-slate-500 bg-stone-100"
-                                        : "border-stone-200 bg-white hover:border-stone-200"
+                                        ? "border-slate-500 bg-[#353731]"
+                                        : "border-[#454740] bg-[#292b28] hover:border-[#454740]"
                                         }`}
                                 >
                                     {!formData.insurance && (
-                                        <div className="absolute top-3 right-3 text-stone-600">
+                                        <div className="absolute top-3 right-3 text-[#b6b8ad]">
                                             <CheckCircle2 className="w-5 h-5" />
                                         </div>
                                     )}
                                     <div className="flex flex-col gap-2">
-                                        <div className={`p-2 w-fit rounded-lg ${!formData.insurance ? "bg-stone-600 text-white" : "bg-stone-100 text-stone-600"}`}>
+                                        <div className={`p-2 w-fit rounded-lg ${!formData.insurance ? "bg-stone-600 text-white" : "bg-[#353731] text-[#b6b8ad]"}`}>
                                             <UserCheck className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className={`font-bold ${!formData.insurance ? "text-stone-800" : "text-stone-800"}`}>加入しない</h3>
-                                            <p className="text-xs text-stone-600 mt-1">各自で保険に加入済み、または加入を希望しません</p>
+                                            <h3 className={`font-bold ${!formData.insurance ? "text-[#d9dace]" : "text-[#d9dace]"}`}>加入しない</h3>
+                                            <p className="text-xs text-[#b6b8ad] mt-1">各自で保険に加入済み、または加入を希望しません</p>
                                         </div>
                                     </div>
                                 </div>
@@ -625,9 +625,9 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">リーダーのリストバンド色 <span className="text-red-700 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">リーダーのリストバンド色 <span className="text-red-300 ml-1">*必須</span></label>
                             <div className="grid grid-cols-1 gap-2">
-                                <p className="text-xs text-stone-600 mb-1">
+                                <p className="text-xs text-[#b6b8ad] mb-1">
                                     ※ 試合中の識別に使用します。ご自身の経験に合わせて選択してください。
                                 </p>
                                 <div className="grid grid-cols-3 gap-2">
@@ -641,19 +641,19 @@ export default function RegisterPage() {
                                             onClick={() => setFormData({ ...formData, wristbandColor: opt.color })}
                                             className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${formData.wristbandColor === opt.color
                                                 ? `border-${opt.color === '赤' ? 'red' : opt.color === '青' ? 'blue' : 'yellow'}-500 bg-${opt.color === '赤' ? 'red' : opt.color === '青' ? 'blue' : 'yellow'}-500/10`
-                                                : "border-stone-200 bg-white hover:border-stone-200"
+                                                : "border-[#454740] bg-[#292b28] hover:border-[#454740]"
                                                 }`}
                                         >
                                             <div className={`font-bold ${formData.wristbandColor === opt.color
                                                 ? `text-${opt.color === '赤' ? 'red' : opt.color === '青' ? 'blue' : 'yellow'}-400`
-                                                : "text-stone-800"
+                                                : "text-[#d9dace]"
                                                 }`}>{opt.color}</div>
-                                            <div className="text-xs text-stone-600">{opt.desc}</div>
+                                            <div className="text-xs text-[#b6b8ad]">{opt.desc}</div>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="text-xs text-stone-600 mt-1 pl-2 border-l-2 border-stone-200">
-                                    <div><span className="text-red-700 font-bold">赤</span>: 学生時代バスケ経験 5年以上</div>
+                                <div className="text-xs text-[#b6b8ad] mt-1 pl-2 border-l-2 border-[#454740]">
+                                    <div><span className="text-red-300 font-bold">赤</span>: 学生時代バスケ経験 5年以上</div>
                                     <div><span className="text-blue-400 font-bold">青</span>: 学生時代バスケ経験 2年超 5年未満</div>
                                     <div><span className="text-yellow-400 font-bold">黄</span>: 学生時代バスケ経験 2年以下 (初心者など)</div>
                                 </div>
@@ -661,53 +661,53 @@ export default function RegisterPage() {
                         </div>
 
                                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">チーム紹介・意気込み <span className="text-red-700 ml-1">*必須</span></label>
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">チーム紹介・意気込み <span className="text-red-300 ml-1">*必須</span></label>
                             <textarea
                                 placeholder="今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）"
                                 value={formData.introduction}
                                 onChange={(e) => setFormData({ ...formData, introduction: e.target.value })}
                                 required
-                                className="w-full bg-stone-50 border border-stone-200 rounded-md p-3 min-h-[120px] focus:border-emerald-500/50 focus:ring-emerald-500/20 text-sm"
+                                className="w-full bg-[#20211f] border border-[#454740] rounded-md p-3 min-h-[120px] focus:border-orange-500/50 focus:ring-orange-500/20 text-sm"
                             />
                         </div>
 
                         {activeProject?.hasClinic && (
-                            <div className="space-y-4 p-5 bg-emerald-50 border border-emerald-500/30 rounded-xl">
-                                <label className="text-sm font-extrabold text-emerald-800 flex items-center gap-2">
+                            <div className="space-y-4 p-5 bg-[#f18a5c]/10 border border-orange-500/30 rounded-xl">
+                                <label className="text-sm font-extrabold text-[#f18a5c] flex items-center gap-2">
                                     {activeProject.clinicTitle || '🏀 バスケクリニックへの参加希望'}
                                 </label>
-                                <p className="text-xs text-stone-600 leading-relaxed whitespace-pre-line">
+                                <p className="text-xs text-[#b6b8ad] leading-relaxed whitespace-pre-line">
                                     {activeProject.clinicDescription}
                                 </p>
                                 <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-stone-800">
+                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#d9dace]">
                                         <input
                                             type="radio"
                                             name="clinicParticipation"
                                             checked={formData.clinicParticipation === true}
                                             onChange={() => setFormData({ ...formData, clinicParticipation: true, clinicCount: 1 })}
-                                            className="w-4 h-4 text-emerald-800 border-stone-200 bg-white focus:ring-emerald-500"
+                                            className="w-4 h-4 text-[#f18a5c] border-[#454740] bg-[#292b28] focus:ring-orange-500"
                                         />
                                         クリニックに参加する
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-stone-800">
+                                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#d9dace]">
                                         <input
                                             type="radio"
                                             name="clinicParticipation"
                                             checked={formData.clinicParticipation === false}
                                             onChange={() => setFormData({ ...formData, clinicParticipation: false, clinicCount: 0 })}
-                                            className="w-4 h-4 text-emerald-800 border-stone-200 bg-white focus:ring-emerald-500"
+                                            className="w-4 h-4 text-[#f18a5c] border-[#454740] bg-[#292b28] focus:ring-orange-500"
                                         />
                                         参加しない
                                     </label>
                                 </div>
                                 {formData.clinicParticipation && (
                                     <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <label className="text-xs font-bold text-stone-600">参加予定人数</label>
+                                        <label className="text-xs font-bold text-[#b6b8ad]">参加予定人数</label>
                                         <select
                                             value={formData.clinicCount}
                                             onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
-                                            className="bg-stone-50 border border-stone-200 text-stone-800 text-sm rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5 outline-none font-sans"
+                                            className="bg-[#20211f] border border-[#454740] text-[#d9dace] text-sm rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5 outline-none font-sans"
                                         >
                                             {Array.from({ length: activeProject.clinicLimit !== undefined ? activeProject.clinicLimit : 20 }, (_, i) => i + 1).map((n) => (
                                                 <option key={n} value={n}>
@@ -717,24 +717,24 @@ export default function RegisterPage() {
                                         </select>
                                     </div>
                                 )}
-                                <p className="text-xs text-stone-600 leading-normal mt-2">
+                                <p className="text-xs text-[#b6b8ad] leading-normal mt-2">
                                     ※チームの参加申し込み時点で参加人数等が決まっていない場合は、未選択のままでも登録可能です。参加・不参加および人数は、仮エントリー完了後にマイページよりいつでもご変更いただけます（メンバー確定時までに最終決定をお願いします）。
                                 </p>
                             </div>
                         )}
 
                         <div className="space-y-4 pt-2">
-                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">参加同意 <span className="text-red-700 ml-1">*必須</span></label>
-                            <div className="flex items-start space-x-3 p-4 bg-white border border-stone-200 rounded-lg">
+                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">参加同意 <span className="text-red-300 ml-1">*必須</span></label>
+                            <div className="flex items-start space-x-3 p-4 bg-[#292b28] border border-[#454740] rounded-lg">
                                 <input
                                     type="checkbox"
                                     id="beginnerFriendly"
                                     checked={formData.isBeginnerFriendlyAccepted}
                                     onChange={(e) => setFormData({ ...formData, isBeginnerFriendlyAccepted: e.target.checked })}
                                     required
-                                    className="mt-1 w-5 h-5 rounded border-stone-200 bg-stone-100 text-emerald-800 focus:ring-emerald-500/20"
+                                    className="mt-1 w-5 h-5 rounded border-[#454740] bg-[#353731] text-[#f18a5c] focus:ring-orange-500/20"
                                 />
-                                <label htmlFor="beginnerFriendly" className="text-sm text-stone-800 cursor-pointer">
+                                <label htmlFor="beginnerFriendly" className="text-sm text-[#d9dace] cursor-pointer">
                                     ヴァンキーカップは初心者が楽しめる大会であることを理解してエントリーをする。
                                 </label>
                             </div>
@@ -742,14 +742,14 @@ export default function RegisterPage() {
 
                         {!formData.existingUserId && (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-700 ml-1">*必須</span></label>
+                                <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-300 ml-1">*必須</span></label>
                                 <Input
                                     type="password"
                                     placeholder="パスワード (PIN)"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     required
-                                    className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                    className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                 />
                                 <Input
                                     type="password"
@@ -757,7 +757,7 @@ export default function RegisterPage() {
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                     required
-                                    className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
+                                    className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                 />
                             </div>
                         )}
@@ -776,11 +776,11 @@ export default function RegisterPage() {
                             const isFull = selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams;
                             const isWaitlistOff = selectedProject?.isWaitlistEnabled === false;
                             if (isFull && isWaitlistOff) {
-                                return "bg-stone-100 text-stone-600 border border-stone-200 cursor-not-allowed";
+                                return "bg-[#353731] text-[#b6b8ad] border border-[#454740] cursor-not-allowed";
                             }
                             return isFull
                                 ? "bg-amber-700 hover:bg-amber-800 text-white shadow-none border border-amber-500/50"
-                                : "bg-emerald-800 hover:bg-emerald-900 text-white shadow-none"
+                                : "bg-[#f18a5c] hover:bg-[#f6a078] text-white shadow-none"
                         })()
                             }`}
                         disabled={isLoading || (() => {

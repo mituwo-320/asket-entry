@@ -1,66 +1,59 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { EntryStatus } from "@/components/entry/EntryStatus";
 import "./entry.css";
 
 export default function Home() {
   return (
-    <div className="entry-surface flex min-h-screen flex-col">
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
-          <Link href="/" aria-label="ヴァンキーカップ トップ" className="entry-brand">
-            vankycup<span className="ml-3 text-xs font-normal tracking-normal text-stone-500">参加受付</span>
-          </Link>
-          <Link href="/login" className="text-sm font-medium text-stone-600 hover:text-emerald-800">ログイン</Link>
-        </div>
+    <div className="entry-surface cup-home">
+      <header className="cup-header">
+        <Link href="/" aria-label="ヴァンキーカップ トップ" className="cup-wordmark">vanky<span>cup</span><i aria-hidden="true" /></Link>
+        <span className="cup-header-label">ヴァンキーカップ 参加受付</span>
+        <Link href="/login" className="cup-header-login">ログイン <ArrowUpRight aria-hidden="true" size={16} /></Link>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-12 sm:px-8 sm:py-20">
-        <div className="grid items-start gap-10 md:grid-cols-[1fr_1.05fr] md:gap-16">
-          <section aria-labelledby="entry-heading" className="md:pt-6">
-            <p className="mb-5 text-sm font-medium text-emerald-800">ヴァンキーカップ</p>
-            <h1 id="entry-heading" className="text-3xl font-bold leading-snug tracking-tight text-stone-900 sm:text-4xl">
-              チームで参加する。<br />ここからはじめよう。
-            </h1>
-            <p className="mt-6 text-base leading-8 text-stone-600">
-              大会の参加申し込みと、メンバーの登録を<br className="hidden sm:block" />こちらで受け付けています。
-            </p>
-            <div className="mt-8 border-t border-stone-200 pt-6"><EntryStatus /></div>
-          </section>
-          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-            <section aria-labelledby="new-team-heading" className="p-6 sm:p-8">
-              <p className="mb-3 text-xs font-medium text-stone-500">はじめて参加する方</p>
-              <h2 id="new-team-heading" className="text-xl font-bold text-stone-900">チームの参加申し込み</h2>
-              <p className="mt-3 text-sm leading-7 text-stone-600">代表者の方がチーム情報を登録してください。<br />ほかのメンバーは、申し込み後に追加できます。</p>
-              <Link href="/team/register" className="entry-primary mt-6 flex min-h-12 items-center justify-between gap-4 rounded-md px-5 py-3 font-medium">
-                チームを登録する<ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
+      <main>
+        <section className="cup-hero" aria-labelledby="entry-heading">
+          <div className="cup-court" aria-hidden="true">
+            <svg viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="238" /><circle cx="300" cy="300" r="145" /><path d="M62 300h476M300 62v476M130 130c190 0 340 150 340 340M130 470c0-190 150-340 340-340" /></svg>
+          </div>
+          <div className="cup-hero-copy">
+            <p className="cup-eyebrow"><span /> TEAM ENTRY</p>
+            <h1 id="entry-heading">ヴァンキー<br />カップ<span className="cup-title-period">.</span></h1>
+            <p className="cup-hero-subtitle">その一日を、<br className="cup-mobile-break" />チームで楽しもう。</p>
+            <p className="cup-hero-description">大会への参加申し込み、メンバーの登録。<br />チームの準備は、ここから。</p>
+            <div className="cup-status"><EntryStatus /></div>
+          </div>
+          <div className="cup-entry-stack">
+            <section className="cup-entry-card" aria-labelledby="new-team-heading">
+              <div className="cup-card-top"><span>ENTRY</span><span>01 / NEW TEAM</span></div>
+              <div className="cup-card-body">
+                <p className="cup-card-kicker">はじめて参加する方</p>
+                <h2 id="new-team-heading">さあ、チームで<br />参加しよう。</h2>
+                <p className="cup-card-description">代表者の方がチーム情報を登録してください。<br />ほかのメンバーは、申し込み後に追加できます。</p>
+                <Link href="/team/register" className="cup-entry-button">チームを登録する <span><ArrowUpRight aria-hidden="true" size={22} /></span></Link>
+                <p className="cup-card-note">受付中の大会日程は、登録画面で選べます。</p>
+              </div>
             </section>
-            <section aria-labelledby="existing-team-heading" className="border-t border-stone-200 bg-stone-50 p-6 sm:px-8">
-              <h2 id="existing-team-heading" className="text-base font-bold text-stone-900">登録済みの方</h2>
-              <p className="mt-2 text-sm leading-7 text-stone-600">登録内容の確認・変更や、メンバーの追加はこちら。</p>
-              <Link href="/login" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline">
-                ログインする<ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
+            <section className="cup-returning" aria-labelledby="existing-team-heading">
+              <div><p>ALREADY REGISTERED?</p><h2 id="existing-team-heading">登録済みの方はこちら</h2><span>登録内容の確認・変更、メンバーの追加</span></div>
+              <Link href="/login" aria-label="登録済みの方：ログインする"><ArrowRight aria-hidden="true" size={24} /></Link>
             </section>
           </div>
-        </div>
-        <section aria-labelledby="entry-flow-heading" className="mt-14 border-t border-stone-200 pt-8 sm:mt-20">
-          <h2 id="entry-flow-heading" className="text-base font-bold text-stone-900">参加申し込みの流れ</h2>
-          <ol className="mt-6 grid gap-6 sm:grid-cols-3">
+        </section>
+        <section className="cup-flow" aria-labelledby="entry-flow-heading">
+          <div className="cup-flow-heading"><p>HOW TO ENTER</p><h2 id="entry-flow-heading">参加までの、3ステップ。</h2></div>
+          <ol>
             {[
-              ["01", "大会日程を選ぶ", "受付中の大会から、参加する日程を選択します。"],
-              ["02", "チーム情報を登録", "チーム名と、代表者の連絡先などを入力します。"],
-              ["03", "メンバーを追加", "申し込み後、マイページでメンバーを登録します。"],
+              ["01", "大会日程を選ぶ", "受付中の大会から、参加する日程を選択。"],
+              ["02", "チーム情報を登録", "チーム名と、代表者の連絡先などを入力。"],
+              ["03", "メンバーを追加", "申し込み後、マイページでメンバーを登録。"],
             ].map(([number, title, description]) => (
-              <li key={number} className="flex gap-4">
-                <span aria-hidden="true" className="pt-0.5 text-sm font-semibold tabular-nums text-emerald-800">{number}</span>
-                <div><h3 className="text-sm font-semibold text-stone-800">{title}</h3><p className="mt-2 text-sm leading-6 text-stone-600">{description}</p></div>
-              </li>
+              <li key={number}><span aria-hidden="true">{number}</span><div><h3>{title}</h3><p>{description}</p></div></li>
             ))}
           </ol>
         </section>
       </main>
-      <footer className="border-t border-stone-200 px-5 py-6 text-center text-xs text-stone-500">&copy; {new Date().getFullYear()} vankycup</footer>
+      <footer className="cup-footer"><span className="cup-footer-brand">vankycup</span><span>&copy; {new Date().getFullYear()} vankycup</span><span>TEAM ENTRY</span></footer>
     </div>
   );
 }

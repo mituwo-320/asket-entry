@@ -47,21 +47,21 @@ export function EntryStatus() {
   }, []);
 
   return (
-    <div aria-live="polite" aria-atomic="true" className="text-sm leading-7">
-      <p className="mb-1 font-semibold text-stone-800">受付状況</p>
+    <div aria-live="polite" aria-atomic="true" className="entry-status">
+      <p className="entry-status-title">受付状況</p>
       {status.state === "loading" ? (
-        <p className="text-stone-600">大会の受付状況を確認しています…</p>
+        <p >大会の受付状況を確認しています…</p>
       ) : status.state === "error" ? (
-        <p className="text-stone-600">受付状況を取得できませんでした。時間をおいて再度ご確認ください。</p>
+        <p >受付状況を取得できませんでした。時間をおいて再度ご確認ください。</p>
       ) : status.projects.length === 0 ? (
-        <p className="text-stone-600">現在、参加申し込みを受け付けている大会はありません。</p>
+        <p >現在、参加申し込みを受け付けている大会はありません。</p>
       ) : (
         <>
-          <p className="text-emerald-800">参加申し込みの受付期間中です。</p>
-          <ul className="mt-1 text-stone-600">
+          <p className="entry-status-open">参加申し込みの受付期間中です。</p>
+          <ul className="mt-1">
             {status.projects.map(project => <li key={project.id}>{project.name}</li>)}
           </ul>
-          <p className="mt-2 text-xs text-stone-600">空き状況・キャンセル待ちは登録画面でご確認ください。</p>
+          <p className="entry-status-note">空き状況・キャンセル待ちは登録画面でご確認ください。</p>
         </>
       )}
     </div>

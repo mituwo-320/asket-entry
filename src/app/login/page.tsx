@@ -60,15 +60,15 @@ function LoginContent() {
                 {/* Logo / Header */}
                 <div className="text-center">
                     <Link href="/" className="entry-brand mb-6 inline-block">vankycup</Link>
-                    <h1 className="text-2xl font-bold text-stone-900 tracking-tight mb-2">チーム代表者ログイン</h1>
-                    <p className="text-stone-600 text-sm">登録内容の確認や、メンバーの追加ができます。</p>
+                    <h1 className="text-2xl font-bold text-[#f3f0e8] tracking-tight mb-2">チーム代表者ログイン</h1>
+                    <p className="text-[#b6b8ad] text-sm">登録内容の確認や、メンバーの追加ができます。</p>
                 </div>
 
                 <Card className="p-8 sm:p-10">
                     <form onSubmit={handleLogin} className="space-y-6">
                         {error && (
                             <div
-                                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 text-sm flex items-center gap-2"
+                                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-2"
                             >
                                 <span className="block w-2 h-2 rounded-full bg-red-400/50"></span>
                                 {error}
@@ -88,8 +88,8 @@ function LoginContent() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label htmlFor="login-password" className="text-sm font-medium text-stone-800 tracking-wide">パスワード</label>
-                                <Link href="/login/reset" className="text-xs text-emerald-800 hover:text-emerald-800 transition-colors">
+                                <label htmlFor="login-password" className="text-sm font-medium text-[#d9dace] tracking-wide">パスワード</label>
+                                <Link href="/login/reset" className="text-xs text-[#f18a5c] hover:text-[#f18a5c] transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
                             </div>
@@ -123,10 +123,10 @@ function LoginContent() {
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-stone-200 text-center">
-                        <p className="text-sm text-stone-600">
+                    <div className="mt-8 pt-6 border-t border-[#454740] text-center">
+                        <p className="text-sm text-[#b6b8ad]">
                             アカウントをお持ちでない場合は{" "}
-                            <Link href="/team/register" className="text-emerald-800 hover:text-emerald-800 font-medium transition-colors">
+                            <Link href="/team/register" className="text-[#f18a5c] hover:text-[#f18a5c] font-medium transition-colors">
                                 新規登録
                             </Link>
                         </p>
@@ -134,7 +134,7 @@ function LoginContent() {
                 </Card>
             </div>
 
-            <div className="mt-12 text-center text-xs text-stone-600 font-medium ">
+            <div className="mt-12 text-center text-xs text-[#b6b8ad] font-medium ">
                 &copy; {new Date().getFullYear()} vankycup
             </div>
         </div>
@@ -143,7 +143,7 @@ function LoginContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-900">読み込み中…</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[#20211f] flex items-center justify-center text-[#f3f0e8]">読み込み中…</div>}>
             <LoginContent />
         </Suspense>
     );
