@@ -36,7 +36,7 @@ export default function Home() {
             </section>
             <section className="cup-returning" aria-labelledby="existing-team-heading">
               <div><p>ALREADY REGISTERED?</p><h2 id="existing-team-heading">登録済みの方はこちら</h2><span>登録内容の確認・変更、メンバーの追加</span></div>
-              <Link href="/login" aria-label="登録済みの方：ログインする"><ArrowRight aria-hidden="true" size={24} /></Link>
+              <Link href="/login" aria-label="登録済みの方：ログインする"><span>ログイン</span><ArrowRight aria-hidden="true" size={18} /></Link>
             </section>
           </div>
         </section>

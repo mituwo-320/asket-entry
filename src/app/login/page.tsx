@@ -143,7 +143,7 @@ function LoginContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#20211f] flex items-center justify-center text-[#f3f0e8]">読み込み中…</div>}>
+        <Suspense fallback={<div className="entry-form-screen min-h-screen flex items-center justify-center text-[#f3f0e8]">読み込み中…</div>}>
             <LoginContent />
         </Suspense>
     );

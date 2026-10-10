@@ -173,7 +173,7 @@ export default function RegisterPage() {
 
     if (!isSettingsLoaded) {
         return (
-            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4">
+            <div className="entry-form-screen min-h-screen flex flex-col items-center justify-center p-4">
                 <Loader2 className="w-8 h-8 text-[#f18a5c] animate-spin" />
             </div>
         );
@@ -183,7 +183,7 @@ export default function RegisterPage() {
 
     if (projects.length === 0) {
         return (
-            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace]">
+            <div className="entry-form-screen min-h-screen flex flex-col items-center justify-center p-4 text-[#d9dace]">
                 <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740] text-center space-y-4">
                     <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
                         <CheckCircle2 className="w-8 h-8 text-amber-300" />
@@ -198,7 +198,7 @@ export default function RegisterPage() {
 
     if (teamId) {
         return (
-            <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
+            <div className="entry-form-screen min-h-screen flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
 
                 <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740]  relative z-10 shadow-none">
                     <div className="text-center space-y-6">
@@ -311,7 +311,7 @@ export default function RegisterPage() {
 
     return (
         <>
-        <div className="min-h-screen bg-[#20211f] flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
+        <div className="entry-form-screen min-h-screen flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
 
             <Card className="w-full max-w-md p-8 bg-[#292b28] border-[#454740]  relative z-10 shadow-none">
                 <div className="mb-8">
