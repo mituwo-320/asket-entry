@@ -13,6 +13,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         return (
             <div
                 ref={ref}
+                data-ui="card"
                 className={cn(
                     'glass-card rounded-2xl p-6', // Increased border radius and used global utility
                     className

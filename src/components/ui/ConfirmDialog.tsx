@@ -35,7 +35,7 @@ export function ConfirmDialog({
             />
 
             {/* Dialog */}
-            <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div data-ui="dialog-panel" className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between p-5 border-b border-slate-800">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${danger ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
@@ -43,7 +43,7 @@ export function ConfirmDialog({
                         </div>
                         <h3 className="font-bold text-white text-base">{title}</h3>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                    <button aria-label="閉じる" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                         <X className="w-4 h-4" />
                     </button>
                 </div>

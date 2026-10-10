@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/Input";
 import { ArrowLeft, CheckCircle2, Loader2, KeyRound, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 
 function ResetPasswordForm() {
     const router = useRouter();
@@ -91,18 +90,18 @@ function ResetPasswordForm() {
     if (isSuccess && !isConfirming) {
         return (
             <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-indigo-500/20">
-                    <Mail className="w-8 h-8 text-indigo-400" />
+                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto ring-1 ring-emerald-500/20">
+                    <Mail className="w-8 h-8 text-emerald-800" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">メールを送信しました</h2>
-                    <p className="text-slate-400 text-sm">
+                    <h2 className="text-2xl font-bold text-stone-900 mb-2">メールを送信しました</h2>
+                    <p className="text-stone-600 text-sm">
                         入力されたメールアドレスにパスワード再設定用のリンクを送信しました。<br />
                         受信トレイをご確認いただき、リンクから再設定を行ってください。
                     </p>
                 </div>
                 <Button
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-6 transition-all duration-300"
+                    className="w-full bg-stone-100 hover:bg-stone-100 text-stone-900 font-medium py-6 transition-all duration-300"
                     onClick={() => router.push("/login")}
                 >
                     ログイン画面へ戻る
@@ -115,17 +114,17 @@ function ResetPasswordForm() {
         return (
             <div className="text-center space-y-6">
                 <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-emerald-500/20">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                    <CheckCircle2 className="w-8 h-8 text-emerald-800" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">再設定完了</h2>
-                    <p className="text-slate-400 text-sm">
+                    <h2 className="text-2xl font-bold text-stone-900 mb-2">再設定完了</h2>
+                    <p className="text-stone-600 text-sm">
                         パスワードの再設定が完了しました。<br />
                         新しいパスワードでログインしてください。
                     </p>
                 </div>
                 <Button
-                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
+                    className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-medium py-6 shadow-none transition-all duration-300"
                     onClick={() => router.push("/login")}
                 >
                     ログイン画面へ戻る
@@ -137,19 +136,19 @@ function ResetPasswordForm() {
     return (
         <div className="w-full">
             <div className="mb-8">
-                <Link href="/login" className="inline-flex items-center text-sm text-slate-400 hover:text-white transition-colors mb-6">
+                <Link href="/login" className="inline-flex items-center text-sm text-stone-600 hover:text-stone-900 transition-colors mb-6">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     戻る
                 </Link>
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
-                        <KeyRound className="w-6 h-6 text-indigo-400" />
+                    <div className="p-2 bg-emerald-50 rounded-lg">
+                        <KeyRound className="w-6 h-6 text-emerald-800" />
                     </div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                    <h1 className="text-2xl font-bold text-stone-900">
                         パスワード再設定
                     </h1>
                 </div>
-                <p className="text-slate-400 text-sm pl-11">
+                <p className="text-stone-600 text-sm pl-11">
                     {isConfirming
                         ? "新しいパスワードを入力してください。"
                         : "登録しているメールアドレスを入力してください。パスワード再設定用のリンクを送信します。"}
@@ -159,36 +158,36 @@ function ResetPasswordForm() {
             <form onSubmit={isConfirming ? handleConfirmReset : handleRequestReset} className="space-y-6">
                 {!isConfirming ? (
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">メールアドレス</label>
+                        <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">メールアドレス</label>
                         <Input
                             type="email"
                             placeholder="登録メールアドレス"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                            className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
                         />
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">対象のアカウント</label>
+                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">対象のアカウント</label>
                             <Input
                                 type="email"
                                 value={emailParam || ""}
                                 disabled
-                                className="bg-slate-900 border-slate-800 text-slate-500 h-11"
+                                className="bg-white border-stone-200 text-stone-600 h-11"
                             />
                         </div>
                         <div className="space-y-2 pt-2">
-                            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider ml-1">新しいパスワード</label>
+                            <label className="text-xs font-medium text-stone-600 uppercase tracking-wider ml-1">新しいパスワード</label>
                             <Input
                                 type="password"
                                 placeholder="新しいパスワード"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
                             />
                             <Input
                                 type="password"
@@ -196,7 +195,7 @@ function ResetPasswordForm() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="bg-slate-950/50 border-slate-800 focus:border-indigo-500/50 focus:ring-indigo-500/20 h-11"
+                                className="bg-stone-50 border-stone-200 focus:border-emerald-500/50 focus:ring-emerald-500/20 h-11"
                             />
                         </div>
                     </div>
@@ -210,7 +209,7 @@ function ResetPasswordForm() {
 
                 <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium py-6 shadow-lg shadow-indigo-500/20 transition-all duration-300"
+                    className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-medium py-6 shadow-none transition-all duration-300"
                     disabled={isLoading}
                 >
                     {isLoading ? (
@@ -226,29 +225,22 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200 font-sans selection:bg-indigo-500/30">
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-            </div>
+        <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4 text-stone-800 font-sans selection:bg-emerald-800/30">
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+            <div
                 className="w-full max-w-md relative z-10"
             >
-                <Card className="p-8 bg-slate-900/80 border-slate-800 backdrop-blur-xl shadow-2xl">
+                <Card className="p-8 bg-white border-stone-200  shadow-none">
                     <Suspense fallback={
                         <div className="flex flex-col items-center justify-center py-12">
-                            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-                            <p className="text-slate-400 mt-4 text-sm">読み込み中...</p>
+                            <Loader2 className="w-8 h-8 text-emerald-800 animate-spin" />
+                            <p className="text-stone-600 mt-4 text-sm">読み込み中...</p>
                         </div>
                     }>
                         <ResetPasswordForm />
                     </Suspense>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 }

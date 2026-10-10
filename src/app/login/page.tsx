@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Trophy, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useEffect, Suspense } from "react";
 
 function LoginContent() {
@@ -46,7 +45,7 @@ function LoginContent() {
             } else {
                 setError(data.message || "ログインに失敗しました");
             }
-        } catch (err) {
+        } catch {
             setError("サーバーエラーが発生しました");
         } finally {
             setIsLoading(false);
@@ -55,40 +54,31 @@ function LoginContent() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+            <div
                 className="w-full max-w-md space-y-8"
             >
                 {/* Logo / Header */}
                 <div className="text-center">
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl mb-6 shadow-xl shadow-indigo-500/30 border border-indigo-400/20"
-                    >
-                        <Trophy className="w-8 h-8 text-white" />
-                    </motion.div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Welcome Back</h1>
-                    <p className="text-slate-400 text-sm">アカウントにログインして大会に参加</p>
+                    <Link href="/" className="entry-brand mb-6 inline-block">vankycup</Link>
+                    <h1 className="text-2xl font-bold text-stone-900 tracking-tight mb-2">チーム代表者ログイン</h1>
+                    <p className="text-stone-600 text-sm">登録内容の確認や、メンバーの追加ができます。</p>
                 </div>
 
                 <Card className="p-8 sm:p-10">
                     <form onSubmit={handleLogin} className="space-y-6">
                         {error && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2"
+                            <div
+                                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 text-sm flex items-center gap-2"
                             >
                                 <span className="block w-2 h-2 rounded-full bg-red-400/50"></span>
                                 {error}
-                            </motion.div>
+                            </div>
                         )}
 
                         <Input
+                            id="login-email"
                             label="メールアドレス"
+                            autoComplete="username"
                             type="email"
                             placeholder="name@example.com"
                             value={email}
@@ -98,13 +88,15 @@ function LoginContent() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-300 tracking-wide">パスワード</label>
-                                <Link href="/login/reset" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                                <label htmlFor="login-password" className="text-sm font-medium text-stone-800 tracking-wide">パスワード</label>
+                                <Link href="/login/reset" className="text-xs text-emerald-800 hover:text-emerald-800 transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
                             </div>
                             <Input
+                                id="login-password"
                                 type="password"
+                                autoComplete="current-password"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -131,19 +123,19 @@ function LoginContent() {
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-slate-700/50 text-center">
-                        <p className="text-sm text-slate-400">
+                    <div className="mt-8 pt-6 border-t border-stone-200 text-center">
+                        <p className="text-sm text-stone-600">
                             アカウントをお持ちでない場合は{" "}
-                            <Link href="/team/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                            <Link href="/team/register" className="text-emerald-800 hover:text-emerald-800 font-medium transition-colors">
                                 新規登録
                             </Link>
                         </p>
                     </div>
                 </Card>
-            </motion.div>
+            </div>
 
-            <div className="mt-12 text-center text-xs text-slate-500 font-medium font-mono">
-                &copy; {new Date().getFullYear()} vankycup. All rights reserved.
+            <div className="mt-12 text-center text-xs text-stone-600 font-medium ">
+                &copy; {new Date().getFullYear()} vankycup
             </div>
         </div>
     );
@@ -151,7 +143,7 @@ function LoginContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white font-mono">LOADING...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-900">読み込み中…</div>}>
             <LoginContent />
         </Suspense>
     );

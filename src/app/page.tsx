@@ -1,75 +1,66 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Users, ShieldCheck, Trophy, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { EntryStatus } from "@/components/entry/EntryStatus";
+import "./entry.css";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-pink-600/20 rounded-full blur-[100px]" />
-      </div>
-
-      <div className="text-center max-w-2xl mb-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-slate-300 text-sm mb-6 backdrop-blur-md">
-          <Trophy className="w-4 h-4 text-emerald-500" />
-          <span className="font-bold tracking-wider">vankycup</span>
+    <div className="entry-surface flex min-h-screen flex-col">
+      <header className="border-b border-stone-200 bg-white">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
+          <Link href="/" aria-label="ヴァンキーカップ トップ" className="entry-brand">
+            vankycup<span className="ml-3 text-xs font-normal tracking-normal text-stone-500">参加受付</span>
+          </Link>
+          <Link href="/login" className="text-sm font-medium text-stone-600 hover:text-emerald-800">ログイン</Link>
         </div>
-        <h1 className="text-4xl md:text-7xl font-bold font-heading mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-slate-400">
-          ヴァンキーカップ<br />
-          エントリー
-        </h1>
-        <p className="text-lg text-slate-400 max-w-lg mx-auto leading-relaxed">
-          チームエントリー、メンバーの登録など<br />
-          スムーズに登録できます。
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 w-full max-w-4xl">
-        <Link href="/team/register" className="group">
-          <Card className="h-full hover:border-emerald-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
-            <div className="flex flex-col h-full">
-              <div className="p-3 bg-emerald-500/10 w-fit rounded-lg mb-4 group-hover:bg-emerald-500/20 transition-colors">
-                <Users className="w-8 h-8 text-emerald-400" />
-              </div>
-              <h2 className="text-2xl font-bold font-heading mb-2 text-white group-hover:text-emerald-300 transition-colors">
-                はじめての方 (新規登録)
-              </h2>
-              <p className="text-slate-400 mb-6 flex-1">
-                大会への新規エントリーはこちらから。チーム情報と代表者情報を登録して参加申し込みを行います。
-              </p>
-              <div className="flex items-center text-emerald-400 font-medium">
-                新規登録へ進む <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href="/login" className="group">
-          <Card className="h-full hover:border-indigo-500/50 transition-all hover:bg-slate-800/80 group-hover:scale-[1.02] duration-300">
-            <div className="flex flex-col h-full">
-              <div className="p-3 bg-indigo-500/10 w-fit rounded-lg mb-4 group-hover:bg-indigo-500/20 transition-colors">
-                <Users className="w-8 h-8 text-indigo-400" />
-              </div>
-              <h2 className="text-2xl font-bold font-heading mb-2 text-white group-hover:text-indigo-300 transition-colors">
-                登録済みの方 (ログイン)
-              </h2>
-              <p className="text-slate-400 mb-6 flex-1">
-                すでに登録済みのチーム代表者はこちら。登録内容の変更や、大会スケジュールの確認が行えます。
-              </p>
-              <div className="flex items-center text-indigo-400 font-medium">
-                ログイン画面へ <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Card>
-        </Link>
-      </div>
-
-      <footer className="mt-20 border-t border-slate-800/50 pt-8 pb-4 w-full flex justify-center text-sm text-slate-500 relative z-10 font-mono">
-        &copy; 2026 vankycup
-      </footer>
-    </main>
+      </header>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-12 sm:px-8 sm:py-20">
+        <div className="grid items-start gap-10 md:grid-cols-[1fr_1.05fr] md:gap-16">
+          <section aria-labelledby="entry-heading" className="md:pt-6">
+            <p className="mb-5 text-sm font-medium text-emerald-800">ヴァンキーカップ</p>
+            <h1 id="entry-heading" className="text-3xl font-bold leading-snug tracking-tight text-stone-900 sm:text-4xl">
+              チームで参加する。<br />ここからはじめよう。
+            </h1>
+            <p className="mt-6 text-base leading-8 text-stone-600">
+              大会の参加申し込みと、メンバーの登録を<br className="hidden sm:block" />こちらで受け付けています。
+            </p>
+            <div className="mt-8 border-t border-stone-200 pt-6"><EntryStatus /></div>
+          </section>
+          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+            <section aria-labelledby="new-team-heading" className="p-6 sm:p-8">
+              <p className="mb-3 text-xs font-medium text-stone-500">はじめて参加する方</p>
+              <h2 id="new-team-heading" className="text-xl font-bold text-stone-900">チームの参加申し込み</h2>
+              <p className="mt-3 text-sm leading-7 text-stone-600">代表者の方がチーム情報を登録してください。<br />ほかのメンバーは、申し込み後に追加できます。</p>
+              <Link href="/team/register" className="entry-primary mt-6 flex min-h-12 items-center justify-between gap-4 rounded-md px-5 py-3 font-medium">
+                チームを登録する<ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </section>
+            <section aria-labelledby="existing-team-heading" className="border-t border-stone-200 bg-stone-50 p-6 sm:px-8">
+              <h2 id="existing-team-heading" className="text-base font-bold text-stone-900">登録済みの方</h2>
+              <p className="mt-2 text-sm leading-7 text-stone-600">登録内容の確認・変更や、メンバーの追加はこちら。</p>
+              <Link href="/login" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline">
+                ログインする<ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </section>
+          </div>
+        </div>
+        <section aria-labelledby="entry-flow-heading" className="mt-14 border-t border-stone-200 pt-8 sm:mt-20">
+          <h2 id="entry-flow-heading" className="text-base font-bold text-stone-900">参加申し込みの流れ</h2>
+          <ol className="mt-6 grid gap-6 sm:grid-cols-3">
+            {[
+              ["01", "大会日程を選ぶ", "受付中の大会から、参加する日程を選択します。"],
+              ["02", "チーム情報を登録", "チーム名と、代表者の連絡先などを入力します。"],
+              ["03", "メンバーを追加", "申し込み後、マイページでメンバーを登録します。"],
+            ].map(([number, title, description]) => (
+              <li key={number} className="flex gap-4">
+                <span aria-hidden="true" className="pt-0.5 text-sm font-semibold tabular-nums text-emerald-800">{number}</span>
+                <div><h3 className="text-sm font-semibold text-stone-800">{title}</h3><p className="mt-2 text-sm leading-6 text-stone-600">{description}</p></div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </main>
+      <footer className="border-t border-stone-200 px-5 py-6 text-center text-xs text-stone-500">&copy; {new Date().getFullYear()} vankycup</footer>
+    </div>
   );
 }

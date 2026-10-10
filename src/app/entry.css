@@ -1,0 +1,130 @@
+/* The participant entry flow has its own theme; operations screens retain theirs. */
+.entry-surface {
+  min-height: 100vh;
+  background: #fafaf9;
+  color: #292524;
+  color-scheme: light;
+  font-family: var(--font-noto-sans);
+}
+
+.entry-brand {
+  color: #1e493b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.entry-surface ::selection {
+  background: #d1e6da;
+  color: #1c362b;
+}
+
+.entry-surface a:focus-visible,
+.entry-surface button:focus-visible {
+  outline: 2px solid #065f46;
+  outline-offset: 4px;
+}
+
+.entry-primary,
+.entry-surface [data-ui="button"][data-variant="primary"] {
+  background: #065f46;
+  background-image: none;
+  border: 1px solid #065f46;
+  color: #fff;
+  box-shadow: none;
+}
+
+.entry-primary:hover,
+.entry-surface [data-ui="button"][data-variant="primary"]:hover {
+  background: #064e3b;
+  border-color: #064e3b;
+}
+
+.entry-surface [data-ui="button"] {
+  border-radius: 6px;
+  transform: none;
+  --tw-ring-offset-color: #fafaf9;
+  --tw-ring-color: #065f46;
+}
+
+.entry-surface [data-ui="button"]:disabled {
+  opacity: 0.55;
+}
+
+.entry-surface [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline"], [data-variant="glass"]) {
+  background: #fff;
+  color: #292524;
+  border: 1px solid #d6d3d1;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.entry-surface [data-ui="button"][data-variant="ghost"] {
+  color: #44403c;
+}
+
+.entry-surface [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline"], [data-variant="glass"], [data-variant="ghost"]):hover {
+  background: #f5f5f4;
+}
+
+.entry-surface [data-ui="card"] {
+  background: #fff;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.entry-surface [data-ui="input"] {
+  background: #fff;
+  color: #292524;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.entry-surface [data-ui="input"]::placeholder {
+  color: #78716c;
+}
+
+.entry-surface [data-ui="input"]:focus {
+  border-color: #065f46;
+  --tw-ring-color: #065f4626;
+}
+
+.entry-surface [data-ui="input-label"] {
+  color: #44403c;
+  letter-spacing: normal;
+  margin-left: 0;
+}
+
+/* Confirmation dialogs are rendered inside the registration layout. */
+.entry-surface [data-ui="dialog-panel"] {
+  background: #fff;
+  border-color: #e7e5e4;
+  border-radius: 12px;
+  box-shadow: 0 12px 48px #29252426;
+}
+
+.entry-surface [data-ui="dialog-panel"] :is(h3, p) {
+  color: #292524;
+}
+
+.entry-surface [data-ui="dialog-panel"] .border-slate-800 {
+  border-color: #e7e5e4;
+}
+
+.entry-surface [data-ui="dialog-panel"] button[aria-label="閉じる"] {
+  color: #57534e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-surface *,
+  .entry-surface *::before,
+  .entry-surface *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+}
