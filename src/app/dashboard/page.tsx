@@ -6,10 +6,9 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, Loader2, User as UserIcon, Settings, Target, ArrowRight, ArrowLeft, MessageCircle, AlertCircle, X, Printer, FileText } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, User as UserIcon, Settings, ArrowRight, MessageCircle, AlertCircle, X, Printer, FileText } from "lucide-react";
 import Link from "next/link";
-import { getTournamentName } from "@/lib/tournament-constants";
-import { motion, AnimatePresence } from "framer-motion";
+import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -18,6 +17,7 @@ export default function UserDashboard() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [settings, setSettings] = useState<Setting | any>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [showChatBanner, setShowChatBanner] = useState(true);
 
@@ -37,8 +37,8 @@ export default function UserDashboard() {
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                setEntries(prev => prev.map(e => 
-                    e.id === receiptModalEntryId 
+                setEntries(prev => prev.map(e =>
+                    e.id === receiptModalEntryId
                     ? { ...e, receiptName: data.receiptName || undefined, receiptIssuedAt: data.receiptIssuedAt }
                     : e
                 ));
@@ -81,6 +81,7 @@ export default function UserDashboard() {
                     fetch('/api/admin/projects'),
                     fetch('/api/settings')
                 ]);
+                if (!entriesRes.ok) throw new Error("Failed to fetch entries");
                 const entriesData = await entriesRes.json();
                 const projectsData = await projectsRes.json();
                 const settingsData = await settingsRes.json();
@@ -90,6 +91,7 @@ export default function UserDashboard() {
                 if (settingsData) setSettings(settingsData);
             } catch (e) {
                 console.error("Failed to fetch data", e);
+                setLoadError(true);
             } finally {
                 setIsLoading(false);
             }
@@ -102,38 +104,22 @@ export default function UserDashboard() {
         router.push('/login');
     };
 
-    if (isLoading) return (
-        <div className="min-h-screen flex items-center justify-center text-white">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        </div>
-    );
+    if (isLoading) return <ParticipantState title="マイページを準備しています" loading />;
     if (!user) return null;
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-    };
+    if (loadError) return <><ParticipantHeader backHref="/" backLabel="トップへ戻る" /><ParticipantState title="参加状況を読み込めませんでした" message="時間をおいて、このページを再読み込みしてください。" href="/dashboard" linkLabel="マイページへ戻る" /></>;
 
     const activeEntries = entries.filter(entry => {
         const project = projects.find(p => p.id === entry.tournamentId);
         if (!project) return true;
         if (project.isActive === false) return false;
-        
+
         // 本番日程（eventDate）がある場合、その日の終わり（23:59:59）まではアクティブとする
         if (project.eventDate) {
             const eventDate = new Date(project.eventDate);
             eventDate.setHours(23, 59, 59, 999);
             return new Date() <= eventDate;
         }
-        
+
         return true;
     });
 
@@ -141,47 +127,24 @@ export default function UserDashboard() {
         const project = projects.find(p => p.id === entry.tournamentId);
         if (!project) return false;
         if (project.isActive === false) return true;
-        
+
         if (project.eventDate) {
             const eventDate = new Date(project.eventDate);
             eventDate.setHours(23, 59, 59, 999);
             return new Date() > eventDate;
         }
-        
+
         return false;
     });
 
     return (
         <div className="min-h-screen">
-            {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/20">
-                            <Trophy className="w-5 h-5 text-white" />
-                        </div>
-                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">vankycup</h1>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm font-medium">トップへ戻る</span>
-                        </Button>
-                    </div>
-                </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="show"
-                    className="max-w-6xl mx-auto"
-                >
-                    {/* Welcome Section */}
-                    <motion.div variants={itemVariants} className="mb-10">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">マイページ</h2>
-                        <p className="text-slate-400 text-sm sm:text-base">登録情報の管理や、大会へのエントリー状況を確認できます。</p>
-                    </motion.div>
+            <ParticipantHeader backHref="/" backLabel="トップへ戻る" actions={<Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="w-4 h-4 mr-2" />ログアウト</Button>} />
+            <main className="participant-main">
+                <div>
+                    <ParticipantHeading eyebrow="YOUR TEAM DESK" title="マイページ" description={`${user.name}さん、登録したチームと参加状況はこちらから確認できます。`}>
+                        <div className="participant-heading-stats"><span>エントリー中<strong>{activeEntries.length}</strong>大会</span><span>メンバー未確定<strong>{activeEntries.filter(entry => entry.status === 'draft').length}</strong>チーム</span></div>
+                    </ParticipantHeading>
 
                     {/* LINE OpenChat Urgent Banner */}
                     {showChatBanner && (() => {
@@ -204,29 +167,26 @@ export default function UserDashboard() {
                         // If management has confirmed all entries as joined, show green confirmation instead
                         if (allConfirmed) {
                             return (
-                                <motion.div variants={itemVariants} className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
+                                <div className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
                                     <div className="p-2 bg-emerald-500/20 rounded-xl flex-shrink-0">
                                         <MessageCircle className="w-5 h-5 text-emerald-400" />
                                     </div>
                                     <p className="text-sm text-emerald-300 font-medium">
                                         ✅ LINEオープンチャットへの参加が確認されています。ありがとうございます！
                                     </p>
-                                </motion.div>
+                                </div>
                             );
                         }
 
                         const chatLink = chatProjects[0]?.lineOpenChatLink || settings.lineOpenChatLink;
                         return (
-                            <motion.div
-                                variants={itemVariants}
+                            <div
                                 className="mb-8 bg-red-500/10 border-2 border-red-500/50 rounded-2xl p-5 relative overflow-hidden"
                             >
-                                {/* Pulsing background accent */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent animate-pulse pointer-events-none" />
                                 <button
                                     onClick={() => setShowChatBanner(false)}
                                     className="absolute top-3 right-3 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                    title="閉じる"
+                                    aria-label="LINEのお知らせを閉じる"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -255,34 +215,34 @@ export default function UserDashboard() {
                                         今すぐ参加する
                                     </a>
                                 </div>
-                            </motion.div>
+                            </div>
                         );
                     })()}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Left Column: Profile */}
                         <div className="space-y-6">
-                            <motion.div variants={itemVariants}>
-                                <Card>
-                                    <div className="flex items-center gap-2 mb-6 text-slate-400">
+                            <div>
+                                <Card className="participant-account-card">
+                                    <div className="flex items-center gap-2 mb-6 text-[#c2cbb5]">
                                         <UserIcon className="w-5 h-5" />
                                         <h3 className="text-sm font-bold uppercase tracking-wider">アカウント情報</h3>
                                     </div>
                                     <div className="space-y-5">
                                         <div>
-                                            <label className="text-xs text-slate-500 block mb-1">代表者氏名</label>
+                                            <label className="text-xs text-[#b7c5a7] block mb-1">代表者氏名</label>
                                             <p className="text-white font-medium text-lg">{user.name}</p>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-slate-500 block mb-1">メールアドレス</label>
+                                            <label className="text-xs text-[#b7c5a7] block mb-1">メールアドレス</label>
                                             <p className="text-white font-medium">{user.email}</p>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-slate-500 block mb-1">電話番号</label>
+                                            <label className="text-xs text-[#b7c5a7] block mb-1">電話番号</label>
                                             <p className="text-white font-medium">{user.phone}</p>
                                         </div>
                                     </div>
-                                    <div className="mt-8 pt-6 border-t border-slate-700/50">
+                                    <div className="mt-8 pt-6 border-t border-[#91a07f]/50">
                                         <Button
                                             variant="outline"
                                             className="w-full text-sm flex items-center gap-2"
@@ -292,7 +252,7 @@ export default function UserDashboard() {
                                         </Button>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </div>
 
                             {(() => {
                                 const userProjectsWithChat = projects
@@ -319,8 +279,8 @@ export default function UserDashboard() {
                                     }));
 
                                 return userProjectsWithChat.length > 0 && (
-                                    <motion.div variants={itemVariants}>
-                                        <div className="bg-gradient-to-br from-indigo-900/40 to-purple-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl space-y-4">
+                                    <div>
+                                        <div className="bg-[#2d4227] rounded-2xl p-6 border border-[#ccaa7c]/20 shadow-xl space-y-4">
                                             <h4 className="font-bold text-emerald-300 mb-2 flex items-center gap-2">
                                                 <MessageCircle className="w-5 h-5" /> LINEオープンチャット (必須)
                                             </h4>
@@ -329,9 +289,9 @@ export default function UserDashboard() {
                                             </p>
                                             <div className="space-y-2 mt-4">
                                                 {userProjectsWithChat.map(p => (
-                                                    <a key={p.id} href={p.displayLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-700/50 transition-colors group">
+                                                    <a key={p.id} href={p.displayLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-[#283722]/50 hover:bg-[#3a4a30]/80 border border-[#91a07f]/50 transition-colors group">
                                                         <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium text-slate-200">{p.name}</span>
+                                                            <span className="text-sm font-medium text-[#e8eddc]">{p.name}</span>
                                                             <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
                                                                 参加する <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                                                             </div>
@@ -340,7 +300,7 @@ export default function UserDashboard() {
                                                 ))}
                                             </div>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 );
                             })()}
                         </div>
@@ -348,9 +308,9 @@ export default function UserDashboard() {
                         {/* Right Column: Entries */}
                         <div className="lg:col-span-2 space-y-8">
                             {/* Actions */}
-                            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/5">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-indigo-400" />
+                                    <Calendar className="w-5 h-5 text-[#f0b17f]" />
                                     エントリー中の大会
                                 </h3>
                                 <Link href="/team/register" className="w-full sm:w-auto">
@@ -358,25 +318,27 @@ export default function UserDashboard() {
                                         <Plus className="w-5 h-5 mr-2" /> 他の大会に新規エントリー
                                     </Button>
                                 </Link>
-                            </motion.div>
+                            </div>
 
-                            <motion.div variants={itemVariants} className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-amber-400/90 text-sm">
+                            {activeEntries.some(entry => entry.status === 'draft') && (
+                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-amber-400/90 text-sm">
                                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-bold text-amber-400 mb-1">【重要】メンバー登録のお願い</p>
                                     <p>以下の大会へのエントリーは完了していますが、まだメンバー登録が終わっていません。<br className="hidden sm:block" />各大会の<strong className="text-amber-300">エントリー期限を過ぎると、メンバーの追加や内容の編集ができなくなります</strong>ので、お早めに「チーム編集・メンバー追加」からご登録ください。</p>
                                 </div>
-                            </motion.div>
+                            </div>
+                            )}
 
                             {/* Active Entries Section */}
-                            <motion.section variants={itemVariants}>
+                            <section>
                                 {activeEntries.length === 0 ? (
-                                    <Card className="p-12 border-dashed border-slate-700/50 bg-slate-900/20 text-center">
-                                        <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Trophy className="w-10 h-10 text-slate-500" />
+                                    <Card className="p-12 border-dashed border-[#91a07f]/50 bg-[#283722]/20 text-center">
+                                        <div className="w-20 h-20 bg-[#3a4a30]/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Trophy className="w-10 h-10 text-[#b7c5a7]" />
                                         </div>
-                                        <h4 className="text-xl font-medium text-slate-200 mb-3">エントリーはありません</h4>
-                                        <p className="text-slate-400 mb-8 leading-relaxed">
+                                        <h4 className="text-xl font-medium text-[#e8eddc] mb-3">エントリーはありません</h4>
+                                        <p className="text-[#c2cbb5] mb-8 leading-relaxed">
                                             現在開催中の大会にエントリーして、<br className="hidden sm:block" />
                                             チームの力を試しましょう！
                                         </p>
@@ -386,33 +348,30 @@ export default function UserDashboard() {
                                     </Card>
                                 ) : (
                                     <div className="space-y-4">
-                                        {activeEntries.map((entry, i) => (
-                                            <motion.div
+                                        {activeEntries.map((entry) => (
+                                            <div
                                                 key={entry.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: i * 0.1 }}
                                             >
                                                 <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
-                                                    <Card className="p-0 overflow-hidden hover:border-indigo-500/40 transition-all duration-300">
+                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#ccaa7c]/40 transition-all duration-300">
                                                         <div className="flex flex-col sm:flex-row relative">
                                                             {/* Status Indicator Bar */}
                                                             <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${entry.status === 'submitted' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
 
                                                             <div className="p-6 pl-8 flex-1">
                                                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#dce4cf] border border-white/10">
                                                                         {(entry as any).projectName || entry.tournamentId}
                                                                     </div>
                                                                     <div className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !(entry as any).isWaitlist
                                                                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                                                             : (entry as any).isWaitlist
                                                                                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                                                                : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                                                                                : 'bg-slate-500/10 text-[#c2cbb5] border border-[#bdc3a3]/20'
                                                                         }`}>
                                                                         {entry.status === 'submitted' && !(entry as any).isWaitlist ? (
                                                                             <span className="relative flex h-2 w-2">
-                                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+
                                                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                                                             </span>
                                                                         ) : null}
@@ -420,16 +379,16 @@ export default function UserDashboard() {
                                                                     </div>
                                                                 </div>
 
-                                                                <h4 className="text-2xl font-bold text-white group-hover:text-indigo-400 transition-colors mb-4">
+                                                                <h4 className="text-2xl font-bold text-white group-hover:text-[#f0b17f] transition-colors mb-4">
                                                                     {entry.teamName}
                                                                 </h4>
 
-                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-400">
-                                                                    <span className="flex items-center gap-1.5 bg-slate-900/50 px-2.5 py-1 rounded-lg">
-                                                                        <UserIcon className="w-4 h-4 text-indigo-400" /> 選手 {entry.players?.length || 0}名
+                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-[#c2cbb5]">
+                                                                    <span className="flex items-center gap-1.5 bg-[#283722]/50 px-2.5 py-1 rounded-lg">
+                                                                        <UserIcon className="w-4 h-4 text-[#f0b17f]" /> 選手 {entry.players?.length || 0}名
                                                                     </span>
                                                                     <span className="flex items-center gap-1.5">
-                                                                        <History className="w-4 h-4" /> 最終更新: {new Date(entry.createdAt).toLocaleDateString()}
+                                                                        <History className="w-4 h-4" /> 登録日: {new Date(entry.createdAt).toLocaleDateString()}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -449,7 +408,7 @@ export default function UserDashboard() {
                                                                         </div>
                                                                     );
                                                                 })()}
-                                                                <div className="w-full sm:w-auto bg-indigo-500/10 sm:bg-transparent border border-indigo-500/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                                                                <div className="w-full sm:w-auto bg-[#e5a371]/10 sm:bg-transparent border border-[#ccaa7c]/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-bold text-[#f0b17f] group-hover:text-[#f5c79b] transition-colors">
                                                                     チーム編集・メンバー追加 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                                 </div>
                                                             </div>
@@ -457,12 +416,12 @@ export default function UserDashboard() {
                                                     </Card>
                                                 </Link>
                                                 {entry.status === 'submitted' && (
-                                                    <div className="mt-3 flex justify-end gap-2">
-                                                        <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-indigo-500/50 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
+                                                    <div className="participant-entry-actions">
+                                                        <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-[#3a4a30] border border-[#91a07f] hover:bg-[#4b5a3d] hover:border-[#ccaa7c]/50 text-[#dce4cf] hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
                                                             <Printer className="w-4 h-4" /> 請求書（PDF）を発行
                                                         </Link>
                                                         {entry.isPaid && (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => {
                                                                     if ((entry as any).receiptViewedAt) {
                                                                         alert("すでに領収書は発行・確認済みです。二度目の発行はできません。");
@@ -474,9 +433,9 @@ export default function UserDashboard() {
                                                                 }}
                                                                 disabled={!!(entry as any).receiptViewedAt}
                                                                 className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${
-                                                                    (entry as any).receiptViewedAt 
-                                                                        ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
-                                                                        : 'bg-indigo-600 border border-indigo-500 hover:bg-indigo-500 text-white'
+                                                                    (entry as any).receiptViewedAt
+                                                                        ? 'bg-[#3a4a30] text-[#b7c5a7] border border-[#91a07f] cursor-not-allowed'
+                                                                        : 'bg-[#9f623b] border border-[#ccaa7c] hover:bg-[#e5a371] text-white'
                                                                 }`}
                                                             >
                                                                 <FileText className="w-4 h-4" /> 領収書を発行
@@ -484,69 +443,66 @@ export default function UserDashboard() {
                                                         )}
                                                     </div>
                                                 )}
-                                            </motion.div>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
-                            </motion.section>
+                            </section>
 
                             {/* Past Entries Section */}
-                            <motion.section variants={itemVariants}>
-                                <div className="flex items-center gap-2 mb-4 text-slate-400 px-2">
+                            <section>
+                                <div className="flex items-center gap-2 mb-4 text-[#c2cbb5] px-2">
                                     <History className="w-5 h-5" />
                                     <h3 className="text-sm font-bold uppercase tracking-wider">過去の大会履歴</h3>
                                 </div>
                                 {pastEntries.length === 0 ? (
-                                    <div className="p-8 bg-slate-900/20 rounded-2xl border border-white/5 text-center text-slate-500 backdrop-blur-sm">
+                                    <div className="p-8 bg-[#283722]/20 rounded-2xl border border-white/5 text-center text-[#b7c5a7] backdrop-blur-sm">
                                         <p>過去に参加した大会の履歴がありません</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4 opacity-75">
-                                        {pastEntries.map((entry, i) => (
-                                            <motion.div
+                                    <div className="space-y-4">
+                                        {pastEntries.map((entry) => (
+                                            <div
                                                 key={entry.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: i * 0.1 }}
                                             >
                                                 <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
-                                                    <Card className="p-0 overflow-hidden hover:border-slate-700 transition-all duration-300 bg-slate-950/40">
+                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#91a07f] transition-all duration-300 bg-[#1c291b]/40">
                                                         <div className="flex flex-col sm:flex-row relative">
-                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-700" />
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4b5a3d]" />
                                                             <div className="p-6 pl-8 flex-1">
                                                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-400 border border-white/10">
+                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#c2cbb5] border border-white/10">
                                                                         {(entry as any).projectName || entry.tournamentId}
                                                                     </div>
-                                                                    <div className="text-xs font-bold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                                                                    <div className="text-xs font-bold px-3 py-1 rounded-full bg-[#3a4a30] text-[#c2cbb5] border border-[#91a07f]">
                                                                         大会終了
                                                                     </div>
                                                                 </div>
-                                                                <h4 className="text-2xl font-bold text-slate-400 group-hover:text-slate-200 transition-colors mb-4">
+                                                                <h4 className="text-2xl font-bold text-[#c2cbb5] group-hover:text-[#e8eddc] transition-colors mb-4">
                                                                     {entry.teamName}
                                                                 </h4>
-                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-500">
-                                                                    <span className="flex items-center gap-1.5 bg-slate-900/30 px-2.5 py-1 rounded-lg">
-                                                                        <UserIcon className="w-4 h-4 text-slate-500" /> 選手 {entry.players?.length || 0}名
+                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-[#b7c5a7]">
+                                                                    <span className="flex items-center gap-1.5 bg-[#283722]/30 px-2.5 py-1 rounded-lg">
+                                                                        <UserIcon className="w-4 h-4 text-[#b7c5a7]" /> 選手 {entry.players?.length || 0}名
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                             <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 mt-2 sm:mt-0">
-                                                                 <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-slate-500 group-hover:text-slate-400 transition-colors">
+                                                                 <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-[#b7c5a7] group-hover:text-[#c2cbb5] transition-colors">
                                                                     詳細を確認する <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </Card>
                                                  </Link>
-                                            </motion.div>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
-                            </motion.section>
+                            </section>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             </main>
 
             {/* Modals */}
@@ -561,10 +517,10 @@ export default function UserDashboard() {
             />
             {receiptModalEntryId && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModalEntryId(null)} />
-                    <div className="relative bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
-                        <h2 className="text-lg font-bold text-white">領収書の発行</h2>
-                        
+                    <div className="absolute inset-0 bg-[#1c291b]/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModalEntryId(null)} />
+                    <div role="dialog" aria-modal="true" aria-labelledby="account-receipt-title" className="participant-dialog relative w-full max-w-md p-6 space-y-5">
+                        <h2 id="account-receipt-title" className="text-lg font-bold text-white">領収書の発行</h2>
+
                         <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 space-y-1">
                             <p className="text-sm text-red-400 font-bold flex items-center gap-1">
                                 <AlertCircle className="w-4 h-4" /> ⚠️ 重要事項
@@ -578,14 +534,14 @@ export default function UserDashboard() {
                         </div>
 
                         {/* 宛名表示 */}
-                        <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-700">
-                            <p className="text-xs text-slate-500 mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
+                        <div className="bg-[#1c291b]/60 rounded-xl p-4 border border-[#91a07f]">
+                            <p className="text-xs text-[#b7c5a7] mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
                             {isEditingReceiptName ? (
                                 <input
-                                    type="text"
+                                    type="text" aria-label="領収書の宛名"
                                     value={receiptNameInput}
                                     onChange={(e) => setReceiptNameInput(e.target.value)}
-                                    className="w-full bg-slate-900 border border-indigo-500 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                    className="w-full bg-[#283722] border border-[#ccaa7c] rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-orange-300"
                                     placeholder="例：株式会社〇〇 様、△△チーム"
                                     autoFocus
                                 />
@@ -598,14 +554,14 @@ export default function UserDashboard() {
                         {!isEditingReceiptName ? (
                             <button
                                 onClick={() => setIsEditingReceiptName(true)}
-                                className="text-sm text-indigo-400 hover:text-indigo-300 underline"
+                                className="text-sm text-[#f0b17f] hover:text-[#f5c79b] underline"
                             >
                                 宛名を変更する
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsEditingReceiptName(false)}
-                                className="text-sm text-slate-400 hover:text-slate-300 underline"
+                                className="text-sm text-[#c2cbb5] hover:text-[#dce4cf] underline"
                             >
                                 変更をキャンセル
                             </button>
@@ -616,13 +572,13 @@ export default function UserDashboard() {
                             <button
                                 onClick={() => handleIssueReceipt(receiptNameInput || undefined)}
                                 disabled={isIssuingReceipt}
-                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
+                                className="w-full bg-[#9f623b] hover:bg-[#e5a371] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
                             >
                                 {isIssuingReceipt ? '発行中...' : 'この内容で発行する'}
                             </button>
                             <button
                                 onClick={() => !isIssuingReceipt && setReceiptModalEntryId(null)}
-                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition-colors"
+                                className="w-full bg-[#3a4a30] hover:bg-[#4b5a3d] text-[#dce4cf] font-bold py-3 rounded-xl transition-colors"
                             >
                                 戻る（発行しない）
                             </button>

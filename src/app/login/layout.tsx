@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import { ParticipantTheme } from "@/components/participant/ParticipantFrame";
 import "../entry.css";
+import "../participant.css";
 
-export default function LoginLayout({ children }: { children: ReactNode }) {
-  return <div className="entry-surface">{children}</div>;
+export default function ParticipantLayout({ children }: { children: ReactNode }) {
+  return <ParticipantTheme>{children}</ParticipantTheme>;
 }

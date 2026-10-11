@@ -4,9 +4,9 @@ import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, CheckCircle2, Loader2, KeyRound, Mail } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ParticipantHeader, ParticipantFormTitle } from "@/components/participant/ParticipantFrame";
 
 function ResetPasswordForm() {
     const router = useRouter();
@@ -89,19 +89,19 @@ function ResetPasswordForm() {
 
     if (isSuccess && !isConfirming) {
         return (
-            <div className="text-center space-y-6">
+            <div className="participant-form-content text-center space-y-6">
                 <div className="w-16 h-16 bg-[#f18a5c]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
                     <Mail className="w-8 h-8 text-[#f18a5c]" />
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-[#f3f0e8] mb-2">メールを送信しました</h2>
-                    <p className="text-[#b6b8ad] text-sm">
+                    <p className="text-[#c2cbb5] text-sm">
                         入力されたメールアドレスにパスワード再設定用のリンクを送信しました。<br />
                         受信トレイをご確認いただき、リンクから再設定を行ってください。
                     </p>
                 </div>
                 <Button
-                    className="w-full bg-[#353731] hover:bg-[#353731] text-[#f3f0e8] font-medium py-6 transition-all duration-300"
+                    className="w-full bg-[#3a4a30] hover:bg-[#3a4a30] text-[#f3f0e8] font-medium py-6 transition-all duration-300"
                     onClick={() => router.push("/login")}
                 >
                     ログイン画面へ戻る
@@ -112,13 +112,13 @@ function ResetPasswordForm() {
 
     if (isSuccess && isConfirming) {
         return (
-            <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-[#f18a5c]/100/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
+            <div className="participant-form-content text-center space-y-6">
+                <div className="w-16 h-16 bg-[#f18a5c]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
                     <CheckCircle2 className="w-8 h-8 text-[#f18a5c]" />
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-[#f3f0e8] mb-2">再設定完了</h2>
-                    <p className="text-[#b6b8ad] text-sm">
+                    <p className="text-[#c2cbb5] text-sm">
                         パスワードの再設定が完了しました。<br />
                         新しいパスワードでログインしてください。
                     </p>
@@ -135,74 +135,63 @@ function ResetPasswordForm() {
 
     return (
         <div className="w-full">
-            <div className="mb-8">
-                <Link href="/login" className="inline-flex items-center text-sm text-[#b6b8ad] hover:text-[#f3f0e8] transition-colors mb-6">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    戻る
-                </Link>
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[#f18a5c]/10 rounded-lg">
-                        <KeyRound className="w-6 h-6 text-[#f18a5c]" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-[#f3f0e8]">
-                        パスワード再設定
-                    </h1>
-                </div>
-                <p className="text-[#b6b8ad] text-sm pl-11">
-                    {isConfirming
-                        ? "新しいパスワードを入力してください。"
-                        : "登録しているメールアドレスを入力してください。パスワード再設定用のリンクを送信します。"}
-                </p>
-            </div>
-
+            <ParticipantFormTitle eyebrow="ACCOUNT SUPPORT" title="パスワード再設定" description={isConfirming ? "新しいパスワードを入力してください。" : "登録したメールアドレスに、再設定用のリンクをお送りします。"} />
+            <div className="participant-form-content">
             <form onSubmit={isConfirming ? handleConfirmReset : handleRequestReset} className="space-y-6">
                 {!isConfirming ? (
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">メールアドレス</label>
+
                         <Input
+                            label="メールアドレス"
+                            autoComplete="email"
                             type="email"
                             placeholder="登録メールアドレス"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                            className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                         />
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">対象のアカウント</label>
+
                             <Input
+                                label="対象のアカウント"
                                 type="email"
                                 value={emailParam || ""}
                                 disabled
-                                className="bg-[#292b28] border-[#454740] text-[#b6b8ad] h-11"
+                                className="bg-[#283722] border-[#778867] text-[#c2cbb5] h-11"
                             />
                         </div>
                         <div className="space-y-2 pt-2">
-                            <label className="text-xs font-medium text-[#b6b8ad] uppercase tracking-wider ml-1">新しいパスワード</label>
+
                             <Input
+                                label="新しいパスワード"
+                                autoComplete="new-password"
                                 type="password"
                                 placeholder="新しいパスワード"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
-                                className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                                className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
                             <Input
+                                label="新しいパスワード（確認）"
+                                autoComplete="new-password"
                                 type="password"
                                 placeholder="新しいパスワード (確認用)"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="bg-[#20211f] border-[#454740] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                                className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
                         </div>
                     </div>
                 )}
 
                 {error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-500 text-center animate-in fade-in slide-in-from-top-2">
+                    <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-500 text-center animate-in fade-in slide-in-from-top-2">
                         {error}
                     </div>
                 )}
@@ -219,28 +208,22 @@ function ResetPasswordForm() {
                     )}
                 </Button>
             </form>
+            </div>
         </div>
     );
 }
 
 export default function ResetPasswordPage() {
     return (
-        <div className="entry-form-screen min-h-screen flex flex-col items-center justify-center p-4 text-[#d9dace] font-sans selection:bg-[#f18a5c]/30">
-
-            <div
-                className="w-full max-w-md relative z-10"
-            >
-                <Card className="p-8 bg-[#292b28] border-[#454740]  shadow-none">
-                    <Suspense fallback={
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <Loader2 className="w-8 h-8 text-[#f18a5c] animate-spin" />
-                            <p className="text-[#b6b8ad] mt-4 text-sm">読み込み中...</p>
-                        </div>
-                    }>
+        <>
+            <ParticipantHeader backHref="/login" backLabel="ログインへ戻る" />
+            <main className="participant-main participant-main-narrow">
+                <Card className="participant-form-card">
+                    <Suspense fallback={<div className="participant-form-content text-center py-12"><Loader2 className="w-7 h-7 animate-spin mx-auto mb-4" />読み込み中…</div>}>
                         <ResetPasswordForm />
                     </Suspense>
                 </Card>
-            </div>
-        </div>
+            </main>
+        </>
     );
 }

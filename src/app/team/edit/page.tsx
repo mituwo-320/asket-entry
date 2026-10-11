@@ -4,10 +4,10 @@ import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, Loader2, Save, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
+import { Loader2, Save, CheckCircle2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { TeamEntry, User, Player } from "@/lib/types";
+import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { TeamEntry, User } from "@/lib/types";
 
 function EditTeamContent() {
     const router = useRouter();
@@ -139,127 +139,91 @@ function EditTeamContent() {
         }
     };
 
-    if (isLoading || !isSettingsLoaded) return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div>;
-    if (!entryId) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Invalid ID</div>;
-
-    if (teamStatus === 'submitted' && !isAdmin) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
-                <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
-                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <h2 className="text-xl font-bold text-white">本エントリー完了済み</h2>
-                    <p className="text-slate-400">本エントリーが完了しているため、チーム設定の変更はできません。</p>
-                    <Button onClick={() => router.push(`/team/dashboard?id=${entryId}`)} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">ダッシュボードへ戻る</Button>
-                </Card>
-            </div>
-        );
-    }
-
-    if (projectEndDate && new Date() > new Date(projectEndDate) && !isAdmin) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-200">
-                <Card className="w-full max-w-md p-8 bg-slate-900/80 border-slate-800 text-center space-y-4">
-                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-red-500" />
-                    </div>
-                    <h2 className="text-xl font-bold text-white">エントリー・編集期間終了</h2>
-                    <p className="text-slate-400">誠に申し訳ありませんが、本大会の編集受付期間は終了いたしました。</p>
-                    <Button onClick={() => router.push(`/team/dashboard?id=${entryId}`)} className="w-full mt-4 bg-slate-800 hover:bg-slate-700">ダッシュボードへ戻る</Button>
-                </Card>
-            </div>
-        );
-    }
+    if (!entryId) return <ParticipantState title="チームを選択してください" message="マイページから編集するチームを選んでください。" />;
+    if (isLoading || !isSettingsLoaded) return <ParticipantState title="チーム情報を読み込んでいます" loading />;
+    if (!teamStatus) return <ParticipantState title="チーム情報を読み込めませんでした" message="マイページに戻り、時間をおいてもう一度お試しください。" />;
+    if (teamStatus === 'submitted' && !isAdmin) return <ParticipantState title="本エントリーは完了しています" message="メンバーを確定しているため、チーム設定を変更できません。変更が必要な場合は運営へお問い合わせください。" href={`/team/dashboard?id=${entryId}`} linkLabel="チームのページへ戻る" />;
+    if (projectEndDate && new Date() > new Date(projectEndDate) && !isAdmin) return <ParticipantState title="編集受付期間が終了しました" message="登録内容の変更が必要な場合は、運営へお問い合わせください。" href={`/team/dashboard?id=${entryId}`} linkLabel="チームのページへ戻る" />;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
-            <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href={`/team/dashboard?id=${entryId}`} className="text-slate-400 hover:text-white transition-colors">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <h1 className="text-xl font-bold text-white">チーム設定</h1>
-                    </div>
-                </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8 max-w-2xl">
-                <Card className="bg-slate-900 border-slate-800 p-6">
+        <>
+            <ParticipantHeader backHref={`/team/dashboard?id=${entryId}`} backLabel="チームへ戻る" />
+            <main className="participant-main participant-main-narrow">
+                <ParticipantHeading eyebrow="TEAM SETTINGS" title="チーム設定" description="チームの紹介と代表者の連絡先を確認・変更できます。" />
+                <Card className="p-6 sm:p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         {/* Team Info */}
                         <div className="space-y-4">
-                            <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-2">チーム情報</h2>
+                            <h2 className="participant-section-title">チーム情報</h2>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">チーム名</label>
-                                <Input
+
+                                <Input label="チーム名"
                                     value={formData.teamName}
                                     onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
                                     required
-                                    className="bg-slate-950/50 border-slate-800"
+                                    className="bg-[#1c291b]/50 border-[#7b8c68]"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">チーム名 (フリガナ)</label>
-                                <Input
+
+                                <Input label="チーム名 (フリガナ)"
                                     value={formData.teamNameKana}
                                     onChange={(e) => setFormData({ ...formData, teamNameKana: e.target.value })}
                                     required
-                                    className="bg-slate-950/50 border-slate-800"
+                                    className="bg-[#1c291b]/50 border-[#7b8c68]"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">チーム紹介・意気込み</label>
-                                <textarea
+                                <label htmlFor="team-settings-introduction" className="text-sm font-medium text-[#c2cbb5]">チーム紹介・意気込み</label>
+                                <textarea id="team-settings-introduction"
                                     value={formData.teamIntroduction}
                                     onChange={(e) => setFormData({ ...formData, teamIntroduction: e.target.value })}
                                     required
-                                    className="w-full bg-slate-950/50 border border-slate-800 rounded-md p-3 min-h-[100px] focus:border-indigo-500/50 focus:ring-indigo-500/20 text-sm text-slate-200"
+                                    className="w-full bg-[#1c291b]/50 border border-[#7b8c68] rounded-md p-3 min-h-[100px] focus:border-[#ccaa7c]/50 focus:ring-orange-300/20 text-sm text-[#e8eddc]"
                                 />
                             </div>
 
                             {hasClinic && (
-                                <div className="space-y-4 p-5 bg-indigo-950/20 border border-indigo-500/30 rounded-xl">
-                                    <label className="text-sm font-extrabold text-indigo-300 flex items-center gap-2">
+                                <div className="space-y-4 p-5 bg-[#4a482b]/20 border border-[#ccaa7c]/30 rounded-xl">
+                                    <label className="text-sm font-extrabold text-[#f5c79b] flex items-center gap-2">
                                         {clinicTitle || '🏀 バスケクリニックへの参加希望'}
                                     </label>
-                                    <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-line">
+                                    <p className="text-xs text-[#c2cbb5] leading-relaxed whitespace-pre-line">
                                         {clinicDescription}
                                     </p>
                                     <div className="flex gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#e8eddc]">
                                             <input
                                                 type="radio"
                                                 name="clinicParticipation"
                                                 checked={formData.clinicParticipation === true}
                                                 onChange={() => setFormData({ ...formData, clinicParticipation: true, clinicCount: 1 })}
-                                                className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                                className="w-4 h-4 text-indigo-600 border-[#91a07f] bg-[#283722] focus:ring-orange-300"
                                             />
                                             クリニックに参加する
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#e8eddc]">
                                             <input
                                                 type="radio"
                                                 name="clinicParticipation"
                                                 checked={formData.clinicParticipation === false}
                                                 onChange={() => setFormData({ ...formData, clinicParticipation: false, clinicCount: 0 })}
-                                                className="w-4 h-4 text-indigo-600 border-slate-700 bg-slate-900 focus:ring-indigo-500"
+                                                className="w-4 h-4 text-indigo-600 border-[#91a07f] bg-[#283722] focus:ring-orange-300"
                                             />
                                             参加しない
                                         </label>
                                     </div>
                                     {formData.clinicParticipation && (
                                         <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                                            <label className="text-xs font-bold text-slate-400">参加予定人数</label>
-                                            <select
+                                            <label htmlFor="team-settings-clinic-count" className="text-sm font-medium text-[#c2cbb5]">参加予定人数</label>
+                                            <select id="team-settings-clinic-count"
                                                 value={formData.clinicCount}
                                                 onChange={(e) => setFormData({ ...formData, clinicCount: parseInt(e.target.value, 10) })}
-                                                className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 outline-none font-sans"
+                                                className="bg-[#1c291b] border border-[#7b8c68] text-[#e8eddc] text-sm rounded-md focus:ring-1 focus:ring-orange-300 focus:border-[#ccaa7c] block w-full p-2.5 outline-none font-sans"
                                             >
                                                 {Array.from({ length: clinicLimit }, (_, i) => i + 1).map((n) => (
                                                     <option key={n} value={n}>
@@ -269,7 +233,7 @@ function EditTeamContent() {
                                             </select>
                                         </div>
                                     )}
-                                    <p className="text-[10px] text-slate-500 leading-normal mt-2">
+                                    <p className="text-[10px] text-[#b7c5a7] leading-normal mt-2">
                                         ※現時点で参加人数等が決まっていない場合は、未選択のままでも保存可能です。参加・不参加および人数は、仮エントリー完了後にマイページよりいつでもご変更いただけます（メンバー確定時までに最終決定をお願いします）。
                                     </p>
                                 </div>
@@ -278,54 +242,54 @@ function EditTeamContent() {
 
                         {/* Representative Info */}
                         <div className="space-y-4 pt-4">
-                            <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-2">代表者情報</h2>
+                            <h2 className="participant-section-title">代表者情報</h2>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">代表者氏名</label>
-                                <Input
+
+                                <Input label="代表者氏名"
                                     value={formData.representativeName}
                                     onChange={(e) => setFormData({ ...formData, representativeName: e.target.value })}
                                     required
-                                    className="bg-slate-950/50 border-slate-800"
+                                    className="bg-[#1c291b]/50 border-[#7b8c68]"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">代表者氏名 (フリガナ)</label>
-                                <Input
+
+                                <Input label="代表者氏名 (フリガナ)"
                                     value={formData.repFurigana}
                                     onChange={(e) => setFormData({ ...formData, repFurigana: e.target.value })}
                                     required
-                                    className="bg-slate-950/50 border-slate-800"
+                                    className="bg-[#1c291b]/50 border-[#7b8c68]"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-400">電話番号</label>
-                                <Input
+
+                                <Input type="tel" autoComplete="tel" label="電話番号"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     required
-                                    className="bg-slate-950/50 border-slate-800"
+                                    className="bg-[#1c291b]/50 border-[#7b8c68]"
                                 />
                             </div>
                         </div>
 
 
                         {successMsg && (
-                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400 flex items-center justify-center gap-2">
+                            <div role="status" className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400 flex items-center justify-center gap-2">
                                 <CheckCircle2 className="w-4 h-4" /> {successMsg}
                             </div>
                         )}
 
                         {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
+                            <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
                                 {error}
                             </div>
                         )}
 
                         <div className="pt-4 flex justify-end">
-                            <Button type="submit" disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-500 min-w-[120px]">
+                            <Button type="submit" disabled={isSaving} className="bg-[#9f623b] hover:bg-[#e5a371] min-w-[120px]">
                                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> 保存</>}
                             </Button>
                         </div>
@@ -333,13 +297,13 @@ function EditTeamContent() {
                     </form>
                 </Card>
             </main>
-        </div>
+        </>
     );
 }
 
 export default function EditTeamPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>}>
+        <Suspense fallback={<ParticipantState title="チーム情報を読み込んでいます" loading />}>
             <EditTeamContent />
         </Suspense>
     );

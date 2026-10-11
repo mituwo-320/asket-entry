@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, Suspense } from "react";
+import { CupMark } from "@/components/entry/CupMark";
+import { ParticipantHeader, ParticipantFormTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
 
 function LoginContent() {
     const router = useRouter();
@@ -53,22 +55,30 @@ function LoginContent() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
-            <div
-                className="w-full max-w-md space-y-8"
-            >
-                {/* Logo / Header */}
-                <div className="text-center">
-                    <Link href="/" className="entry-brand mb-6 inline-block">vankycup</Link>
-                    <h1 className="text-2xl font-bold text-[#f3f0e8] tracking-tight mb-2">チーム代表者ログイン</h1>
-                    <p className="text-[#b6b8ad] text-sm">登録内容の確認や、メンバーの追加ができます。</p>
-                </div>
-
-                <Card className="p-8 sm:p-10">
+        <>
+            <ParticipantHeader backHref="/" backLabel="トップへ戻る" />
+            <main className="participant-form-page">
+            <div className="participant-form-layout">
+                <aside className="participant-form-aside">
+                    <div className="participant-form-intro">
+                        <p className="participant-eyebrow">TEAM DESK / VANKYCUP</p>
+                        <h2 className="text-[38px] font-bold leading-relaxed tracking-tight">コートに立つまでの<br />準備は、ここから。</h2>
+                        <p>大会への申し込み後は、代表者のアカウントでチームを管理できます。</p>
+                        <div className="participant-guide"><h2>マイページでできること</h2><ol>
+                            <li><div><h3>申し込み内容を確認</h3><p>参加する大会とチームの登録状況を確認できます。</p></div></li>
+                            <li><div><h3>メンバーを登録</h3><p>名前やリストバンド、保険の情報をまとめて管理できます。</p></div></li>
+                            <li><div><h3>必要な書類を保存</h3><p>参加費の請求書や、発行可能な領収書を確認できます。</p></div></li>
+                        </ol></div>
+                        <CupMark className="participant-mark" />
+                    </div>
+                </aside>
+                <Card className="participant-form-card">
+                    <ParticipantFormTitle eyebrow="REPRESENTATIVE LOGIN" title="代表者ログイン" description="登録したメールアドレスとパスワードを入力してください。" />
+                    <div className="participant-form-content">
                     <form onSubmit={handleLogin} className="space-y-6">
                         {error && (
                             <div
-                                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-2"
+                                role="alert" className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-2"
                             >
                                 <span className="block w-2 h-2 rounded-full bg-red-400/50"></span>
                                 {error}
@@ -88,7 +98,7 @@ function LoginContent() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label htmlFor="login-password" className="text-sm font-medium text-[#d9dace] tracking-wide">パスワード</label>
+                                <label htmlFor="login-password" className="text-sm font-medium text-[#e0e5d4] tracking-wide">パスワード</label>
                                 <Link href="/login/reset" className="text-xs text-[#f18a5c] hover:text-[#f18a5c] transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
@@ -123,27 +133,25 @@ function LoginContent() {
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-[#454740] text-center">
-                        <p className="text-sm text-[#b6b8ad]">
+                    <div className="mt-8 pt-6 border-t border-[#778867] text-center">
+                        <p className="text-sm text-[#c2cbb5]">
                             アカウントをお持ちでない場合は{" "}
                             <Link href="/team/register" className="text-[#f18a5c] hover:text-[#f18a5c] font-medium transition-colors">
                                 新規登録
                             </Link>
                         </p>
                     </div>
+                    </div>
                 </Card>
             </div>
-
-            <div className="mt-12 text-center text-xs text-[#b6b8ad] font-medium ">
-                &copy; {new Date().getFullYear()} vankycup
-            </div>
-        </div>
+            </main>
+        </>
     );
 }
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="entry-form-screen min-h-screen flex items-center justify-center text-[#f3f0e8]">読み込み中…</div>}>
+        <Suspense fallback={<ParticipantState title="ログイン画面を準備しています" loading />}>
             <LoginContent />
         </Suspense>
     );

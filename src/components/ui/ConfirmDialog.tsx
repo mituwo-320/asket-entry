@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { Button } from "@/components/ui/Button";
 import { AlertTriangle, X } from "lucide-react";
 
@@ -24,6 +25,7 @@ export function ConfirmDialog({
     cancelLabel = "キャンセル",
     danger = false,
 }: ConfirmDialogProps) {
+    const titleId = useId();
     if (!isOpen) return null;
 
     return (
@@ -35,13 +37,13 @@ export function ConfirmDialog({
             />
 
             {/* Dialog */}
-            <div data-ui="dialog-panel" className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div data-ui="dialog-panel" role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between p-5 border-b border-slate-800">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${danger ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
                             <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-amber-400'}`} />
                         </div>
-                        <h3 className="font-bold text-white text-base">{title}</h3>
+                        <h3 id={titleId} className="font-bold text-white text-base">{title}</h3>
                     </div>
                     <button aria-label="閉じる" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                         <X className="w-4 h-4" />
@@ -86,6 +88,7 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ isOpen, onClose, title, message }: AlertDialogProps) {
+    const titleId = useId();
     if (!isOpen) return null;
 
     return (
@@ -94,10 +97,10 @@ export function AlertDialog({ isOpen, onClose, title, message }: AlertDialogProp
                 className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
                 onClick={onClose}
             />
-            <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div data-ui="dialog-panel" role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between p-5 border-b border-slate-800">
-                    <h3 className="font-bold text-white text-base">{title}</h3>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                    <h3 id={titleId} className="font-bold text-white text-base">{title}</h3>
+                    <button aria-label="閉じる" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                         <X className="w-4 h-4" />
                     </button>
                 </div>

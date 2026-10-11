@@ -2,21 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { EntryStatus } from "@/components/entry/EntryStatus";
 import "./entry.css";
-
-function CupSeal() {
-  return (
-    <svg className="cup-seal" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-      <circle cx="60" cy="60" r="56" fill="currentColor" />
-      <circle cx="60" cy="60" r="50" stroke="#30392c" strokeWidth="1" />
-      <circle cx="60" cy="60" r="45" stroke="#30392c" strokeWidth=".6" strokeDasharray="1 3" />
-      <path d="m35 44 20 36h11l21-36H74L61 67 48 44Z" fill="#30392c" />
-      <path d="M41 85h38" stroke="#30392c" />
-      <g fill="#30392c" fontFamily="sans-serif" textAnchor="middle" fontSize="9" fontWeight="700" letterSpacing="2">
-        <text x="61" y="32">VANKY CUP</text><text x="61" y="99" fontSize="7" letterSpacing="1.6">PLAY TOGETHER</text>
-      </g>
-    </svg>
-  );
-}
+import { CupMark } from "@/components/entry/CupMark";
 
 function StepIllustration({ step }: { step: number }) {
   return (
@@ -69,7 +55,7 @@ export default function Home() {
             <div className="cup-title-block">
               <p className="cup-title-caption" aria-hidden="true">VANKY CUP</p>
               <h1 id="entry-heading">ヴァンキー<br />カップ<span className="cup-title-period">.</span></h1>
-              <CupSeal />
+              <CupMark />
             </div>
             <p className="cup-hero-subtitle">その一日を、<br className="cup-mobile-break" /><span className="cup-marker">チームで楽しもう。<svg viewBox="0 0 280 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9C69 0 153 2 275 6M18 12c83-6 162-7 243-3" /></svg></span></p>
             <p className="cup-hero-description">大会への参加申し込み、メンバーの登録。<br />チームの準備は、ここから。</p>

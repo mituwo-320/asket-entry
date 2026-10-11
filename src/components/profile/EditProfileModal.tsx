@@ -4,8 +4,8 @@ import { useState } from "react";
 import { User } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { X, Save, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Save, Loader2 } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
 
 interface EditProfileModalProps {
     isOpen: boolean;
@@ -51,37 +51,8 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
-
-                    {/* Modal */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
-                    >
-                        <div className="bg-slate-900 border border-slate-700/50 shadow-2xl rounded-2xl w-full max-w-lg pointer-events-auto overflow-hidden">
-                            <div className="flex items-center justify-between p-6 border-b border-white/5">
-                                <h2 className="text-xl font-bold text-white">プロフィール編集</h2>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <Modal isOpen={isOpen} onClose={onClose} title="プロフィール編集">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 {error && (
                                     <div className="p-3 mb-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg">
                                         {error}
@@ -121,10 +92,6 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
                                     </Button>
                                 </div>
                             </form>
-                        </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+        </Modal>
     );
 }
