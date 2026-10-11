@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, ClipboardList, UsersRound } from "lucide-react";
 import { EntryStatus } from "@/components/entry/EntryStatus";
 import "./entry.css";
 
@@ -8,7 +8,7 @@ export default function Home() {
     <div className="entry-surface cup-home">
       <header className="cup-header">
         <Link href="/" aria-label="ヴァンキーカップ トップ" className="cup-wordmark">vanky<span>cup</span><i aria-hidden="true" /></Link>
-        <span className="cup-header-label">ヴァンキーカップ 参加受付</span>
+        <span className="cup-header-label">大会参加受付</span>
         <Link href="/login" className="cup-header-login">ログイン <ArrowUpRight aria-hidden="true" size={16} /></Link>
       </header>
       <main>
@@ -27,7 +27,7 @@ export default function Home() {
             <section className="cup-entry-card" aria-labelledby="new-team-heading">
               <div className="cup-card-top"><span>ENTRY</span><span>01 / NEW TEAM</span></div>
               <div className="cup-card-body">
-                <p className="cup-card-kicker">はじめて参加する方</p>
+                <div className="cup-card-intro"><p className="cup-card-kicker">はじめて参加する方</p><span className="cup-team-icon"><UsersRound aria-hidden="true" size={23} /></span></div>
                 <h2 id="new-team-heading">さあ、チームで<br />参加しよう。</h2>
                 <p className="cup-card-description">代表者の方がチーム情報を登録してください。<br />ほかのメンバーは、申し込み後に追加できます。</p>
                 <Link href="/team/register" className="cup-entry-button">チームを登録する <span><ArrowUpRight aria-hidden="true" size={22} /></span></Link>
@@ -35,7 +35,7 @@ export default function Home() {
               </div>
             </section>
             <section className="cup-returning" aria-labelledby="existing-team-heading">
-              <div><p>ALREADY REGISTERED?</p><h2 id="existing-team-heading">登録済みの方はこちら</h2><span>登録内容の確認・変更、メンバーの追加</span></div>
+              <div><p>チームのマイページ</p><h2 id="existing-team-heading">登録済みの方はこちら</h2><span>登録内容の確認・変更、メンバーの追加</span></div>
               <Link href="/login" aria-label="登録済みの方：ログインする"><span>ログイン</span><ArrowRight aria-hidden="true" size={18} /></Link>
             </section>
           </div>
@@ -44,11 +44,14 @@ export default function Home() {
           <div className="cup-flow-heading"><p>HOW TO ENTER</p><h2 id="entry-flow-heading">参加までの、3ステップ。</h2></div>
           <ol>
             {[
-              ["01", "大会日程を選ぶ", "受付中の大会から、参加する日程を選択。"],
-              ["02", "チーム情報を登録", "チーム名と、代表者の連絡先などを入力。"],
-              ["03", "メンバーを追加", "申し込み後、マイページでメンバーを登録。"],
-            ].map(([number, title, description]) => (
-              <li key={number}><span aria-hidden="true">{number}</span><div><h3>{title}</h3><p>{description}</p></div></li>
+              { number: "01", title: "大会日程を選ぶ", description: "受付中の大会から、参加する日程を選択。", Icon: CalendarDays },
+              { number: "02", title: "チーム情報を登録", description: "チーム名と、代表者の連絡先などを入力。", Icon: ClipboardList },
+              { number: "03", title: "メンバーを追加", description: "申し込み後、マイページでメンバーを登録。", Icon: UsersRound },
+            ].map(({ number, title, description, Icon }) => (
+              <li key={number}>
+                <div className="cup-step-top"><span aria-hidden="true">{number}</span><Icon aria-hidden="true" size={22} /></div>
+                <h3>{title}</h3><p>{description}</p>
+              </li>
             ))}
           </ol>
         </section>
