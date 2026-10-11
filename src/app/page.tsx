@@ -41,7 +41,7 @@ export default function Home() {
           </div>
         </section>
         <section className="cup-flow" aria-labelledby="entry-flow-heading">
-          <div className="cup-flow-heading"><p>HOW TO ENTER</p><h2 id="entry-flow-heading">参加までの、3ステップ。</h2></div>
+          <div className="cup-flow-heading"><p>HOW TO ENTER</p><h2 id="entry-flow-heading">参加までの<br />3ステップ。</h2></div>
           <ol>
             {[
               { number: "01", title: "大会日程を選ぶ", description: "受付中の大会から、参加する日程を選択。", Icon: CalendarDays },
