@@ -24,6 +24,7 @@
 .participant-header-actions { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; font-size: 13px; }
 .participant-back { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; color: #d4dcc9; }
 .participant-header .participant-back { color: #35583f; }
+.participant-header [data-ui="button"]:is([data-variant="ghost"], [data-variant="outline"]):hover { background: #e7ecd8; color: #244b38; }
 .participant-header .participant-back:hover { color: #9b4b19; }
 .participant-back:hover { color: #ffbf91; }
 .participant-main { width: min(1180px, calc(100% - 48px)); margin-inline: auto; padding-block: 34px 44px; }
