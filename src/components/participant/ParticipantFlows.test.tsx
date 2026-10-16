@@ -180,7 +180,7 @@ test("registration sends the number and native radio choices without changing th
   await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/team/register", expect.objectContaining({ method: "POST", body: expect.stringContaining('"preliminaryNumber":7') })));
   const request = jest.mocked(fetch).mock.calls.find(([url]) => url === "/api/team/register")![1];
   expect(JSON.parse(request!.body as string)).toMatchObject({ tournamentId: "test-project", wristbandColor: "青", insurance: false });
-  expect(await screen.findByText("登録完了！")).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "チームの申し込みを受け付けました" })).toBeInTheDocument();
 });
 
 test("team settings without an entry ID shows a return path instead of an endless loading state", async () => {

@@ -486,3 +486,71 @@ body:has([data-participant-dialog]) { overflow: hidden; }
 .participant-auth-address > p { margin-top: 8px; overflow-wrap: anywhere; color: #fff; font-size: 15px; }
 .participant-auth-stamp { display: inline-block; padding: 5px 10px; margin-bottom: 15px; color: #ffb9c5; border: 1px solid #d47b8a; font: 600 9px/1.8 var(--font-inter), sans-serif; letter-spacing: .14em; transform: rotate(-3deg); }
 @media print { .participant-account-note, .participant-reset-progress { display: none !important; } }
+
+/* Registration receipt: a court-side ticket with a perforated guide below. */
+.participant-completion-page { width: min(820px, calc(100% - 40px)); margin: 40px auto 60px; }
+.participant-completion-ticket { position: relative; overflow: hidden; border: 1px solid #b2b6be; border-radius: 5px 18px 18px 5px; background: #252a33; box-shadow: 0 6px 0 #0e1117, 0 23px 55px #0007; }
+.participant-completion-cover { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 160px; padding: 20px 28px; background: linear-gradient(90deg, #13171c33, #13171c11), url('/basketball-court-background.webp') 40% 30% / cover; border-bottom: 5px solid #bf2b40; }
+.participant-completion-cover > span { color: #f5f2ee; font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .15em; text-shadow: 0 2px 5px #000; }
+.participant-completion-cover > span:last-child { text-align: right; font-size: 12px; }
+.participant-completion-cover svg { position: absolute; bottom: -32px; right: 33px; width: 88px; height: 88px; color: #e8b5b9; transform: rotate(12deg); filter: drop-shadow(0 3px 0 #24283055); }
+.participant-completion-result { padding: 31px 36px 28px; color: #29313a; background: #f5f1eb url('/entry-grain.svg'); }
+.participant-completion-stamp { display: inline-flex; align-items: center; gap: 7px; max-width: calc(100% - 83px); color: #8f2639; font: 600 9px/1.8 var(--font-inter), sans-serif; letter-spacing: .13em; }
+.participant-completion-result h1 { margin-top: 16px; font-size: clamp(23px, 3vw, 30px); line-height: 1.65; font-weight: 700; letter-spacing: -.035em; }
+.participant-completion-result > p:not(.participant-completion-stamp) { margin-top: 12px; color: #535b64; font-size: 13px; line-height: 1.95; }
+.participant-completion-summary { margin-top: 25px; border-top: 1px solid #b8b7b6; }
+.participant-completion-summary > div { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 15px; padding: 12px 0; border-bottom: 1px solid #d1cdc7; }
+.participant-completion-summary dt { color: #606771; font-size: 12px; line-height: 1.9; }
+.participant-completion-summary dd { color: #2d343e; font-weight: 700; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.participant-completion-ticket[data-waitlist="true"] .participant-completion-stamp { color: #80501e; }
+.participant-completion-ticket[data-waitlist="true"] .participant-completion-cover { border-color: #a9682d; }
+.participant-completion-result .participant-completion-waitlist { padding: 13px 16px; border: 1px solid #bb975f; border-left: 4px solid #9a6529; background: #eee1cc; color: #64401e !important; font-weight: 700; }
+.participant-completion-body { position: relative; padding: 6px 36px 12px; border-top: 1px dashed #9299a4; }
+.participant-completion-body::before, .participant-completion-body::after { content: ""; position: absolute; top: -11px; width: 20px; height: 20px; border: 1px solid #a6aab3; border-radius: 50%; background: #171b23; }
+.participant-completion-body::before { left: -11px; }
+.participant-completion-body::after { right: -11px; }
+.participant-completion-section { padding: 27px 0; border-bottom: 1px dashed #8a929d88; }
+.participant-completion-section:last-of-type { border-bottom: 0; padding-bottom: 10px; }
+.participant-completion-section-heading { display: flex; align-items: flex-start; gap: 17px; margin-bottom: 20px; }
+.participant-completion-section-heading > span { color: #fa9baa; font: 500 31px/1.25 var(--font-outfit), sans-serif; }
+.participant-completion-section h2 { color: #f7f5f1; font-size: 18px; line-height: 1.7; font-weight: 700; }
+.participant-completion-section-heading p { color: #c9d0d9; font-size: 12px; line-height: 1.95; margin-top: 7px; }
+.participant-completion-section h2 b { display: inline-block; vertical-align: middle; margin-left: 7px; padding: 2px 7px; border: 1px solid #d27e8e; border-radius: 3px; background: #402b34; color: #ffced9; font-size: 10px; }
+.participant-completion-account { padding: 15px 18px; border: 1px solid #818b99; border-radius: 6px; background: #1c2129; margin-top: 12px; }
+.participant-completion-account > span { color: #c8d0dc; font-size: 11px; }
+.participant-completion-account > div { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.participant-completion-account > div p { flex: 1; min-width: 0; color: #fff; font-size: 16px; line-height: 1.8; overflow-wrap: anywhere; user-select: all; }
+.participant-completion-account .participant-completion-masked { letter-spacing: .1em; user-select: none; }
+.participant-completion-account button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; min-width: 44px; padding: 0 9px; flex-shrink: 0; border: 1px solid #9aa3b0; border-radius: 5px; color: #eef0f4; background: #333b47; font-size: 11px; }
+.participant-completion-account button:hover { background: #4a3541; border-color: #e5a0ae; }
+.participant-completion-account button:disabled { opacity: .5; cursor: wait; }
+.participant-completion-account-help { margin-top: 9px; font-size: 11px; line-height: 1.9; color: #c3ccd9; }
+.participant-completion-copy-status { min-height: 22px; margin-top: 8px; color: #cce5d5; font-size: 11px; line-height: 1.9; }
+.participant-completion-section .participant-feedback { margin: 10px 0 0; }
+.participant-completion-line { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px 14px; padding: 18px 20px; border: 1px solid #829c8c; border-radius: 5px 10px 10px 5px; background: #23372e; }
+.participant-completion-line > svg { color: #bce0c8; }
+.participant-completion-line p { color: #e1eee5; font-size: 12px; line-height: 1.9; }
+.participant-completion-line a { grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 9px; margin-top: 5px; padding: 13px 15px; min-height: 48px; border: 1px solid #87c4a0; border-radius: 6px; background: #08723d; color: #fff; font-size: 13px; font-weight: 700; line-height: 1.8; }
+.participant-completion-line a:hover { background: #085b32; }
+.participant-completion-next { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 54px; padding: 14px 21px; border: 1px solid #f398a7; border-radius: 6px; color: #fff; background: linear-gradient(#c8344b, #af2037); box-shadow: 0 3px 0 #6b182a, inset 0 1px 0 #ffffff30; font-size: 14px; line-height: 1.8; font-weight: 700; }
+.participant-completion-next:hover { background: #9c2034; }
+.participant-completion-reminder { margin-top: 14px; color: #d0d7e0; text-align: center; font-size: 11px; line-height: 1.9; }
+.participant-completion-endnote { margin-top: 24px; color: #c6cbd2; text-align: center; font: 500 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .16em; }
+@media screen and (max-width: 600px) {
+  .participant-completion-page { width: calc(100% - 28px); margin-top: 24px; }
+  .participant-completion-cover { height: 132px; padding: 17px 21px; }
+  .participant-completion-cover svg { width: 70px; height: 70px; right: 23px; bottom: -25px; }
+  .participant-completion-result { padding: 27px 23px 24px; }
+  .participant-completion-body { padding-inline: 23px; }
+  .participant-completion-section-heading { gap: 12px; }
+  .participant-completion-section-heading > span { font-size: 27px; }
+  .participant-completion-section h2 { font-size: 16px; }
+  .participant-completion-summary > div { grid-template-columns: 64px minmax(0, 1fr); gap: 10px; }
+  .participant-completion-account { padding: 13px; }
+  .participant-completion-account > div { flex-wrap: wrap; }
+  .participant-completion-account > div p { flex-basis: 100%; }
+  .participant-completion-account button { margin-top: 3px; }
+  .participant-completion-line { padding: 16px; }
+  .participant-completion-next { padding-inline: 16px; font-size: 13px; }
+}
+@media print { .participant-completion-cover { display: none !important; } }

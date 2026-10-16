@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { CheckCircle2, Loader2, UserCheck, MessageCircle, Copy, Check, AlertCircle } from "lucide-react";
+import { Loader2, UserCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { ParticipantPassword, ParticipantAccountNote } from "@/components/participant/ParticipantPassword";
+import { ParticipantRegistrationComplete } from "@/components/participant/ParticipantRegistrationComplete";
 import { ParticipantStory } from "@/components/participant/ParticipantStory";
 import { WristbandChoices, InsuranceChoices } from "@/components/participant/ParticipantChoices";
 import { ParticipantConfirmDialog as ConfirmDialog } from "@/components/participant/ParticipantDialog";
@@ -20,8 +21,6 @@ export default function RegisterPage() {
     const [isWaitlist, setIsWaitlist] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
-    const [copiedEmail, setCopiedEmail] = useState(false);
-    const [copiedPassword, setCopiedPassword] = useState(false);
     const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
     const [settings, setSettings] = useState<any>(null);
     const [projects, setProjects] = useState<any[]>([]);
@@ -163,17 +162,6 @@ export default function RegisterPage() {
         }
     };
 
-    const handleCopy = (text: string, type: 'email' | 'password') => {
-        navigator.clipboard.writeText(text);
-        if (type === 'email') {
-            setCopiedEmail(true);
-            setTimeout(() => setCopiedEmail(false), 2000);
-        } else {
-            setCopiedPassword(true);
-            setTimeout(() => setCopiedPassword(false), 2000);
-        }
-    };
-
     const activeProject = projects.find(p => p.id === formData.projectId);
 
     if (!isSettingsLoaded) return <><ParticipantHeader backHref="/" backLabel="トップへ戻る" /><ParticipantState title="申し込み内容を準備しています" loading /></>;
@@ -181,116 +169,15 @@ export default function RegisterPage() {
     if (projects.length === 0) return <><ParticipantHeader backHref="/" backLabel="トップへ戻る" /><ParticipantState title="現在は募集期間外です" message="エントリーを受け付けている大会日程はありません。次回の受付開始までお待ちください。" href="/" linkLabel="トップへ戻る" /></>;
 
     if (teamId) {
-        return (
-            <><ParticipantHeader backHref="/dashboard" /><div className="participant-main participant-main-narrow">
-
-                <Card className="w-full p-8 relative z-10 participant-account-card">
-                    <div className="text-center space-y-6">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ring-1 ${isWaitlist ? 'bg-amber-500/10 ring-amber-500/20' : 'bg-[#c52d40]/10 ring-orange-500/20'}`}>
-                            {isWaitlist ? <AlertCircle className="w-8 h-8 text-amber-300" /> : <CheckCircle2 className="w-8 h-8 text-[#ffb2be]" />}
-                        </div>
-
-                        <div>
-                            <h2 className="text-2xl font-bold text-[#f7f7f5] mb-2">
-                                {isWaitlist ? "キャンセル待ち受付完了" : "登録完了！"}
-                            </h2>
-                            {isWaitlist && (
-                                <p className="text-amber-300 font-bold mb-4 text-sm bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
-                                    この大会は満員のため、<br />キャンセル待ち枠として受け付けました。<br />空きが出た場合は管理者よりご連絡いたします。
-                                </p>
-                            )}
-                            <p className="text-[#c6cdd8]">アカウントが作成され、自動的にログインしました。<br />次回ログインのために以下の情報は必ず保存しておいてください。</p>
-                        </div>
-
-                        <div className="bg-[#15171d] rounded-lg p-6 border border-[#707b8c] space-y-4">
-                            <div>
-                                <p className="text-xs text-[#c6cdd8] uppercase tracking-wider mb-1">ログインメールアドレス</p>
-                                <div className="flex items-center gap-2">
-                                    <p className="flex-1 text-lg  font-bold text-[#ffb2be] tracking-wider bg-[#242830] rounded p-2 select-all break-all m-0">{registeredEmail}</p>
-                                    <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-[#242830] border-[#707b8c] hover:bg-[#343b47] hover:text-[#f7f7f5]" aria-label="メールアドレスをコピー" onClick={() => registeredEmail && handleCopy(registeredEmail, 'email')}>
-                                        {copiedEmail ? <Check className="w-4 h-4 text-[#ffb2be]" /> : <Copy className="w-4 h-4 text-[#c6cdd8]" />}
-                                    </Button>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-xs text-[#c6cdd8] uppercase tracking-wider mb-1">ログインパスワード</p>
-                                <div className="flex items-center gap-2">
-                                    <p className="flex-1 text-lg  font-bold text-[#ffb2be] tracking-wider bg-[#242830] rounded p-2 m-0">
-                                        {registeredPassword ? (
-                                            <span className="select-all">{registeredPassword}</span>
-                                        ) : (
-                                            <span className="text-sm font-sans tracking-normal font-normal text-[#c6cdd8]">登録済みのパスワードをご利用ください</span>
-                                        )}
-                                    </p>
-                                    {registeredPassword && (
-                                        <Button size="sm" variant="outline" className="w-10 h-10 p-0 flex items-center justify-center shrink-0 bg-[#242830] border-[#707b8c] hover:bg-[#343b47] hover:text-[#f7f7f5]" aria-label="パスワードをコピー" onClick={() => handleCopy(registeredPassword, 'password')}>
-                                            {copiedPassword ? <Check className="w-4 h-4 text-[#ffb2be]" /> : <Copy className="w-4 h-4 text-[#c6cdd8]" />}
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {(activeProject?.lineOpenChatLink || settings?.lineOpenChatLink) ? (
-                            <>
-                                {/* URGENT LINE OpenChat Warning */}
-                                <div className="bg-red-500/10 border-2 border-red-500/60 rounded-xl p-5 text-left space-y-4 animate-in fade-in">
-                                    <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-red-500/20 rounded-lg mt-0.5 flex-shrink-0">
-                                            <AlertCircle className="w-5 h-5 text-red-300" />
-                                        </div>
-                                        <div>
-                                            <p className="font-extrabold text-red-300 text-base leading-tight">
-                                                ⚠️ 必須：LINEオープンチャットへの参加
-                                            </p>
-                                            <p className="text-xs text-red-300 mt-0.5 font-bold">
-                                                参加しないと大会当日の重要連絡が届きません！
-                                            </p>
-                                            <p className="text-sm text-red-300 mt-1.5">
-                                                リーダーの人だけ大会の集合時間であったりその他大事な情報を発信するので必ず入ってください。
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-red-950/50 rounded-lg p-3 text-sm text-red-300 border border-red-500/20">
-                                        <ul className="space-y-1.5 list-none">
-                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> 集合時間・場所の案内が届かない</li>
-                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> 緊急の変更・中止情報が届かない</li>
-                                            <li className="flex items-center gap-2"><span className="text-red-300 font-bold">✕</span> ルールや持ち物の案内が届かない</li>
-                                        </ul>
-                                    </div>
-                                    <a
-                                        href={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 w-full bg-[#06C755] hover:bg-[#05b34c] text-[#f7f7f5] font-extrabold py-4 px-4 rounded-lg transition-colors text-base shadow-none shadow-green-900/30"
-                                    >
-                                        <MessageCircle className="w-5 h-5" />
-                                        今すぐLINEオープンチャットに参加する
-                                    </a>
-                                    <p className="text-center text-xs text-red-300">
-                                        ※ リーダー（代表者）の方のみ参加が必要です
-                                    </p>
-                                </div>
-
-                                <Button
-                                    className="w-full bg-[#343b47] hover:bg-[#343b47] text-[#c6cdd8] hover:text-[#e4e8ef] font-medium py-4 transition-all duration-300 text-sm"
-                                    onClick={() => router.push("/dashboard")}
-                                >
-                                    LINEを後で参加する（推奨しません）
-                                </Button>
-                            </>
-                        ) : (
-                            <Button
-                                className="w-full bg-[#c52d40] hover:bg-[#ad1d31] text-white font-medium py-6 shadow-none transition-all duration-300"
-                                onClick={() => router.push("/dashboard")}
-                            >
-                                マイページへ進む
-                            </Button>
-                        )}
-                    </div>
-                </Card>
-            </div></>
-        );
+        return <ParticipantRegistrationComplete
+            teamName={formData.name}
+            projectName={activeProject?.name}
+            email={registeredEmail || formData.email}
+            password={registeredPassword}
+            existingAccount={!!formData.existingUserId}
+            isWaitlist={isWaitlist}
+            lineOpenChatLink={activeProject?.lineOpenChatLink || settings?.lineOpenChatLink}
+        />;
     }
 
     return (
