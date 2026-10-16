@@ -48,8 +48,10 @@ export function ParticipantFormFooter() {
 
 export function ParticipantState({ title, message, loading = false, href = "/dashboard", linkLabel = "マイページへ戻る" }: { title: string; message?: string; loading?: boolean; href?: string; linkLabel?: string }) {
   return <div className="participant-state-screen"><section className="participant-state" aria-busy={loading}>
+    <div className="participant-state-cover" aria-hidden="true"><span>VANKY CUP / TEAM DESK</span></div>
     {loading ? <Loader2 className="participant-state-icon animate-spin" aria-hidden="true" /> : <CupMark className="participant-state-mark" />}
-    <h1>{title}</h1>{message ? <p>{message}</p> : null}
+    <h1 aria-live={loading ? "polite" : undefined}>{title}</h1>{message ? <p>{message}</p> : null}
     {!loading ? <Link href={href} className="participant-state-link">{linkLabel}</Link> : null}
+    <ParticipantFormFooter />
   </section></div>;
 }

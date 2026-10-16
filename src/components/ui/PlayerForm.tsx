@@ -5,14 +5,19 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Player } from "@/lib/types";
 import { WristbandChoices, InsuranceChoices } from "@/components/participant/ParticipantChoices";
+import { ParticipantSectionTitle } from "@/components/participant/ParticipantFrame";
+import { Loader2 } from "lucide-react";
 
 interface PlayerFormProps {
     initialData?: Player;
     onSave: (player: Player) => void | Promise<void>;
     onCancel: () => void;
+    isSaving?: boolean;
+    error?: string | null;
 }
 
-export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
+export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, error }: PlayerFormProps) {
+    const [playerId] = useState(() => initialData?.id || Math.random().toString(36).substr(2, 9));
     const [formData, setFormData] = useState<Partial<Player>>(() => ({
         name: "",
         furigana: "",
@@ -23,8 +28,9 @@ export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSaving) return;
         onSave({
-            id: initialData?.id || Math.random().toString(36).substr(2, 9),
+            id: playerId,
             name: formData.name || "",
             furigana: formData.furigana || "",
             insurance: formData.insurance || false,
@@ -34,7 +40,11 @@ export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="participant-player-form space-y-6" aria-busy={isSaving}>
+            {error ? <p role="alert" className="participant-feedback participant-feedback-error">{error}</p> : null}
+            <fieldset disabled={isSaving} className="space-y-6">
+            <legend className="participant-sr-only">選手情報</legend>
+            <ParticipantSectionTitle number="01" title="選手の基本情報" />
             <div className="space-y-4">
                 <Input
                     label="氏名"
@@ -52,15 +62,17 @@ export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
                 />
             </div>
 
+            <ParticipantSectionTitle number="02" title="参加する内容" description="バスケ経験に合うリストバンドと、保険の加入状況を選んでください。" />
             <WristbandChoices value={formData.wristbandColor || "赤"} onChange={(wristbandColor) => setFormData({ ...formData, wristbandColor })} />
             <InsuranceChoices value={!!formData.insurance} onChange={(insurance) => setFormData({ ...formData, insurance })} />
+            </fieldset>
 
-            <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="ghost" onClick={onCancel}>
+            <div className="participant-dialog-actions">
+                <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
                     キャンセル
                 </Button>
-                <Button type="submit">
-                    保存
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving ? <><Loader2 size={17} className="animate-spin" aria-hidden="true" />保存中…</> : "保存"}
                 </Button>
             </div>
         </form>

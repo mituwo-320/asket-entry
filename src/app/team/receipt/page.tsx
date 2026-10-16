@@ -2,8 +2,8 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Printer, ArrowLeft, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ParticipantDocumentActions } from "@/components/participant/ParticipantDocumentActions";
 import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
@@ -106,9 +106,11 @@ function ReceiptContent() {
 
     return (
         <div className="participant-document-screen">
-            <ParticipantHeader actions={<><button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button><Button onClick={() => { document.title = pdfFileName; window.print(); }}><Printer className="w-4 h-4 mr-2" />PDF保存・印刷</Button></>} />
+            <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
             <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="領収書" description="この画面を閉じる前に、必ずPDF保存または印刷を行ってください。" />
             <div role="alert" className="participant-document-warning print:hidden flex items-start gap-3"><AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" /><p><strong>表示できるのは1度のみです。</strong><br />画面を閉じると再表示できません。今すぐPDFとして保存または印刷してください。</p></div>
+
+            <ParticipantDocumentActions onPrint={() => { document.title = pdfFileName; window.print(); }} />
 
             {/* 印刷エリア（A4） */}
             <div className="participant-document-paper participant-receipt-paper w-full max-w-[210mm] mx-auto bg-white shadow-xl my-8 print:my-0 print:shadow-none"

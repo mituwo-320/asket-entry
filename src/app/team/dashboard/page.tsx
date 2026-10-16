@@ -7,10 +7,10 @@ import { Users, ShieldCheck, Plus, AlertCircle, Edit2, Trash2, UserCheck, Printe
 import Link from "next/link";
 import { Player, TeamEntry } from "@/lib/types";
 import { PlayerForm } from "@/components/ui/PlayerForm";
-import { Modal } from "@/components/ui/Modal";
-import { ConfirmDialog, AlertDialog } from "@/components/ui/ConfirmDialog";
+import { ParticipantDialog, ParticipantConfirmDialog as ConfirmDialog, ParticipantAlertDialog as AlertDialog } from "@/components/participant/ParticipantDialog";
+import { ParticipantPreparation } from "@/components/participant/ParticipantPreparation";
 import { useSearchParams } from "next/navigation";
-import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantHeading, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
 
 function DashboardContent() {
     const searchParams = useSearchParams();
@@ -20,6 +20,10 @@ function DashboardContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+    const [isSavingPlayer, setIsSavingPlayer] = useState(false);
+    const [playerSaveError, setPlayerSaveError] = useState<string | null>(null);
+    const [playerSaveMessage, setPlayerSaveMessage] = useState("");
+    const [isUpdatingClinic, setIsUpdatingClinic] = useState(false);
     const [settings, setSettings] = useState<any>(null);
     // Custom dialog state (replaces browser alert/confirm)
     const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
@@ -66,23 +70,17 @@ function DashboardContent() {
         fetchTeamData();
     }, [entryId]);
 
+    const openPlayerForm = (player: Player | null = null) => {
+        setEditingPlayer(player);
+        setPlayerSaveError(null);
+        setPlayerSaveMessage("");
+        setIsModalOpen(true);
+    };
+
     const handleSavePlayer = async (player: Player) => {
-        if (!teamEntry) return;
-
-        // Optimistic Update
-        const updatedPlayers = [...teamEntry.players];
-        const existingIndex = updatedPlayers.findIndex(p => p.id === player.id);
-        if (existingIndex >= 0) {
-            updatedPlayers[existingIndex] = player;
-        } else {
-            updatedPlayers.push(player);
-        }
-
-        const previousEntry = { ...teamEntry };
-        setTeamEntry({ ...teamEntry, players: updatedPlayers });
-        setIsModalOpen(false);
-        setEditingPlayer(null);
-
+        if (!teamEntry || isSavingPlayer) return;
+        setIsSavingPlayer(true);
+        setPlayerSaveError(null);
         try {
             const res = await fetch('/api/player/save', {
                 method: 'POST',
@@ -92,13 +90,22 @@ function DashboardContent() {
                 },
                 body: JSON.stringify(player)
             });
-
-            if (!res.ok) {
-                throw new Error('Save failed');
-            }
-        } catch (e) {
-            showAlert("保存エラー", "保存に失敗しました。もう一度お試しください。");
-            setTeamEntry(previousEntry); // Rollback
+            if (!res.ok) throw new Error('Save failed');
+            setTeamEntry(current => {
+                if (!current) return current;
+                const players = [...current.players];
+                const index = players.findIndex(p => p.id === player.id);
+                if (index >= 0) players[index] = player;
+                else players.push(player);
+                return { ...current, players };
+            });
+            setPlayerSaveMessage(`${player.name}さんの情報を保存しました。`);
+            setIsModalOpen(false);
+            setEditingPlayer(null);
+        } catch {
+            setPlayerSaveError("保存できませんでした。入力内容は残っています。通信状況を確認して、もう一度保存してください。");
+        } finally {
+            setIsSavingPlayer(false);
         }
     };
 
@@ -182,8 +189,8 @@ function DashboardContent() {
     };
 
     const handleFinalizeWithClinic = async () => {
-        if (!teamEntry || tempClinicParticipation === null) return;
-        setIsLoading(true);
+        if (!teamEntry || tempClinicParticipation === null || isUpdatingClinic) return;
+        setIsUpdatingClinic(true);
         try {
             const updateRes = await fetch('/api/team/update', {
                 method: 'POST',
@@ -208,13 +215,13 @@ function DashboardContent() {
         } catch (e) {
             showAlert("エラー", "通信エラーが発生しました。");
         } finally {
-            setIsLoading(false);
+            setIsUpdatingClinic(false);
         }
     };
 
     const handleUpdateClinicOnly = async () => {
-        if (!teamEntry || tempClinicParticipation === null) return;
-        setIsLoading(true);
+        if (!teamEntry || tempClinicParticipation === null || isUpdatingClinic) return;
+        setIsUpdatingClinic(true);
         try {
             const updateRes = await fetch('/api/team/update', {
                 method: 'POST',
@@ -239,7 +246,7 @@ function DashboardContent() {
         } catch (e) {
             showAlert("エラー", "通信エラーが発生しました。");
         } finally {
-            setIsLoading(false);
+            setIsUpdatingClinic(false);
         }
     };
 
@@ -286,7 +293,7 @@ function DashboardContent() {
                     <ParticipantHeading eyebrow="TEAM ROSTER" title={teamEntry.teamName} description={(teamEntry as any).projectName || teamEntry.tournamentId}>
                         <span className="participant-status-tag">{(teamEntry as any).isWaitlist ? 'キャンセル待ち' : teamEntry.status === 'submitted' ? '本エントリー完了' : '仮エントリー・メンバー登録中'}</span>
                     </ParticipantHeading>
-                    <ParticipantSectionNav items={[{ href: "#team-overview", label: "チームの概要" }, { href: "#team-members", label: "メンバー登録" }, { href: "#team-confirmation", label: "確定・書類" }]} />
+                    <ParticipantPreparation submitted={teamEntry.status === 'submitted'} playerCount={totalPlayers} closed={!canEditPlayers} waitlist={"isWaitlist" in teamEntry && teamEntry.isWaitlist === true} />
 
                     {teamEntry.status === 'submitted' && !isAdmin ? (
                         <div className="participant-notice p-5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 flex items-start gap-4">
@@ -425,24 +432,19 @@ function DashboardContent() {
                         <div className="p-6 border-b border-[#697383] flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <ParticipantSectionTitle number="02" title="選手リスト" description={(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'} />
                             {canEditPlayers && (
-                                <Button onClick={() => {
-                                    setEditingPlayer(null);
-                                    setIsModalOpen(true);
-                                }} className="bg-[#a62034] hover:bg-[#cb3146] text-white">
+                                <Button onClick={() => openPlayerForm()} className="bg-[#a62034] hover:bg-[#cb3146] text-white">
                                     <Plus className="w-4 h-4 mr-2" /> 選手を追加
                                 </Button>
                             )}
                         </div>
 
+                        {playerSaveMessage ? <p role="status" className="participant-feedback participant-feedback-success">{playerSaveMessage}</p> : null}
                         <div className="grid grid-cols-1 gap-3 p-4">
                             {teamEntry.players.length === 0 ? (
                                 <div className="p-8 text-center bg-[#15171d]/50 rounded-xl border border-[#697383]">
                                     <p className="text-[#bdc5d1]">選手が登録されていません</p>
                                     {canEditPlayers && (
-                                        <Button onClick={() => {
-                                            setEditingPlayer(null);
-                                            setIsModalOpen(true);
-                                        }} variant="outline" className="mt-4 border-[#8791a1]">
+                                        <Button onClick={() => openPlayerForm()} variant="outline" className="mt-4 border-[#8791a1]">
                                             <Plus className="w-4 h-4 mr-2" /> 最初の選手を追加
                                         </Button>
                                     )}
@@ -465,10 +467,7 @@ function DashboardContent() {
                                             </div>
                                             {canEditPlayers && (
                                                 <div className="flex gap-2">
-                                                    <button aria-label={`${player.name}の情報を編集`} onClick={() => {
-                                                        setEditingPlayer(player);
-                                                        setIsModalOpen(true);
-                                                    }} className="p-2 text-[#c6cdd8] hover:text-white bg-[#242830] hover:bg-[#343b47] rounded-lg transition-colors border border-[#697383]">
+                                                    <button aria-label={`${player.name}の情報を編集`} onClick={() => openPlayerForm(player)} className="p-2 text-[#c6cdd8] hover:text-white bg-[#242830] hover:bg-[#343b47] rounded-lg transition-colors border border-[#697383]">
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     {!player.isRepresentative && (
@@ -581,20 +580,20 @@ function DashboardContent() {
                 </div>
             </main>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingPlayer ? "選手情報を編集" : "選手を追加"}>
+            <ParticipantDialog isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingPlayer ? "選手情報を編集" : "選手を追加"} description="参加する選手の情報を入力してください。保存すると選手リストに反映されます。" busy={isSavingPlayer}>
                 <PlayerForm
                     initialData={editingPlayer || undefined}
                     onSave={handleSavePlayer}
                     onCancel={() => setIsModalOpen(false)}
+                    isSaving={isSavingPlayer}
+                    error={playerSaveError}
                 />
-            </Modal>
+            </ParticipantDialog>
 
             {/* 領収書発行モーダル */}
             {receiptModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-[#15171d]/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModal(false)} />
-                    <div role="dialog" aria-modal="true" aria-labelledby="team-receipt-title" className="participant-dialog relative w-full max-w-md p-6 space-y-5">
-                        <h2 id="team-receipt-title" className="text-lg font-bold text-white">領収書の発行</h2>
+                <ParticipantDialog isOpen onClose={() => setReceiptModal(false)} title="領収書の発行" description="発行前に宛名と保存についての注意事項を確認してください。" eyebrow="TEAM DOCUMENTS / RECEIPT" busy={isIssuingReceipt}>
+                    <div className="space-y-5">
                         
                         <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 space-y-1">
                             <p className="text-sm text-red-400 font-bold flex items-center gap-1">
@@ -613,7 +612,7 @@ function DashboardContent() {
                             <p className="text-xs text-[#bdc5d1] mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
                             {isEditingReceiptName ? (
                                 <input
-                                    type="text" aria-label="領収書の宛名"
+                                    type="text" aria-label="領収書の宛名" disabled={isIssuingReceipt}
                                     value={receiptNameInput}
                                     onChange={(e) => setReceiptNameInput(e.target.value)}
                                     className="w-full bg-[#242830] border border-[#c47c89] rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-orange-300"
@@ -628,14 +627,14 @@ function DashboardContent() {
                         {/* 宛名変更ボタン */}
                         {!isEditingReceiptName ? (
                             <button
-                                onClick={() => setIsEditingReceiptName(true)}
+                                disabled={isIssuingReceipt} onClick={() => setIsEditingReceiptName(true)}
                                 className="text-sm text-[#ffb2be] hover:text-[#ffc7d0] underline"
                             >
                                 宛名を変更する
                             </button>
                         ) : (
                             <button
-                                onClick={() => setIsEditingReceiptName(false)}
+                                disabled={isIssuingReceipt} onClick={() => setIsEditingReceiptName(false)}
                                 className="text-sm text-[#c6cdd8] hover:text-[#e0e5ed] underline"
                             >
                                 変更をキャンセル
@@ -652,14 +651,14 @@ function DashboardContent() {
                                 {isIssuingReceipt ? '発行中...' : 'この内容で発行する'}
                             </button>
                             <button
-                                onClick={() => !isIssuingReceipt && setReceiptModal(false)}
+                                disabled={isIssuingReceipt} onClick={() => !isIssuingReceipt && setReceiptModal(false)}
                                 className="w-full bg-[#343b47] hover:bg-[#46505f] text-[#e0e5ed] font-bold py-3 rounded-xl transition-colors"
                             >
                                 戻る（発行しない）
                             </button>
                         </div>
                     </div>
-                </div>
+                </ParticipantDialog>
             )}
 
             {/* Custom Dialogs (replace browser alert/confirm) */}
@@ -671,12 +670,9 @@ function DashboardContent() {
             />
             {/* バスケクリニック参加確認モーダル */}
             {clinicModalOpen && teamEntry && (
-                <div className="fixed inset-0 bg-[#15171d]/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-                    <div role="dialog" aria-modal="true" aria-labelledby="team-clinic-title" className="participant-dialog p-6 max-w-md w-full space-y-6">
+                <ParticipantDialog isOpen onClose={() => setClinicModalOpen(false)} title={teamEntry.status === 'submitted' ? 'バスケクリニック参加希望の変更' : 'バスケクリニック参加希望の確認'} eyebrow="BASKETBALL CLINIC / TEAM DESK" busy={isUpdatingClinic}>
+                    <div className="space-y-6">
                         <div className="text-center">
-                            <h3 id="team-clinic-title" className="text-lg font-black text-white flex items-center justify-center gap-2">
-                                🏀 {teamEntry.status === 'submitted' ? 'バスケクリニック参加希望の変更' : 'バスケクリニック参加希望の確認'}
-                            </h3>
                             <p className="text-xs text-[#c6cdd8] mt-2 leading-relaxed">
                                 {teamEntry.status === 'submitted'
                                     ? `${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を変更してください。`
@@ -684,14 +680,17 @@ function DashboardContent() {
                             </p>
                         </div>
 
-                        <div className="space-y-4 bg-[#15171d]/50 p-4 rounded-xl border border-white/5">
+                        <fieldset disabled={isUpdatingClinic} className="space-y-4 bg-[#15171d]/50 p-4 rounded-xl border border-white/5"><legend className="participant-sr-only">クリニックの参加希望</legend>
                             <div className="flex flex-col gap-3">
                                 <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-[#edf0f5]">
                                     <input
                                         type="radio"
                                         name="tempClinicParticipation"
                                         checked={tempClinicParticipation === true}
-                                        onChange={() => setTempClinicParticipation(true)}
+                                        onChange={() => {
+                                            setTempClinicParticipation(true);
+                                            setTempClinicCount(count => Math.max(1, count));
+                                        }}
                                         className="w-4 h-4 text-indigo-600 border-[#8791a1] bg-[#242830] focus:ring-orange-300 cursor-pointer"
                                     />
                                     クリニックに参加する
@@ -727,36 +726,36 @@ function DashboardContent() {
                                     </select>
                                 </div>
                             )}
-                        </div>
+                        </fieldset>
 
                         {/* アクションボタン */}
                         <div className="flex flex-col gap-2 pt-2">
                             {teamEntry.status === 'submitted' ? (
                                 <button
                                     onClick={handleUpdateClinicOnly}
-                                    disabled={tempClinicParticipation === null || isLoading}
+                                    disabled={tempClinicParticipation === null || isUpdatingClinic}
                                     className="w-full participant-action-primary disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
                                 >
-                                    {isLoading ? '処理中...' : '希望を更新する'}
+                                    {isUpdatingClinic ? '処理中...' : '希望を更新する'}
                                 </button>
                             ) : (
                                 <button
                                     onClick={handleFinalizeWithClinic}
-                                    disabled={tempClinicParticipation === null || isLoading}
+                                    disabled={tempClinicParticipation === null || isUpdatingClinic}
                                     className="w-full participant-action-primary disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
                                 >
-                                    {isLoading ? '処理中...' : '希望を確定して、本エントリーを完了する'}
+                                    {isUpdatingClinic ? '処理中...' : '希望を確定して、本エントリーを完了する'}
                                 </button>
                             )}
                             <button
-                                onClick={() => !isLoading && setClinicModalOpen(false)}
+                                disabled={isUpdatingClinic} onClick={() => !isUpdatingClinic && setClinicModalOpen(false)}
                                 className="w-full bg-[#343b47] hover:bg-[#46505f] text-[#e0e5ed] font-bold py-3 rounded-xl transition-colors"
                             >
                                 キャンセル
                             </button>
                         </div>
                     </div>
-                </div>
+                </ParticipantDialog>
             )}
 
             <ConfirmDialog

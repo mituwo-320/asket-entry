@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { ParticipantStory } from "@/components/participant/ParticipantStory";
 import { WristbandChoices, InsuranceChoices } from "@/components/participant/ParticipantChoices";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ParticipantConfirmDialog as ConfirmDialog } from "@/components/participant/ParticipantDialog";
 
 export default function RegisterPage() {
     const router = useRouter();

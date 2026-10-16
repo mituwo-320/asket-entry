@@ -2,8 +2,8 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Printer, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { ArrowLeft } from "lucide-react";
+import { ParticipantDocumentActions } from "@/components/participant/ParticipantDocumentActions";
 import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
@@ -80,8 +80,10 @@ function InvoiceContent() {
 
     return (
         <div className="participant-document-screen font-sans">
-            <ParticipantHeader actions={<><button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button><Button onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" />PDF保存・印刷</Button></>} />
+            <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
             <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="請求書" description="内容を確認し、PDFとして保存または印刷してください。" />
+
+            <ParticipantDocumentActions onPrint={() => window.print()} />
 
             {/* Printable Area */}
             <div className="participant-document-paper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
