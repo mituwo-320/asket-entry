@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CheckCircle2, Loader2, UserCheck, MessageCircle, Copy, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { CupMark } from "@/components/entry/CupMark";
-import { ParticipantHeader, ParticipantFormTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantStory } from "@/components/participant/ParticipantStory";
 import { WristbandChoices, InsuranceChoices } from "@/components/participant/ParticipantChoices";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -295,18 +295,14 @@ export default function RegisterPage() {
         <ParticipantHeader backHref="/" backLabel="トップへ戻る" />
         <main className="participant-form-page">
         <div className="participant-form-layout">
-            <aside className="participant-form-aside"><div className="participant-form-intro">
-                <p className="participant-eyebrow">TEAM ENTRY / VANKYCUP</p>
-                <h2 className="text-[38px] font-bold leading-relaxed tracking-tight">仲間と一緒に、<br />次のコートへ。</h2>
-                <p>まずは代表者の方がチームを申し込み、登録後に他のメンバーを追加します。</p>
-                <div className="participant-guide"><h2>申し込みの流れ</h2><ol>
-                    <li><div><h3>チームと代表者を登録</h3><p>大会日程を選び、チーム情報と代表者を1人目のメンバーとして登録します。</p></div></li>
-                    <li><div><h3>メンバーを追加</h3><p>登録後のマイページから、参加するメンバーの情報を追加してください。</p></div></li>
-                    <li><div><h3>内容を確認して確定</h3><p>登録期限までにメンバーを確定し、請求書をご確認ください。</p></div></li>
-                </ol></div><CupMark className="participant-mark" />
-            </div></aside>
+            <ParticipantStory eyebrow="MAKE IT A TEAM DAY." title={<>仲間と一緒に、<br />次のコートへ。</>} description="まずは代表者の方がチームを申し込み、登録後に他のメンバーを追加します。" guideTitle="申し込みから当日まで" steps={[
+                { title: "チームを申し込む", description: "大会日程を選び、チームと代表者を登録します。" },
+                { title: "メンバーを追加する", description: "登録後のマイページから、ほかの選手を追加。" },
+                { title: "内容を確認して確定", description: "期限までにメンバーを確定し、請求書を確認。" },
+            ]} />
             <Card className="participant-form-card">
                 <ParticipantFormTitle eyebrow="REGISTRATION FORM" title="チームの参加申し込み" description="必須項目を入力してください。チーム名は登録後にも変更できます。" />
+                <ParticipantSectionNav label="申し込みフォームの項目" items={[{ href: "#entry-team", label: "大会・チーム" }, { href: "#entry-leader", label: "代表者" }, { href: "#entry-details", label: "紹介・設定" }]} />
                 <div className="participant-form-content">
                     {activeProject?.entryEndDate && <p className="mb-6 text-sm text-[#ffd8a8]">登録期限：{new Date(activeProject.entryEndDate).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                     {formData.existingUserId && (
@@ -351,6 +347,7 @@ export default function RegisterPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-4">
+                        <ParticipantSectionTitle id="entry-team" number="01" title="大会・チーム情報" description="参加する日程と、チームの名前を教えてください。" />
                         <div className="space-y-2">
                             <label htmlFor="entry-project" className="text-sm font-medium text-[#e4e8ef] ml-1">参加する大会日程 <span className="text-red-300 ml-1">*必須</span></label>
 
@@ -434,17 +431,7 @@ export default function RegisterPage() {
                         </div>
 
                         {/* --- NEW: Section Break for Leader Info --- */}
-                        <div className="relative py-4">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-[#707b8c]"></div>
-                            </div>
-                            <div className="relative flex justify-center">
-                                <span className="bg-[#242830] px-3 text-xs font-medium text-[#ffb2be] border border-[#707b8c] rounded-full flex items-center gap-1.5 shadow-sm">
-                                    <UserCheck className="w-3.5 h-3.5" />
-                                    ここからはあなた自身（リーダー）の登録です
-                                </span>
-                            </div>
-                        </div>
+                        <ParticipantSectionTitle id="entry-leader" number="02" title="代表者・メンバー情報" description="代表者ご自身を、1人目のメンバーとして登録します。" />
 
                         <div className="space-y-4 bg-[#15171d] border border-[#707b8c] rounded-xl p-5">
                             <h3 className="text-sm font-bold text-[#e4e8ef] mb-2">1人目のメンバー（リーダー情報）</h3>
@@ -515,7 +502,8 @@ export default function RegisterPage() {
                         </div>
                         <WristbandChoices value={formData.wristbandColor} onChange={(wristbandColor) => setFormData({ ...formData, wristbandColor })} />
 
-                                        <div className="space-y-2">
+                        <ParticipantSectionTitle id="entry-details" number="03" title="チーム紹介・各種設定" description="紹介文や参加内容を確認し、申し込みを完了してください。" />
+                        <div className="space-y-2">
                             <label htmlFor="entry-introduction" className="text-sm font-medium text-[#e4e8ef] ml-1">チーム紹介・意気込み <span className="text-red-300 ml-1">*必須</span></label>
                             <textarea id="entry-introduction"
                                 placeholder="今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）"
@@ -655,6 +643,7 @@ export default function RegisterPage() {
                     </Button>
                     </form>
                 </div>
+                <ParticipantFormFooter />
             </Card>
         </div>
         </main>

@@ -8,7 +8,7 @@ import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Trophy, Plus, History, Calendar, LogOut, User as UserIcon, Settings, ArrowRight, MessageCircle, AlertCircle, X, Printer, FileText } from "lucide-react";
 import Link from "next/link";
-import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantState } from "@/components/participant/ParticipantFrame";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -145,6 +145,7 @@ export default function UserDashboard() {
                     <ParticipantHeading eyebrow="YOUR TEAM DESK" title="マイページ" description={`${user.name}さん、登録したチームと参加状況はこちらから確認できます。`}>
                         <div className="participant-heading-stats"><span>エントリー中<strong>{activeEntries.length}</strong>大会</span><span>メンバー未確定<strong>{activeEntries.filter(entry => entry.status === 'draft').length}</strong>チーム</span></div>
                     </ParticipantHeading>
+                    <ParticipantSectionNav items={[{ href: "#current-tournaments", label: "参加する大会" }, { href: "#past-tournaments", label: "大会の履歴" }, { href: "#account-information", label: "代表者情報" }]} />
 
                     {/* LINE OpenChat Urgent Banner */}
                     {showChatBanner && (() => {
@@ -219,29 +220,221 @@ export default function UserDashboard() {
                         );
                     })()}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="participant-desk-layout grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Right Column: Entries */}
+                        <div className="participant-desk-content lg:col-span-2 space-y-8">
+                            {/* Actions */}
+                            <div id="current-tournaments" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <Calendar className="w-5 h-5 text-[#ffb2be]" />
+                                    エントリー中の大会
+                                </h3>
+                                <Link href="/team/register" className="participant-inline-action"><Plus className="w-4 h-4" aria-hidden="true" />他の大会に新規エントリー</Link>
+                            </div>
+
+                            {activeEntries.some(entry => entry.status === 'draft') && (
+                            <div className="participant-notice p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-amber-400/90 text-sm">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-amber-400 mb-1">【重要】メンバー登録のお願い</p>
+                                    <p>以下の大会へのエントリーは完了していますが、まだメンバー登録が終わっていません。<br className="hidden sm:block" />各大会の<strong className="text-amber-300">エントリー期限を過ぎると、メンバーの追加や内容の編集ができなくなります</strong>ので、お早めに「チーム編集・メンバー追加」からご登録ください。</p>
+                                </div>
+                            </div>
+                            )}
+
+                            {/* Active Entries Section */}
+                            <section>
+                                {activeEntries.length === 0 ? (
+                                    <Card className="p-12 border-dashed border-[#8791a1]/50 bg-[#242830]/20 text-center">
+                                        <div className="w-20 h-20 bg-[#343b47]/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Trophy className="w-10 h-10 text-[#bdc5d1]" />
+                                        </div>
+                                        <h4 className="text-xl font-medium text-[#edf0f5] mb-3">エントリーはありません</h4>
+                                        <p className="text-[#c6cdd8] mb-8 leading-relaxed">
+                                            現在開催中の大会にエントリーして、<br className="hidden sm:block" />
+                                            チームの力を試しましょう！
+                                        </p>
+                                        <Link href="/team/register" className="participant-inline-action">大会を探す<ArrowRight aria-hidden="true" size={16} /></Link>
+                                    </Card>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {activeEntries.map((entry) => (
+                                            <div
+                                                key={entry.id}
+                                            >
+                                                <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
+                                                    <Card className="participant-entry-card participant-entry-pass p-0 overflow-hidden hover:border-[#c47c89]/40 transition-all duration-300">
+                                                        <div className="flex flex-col sm:flex-row relative">
+                                                            {/* Status Indicator Bar */}
+                                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${entry.status === 'submitted' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+
+                                                            <div className="participant-entry-main">
+                                                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                                                    <div className="participant-entry-event">
+                                                                        {(entry as any).projectName || entry.tournamentId}
+                                                                    </div>
+                                                                    <div data-entry-state={(entry as any).isWaitlist ? "waitlist" : entry.status} className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !(entry as any).isWaitlist
+                                                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                                            : (entry as any).isWaitlist
+                                                                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                                                                : 'bg-slate-500/10 text-[#c6cdd8] border border-[#a6afbe]/20'
+                                                                        }`}>
+                                                                        {entry.status === 'submitted' && !(entry as any).isWaitlist ? (
+                                                                            <span className="relative flex h-2 w-2">
+
+                                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                                            </span>
+                                                                        ) : null}
+                                                                        {(entry as any).isWaitlist ? 'キャンセル待ち' : (entry.status === 'submitted' ? '登録完了' : '下書き')}
+                                                                    </div>
+                                                                </div>
+
+                                                                <h4 className="participant-entry-team">
+                                                                    {entry.teamName}
+                                                                </h4>
+
+                                                                <div className="participant-entry-meta">
+                                                                    <span>
+                                                                        <UserIcon className="w-4 h-4 text-[#ffb2be]" /> 選手 {entry.players?.length || 0}名
+                                                                    </span>
+                                                                    <span className="flex items-center gap-1.5">
+                                                                        <History className="w-4 h-4" /> 登録日: {new Date(entry.createdAt).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="participant-entry-stub">
+                                                                {(entry as any).projectEndDate && (() => {
+                                                                    const deadline = new Date((entry as any).projectEndDate);
+                                                                    const diffTime = deadline.getTime() - new Date().getTime();
+                                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                                    return (
+                                                                        <div className="participant-entry-deadline">
+                                                                            {diffTime > 0 ? (
+                                                                                <>締切まであと <span className="text-base font-bold text-amber-300">{diffDays}</span> 日<br /><span className="opacity-80 text-[10px]">({deadline.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })})</span></>
+                                                                            ) : (
+                                                                                <>募集終了<br /><span className="opacity-80 text-[10px]">編集できません</span></>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })()}
+                                                                <div className="participant-entry-cta">
+                                                                    チーム編集・メンバー追加 <ArrowRight aria-hidden="true" />
+                                                                </div>
+                                                                <span className="participant-print-bars" aria-hidden="true" />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Link>
+                                                {entry.status === 'submitted' && (
+                                                    <div className="participant-entry-actions">
+                                                        <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-[#343b47] border border-[#8791a1] hover:bg-[#46505f] hover:border-[#c47c89]/50 text-[#e0e5ed] hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
+                                                            <Printer className="w-4 h-4" /> 請求書（PDF）を発行
+                                                        </Link>
+                                                        {entry.isPaid && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if ((entry as any).receiptViewedAt) {
+                                                                        alert("すでに領収書は発行・確認済みです。二度目の発行はできません。");
+                                                                    } else {
+                                                                        setReceiptNameInput(entry.teamName);
+                                                                        setIsEditingReceiptName(false);
+                                                                        setReceiptModalEntryId(entry.id);
+                                                                    }
+                                                                }}
+                                                                disabled={!!(entry as any).receiptViewedAt}
+                                                                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${
+                                                                    (entry as any).receiptViewedAt
+                                                                        ? 'bg-[#343b47] text-[#bdc5d1] border border-[#8791a1] cursor-not-allowed'
+                                                                        : 'bg-[#a62034] border border-[#c47c89] hover:bg-[#cb3146] text-white'
+                                                                }`}
+                                                            >
+                                                                <FileText className="w-4 h-4" /> 領収書を発行
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Past Entries Section */}
+                            <section id="past-tournaments">
+                                <div className="flex items-center gap-2 mb-4 text-[#c6cdd8] px-2">
+                                    <History className="w-5 h-5" />
+                                    <h3 className="text-sm font-bold uppercase tracking-wider">過去の大会履歴</h3>
+                                </div>
+                                {pastEntries.length === 0 ? (
+                                    <div className="participant-history-empty p-8 rounded-xl text-center">
+                                        <p>過去に参加した大会の履歴がありません</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {pastEntries.map((entry) => (
+                                            <div
+                                                key={entry.id}
+                                            >
+                                                <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
+                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#8791a1] transition-all duration-300 bg-[#15171d]/40">
+                                                        <div className="flex flex-col sm:flex-row relative">
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#46505f]" />
+                                                            <div className="p-6 pl-8 flex-1">
+                                                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#c6cdd8] border border-white/10">
+                                                                        {(entry as any).projectName || entry.tournamentId}
+                                                                    </div>
+                                                                    <div className="text-xs font-bold px-3 py-1 rounded-full bg-[#343b47] text-[#c6cdd8] border border-[#8791a1]">
+                                                                        大会終了
+                                                                    </div>
+                                                                </div>
+                                                                <h4 className="text-2xl font-bold text-[#c6cdd8] group-hover:text-[#edf0f5] transition-colors mb-4">
+                                                                    {entry.teamName}
+                                                                </h4>
+                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-[#bdc5d1]">
+                                                                    <span className="flex items-center gap-1.5 bg-[#242830]/30 px-2.5 py-1 rounded-lg">
+                                                                        <UserIcon className="w-4 h-4 text-[#bdc5d1]" /> 選手 {entry.players?.length || 0}名
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 mt-2 sm:mt-0">
+                                                                 <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-[#bdc5d1] group-hover:text-[#c6cdd8] transition-colors">
+                                                                    詳細を確認する <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                 </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        </div>
                         {/* Left Column: Profile */}
-                        <div className="space-y-6">
+                        <div className="participant-desk-sidebar space-y-6">
                             <div>
-                                <Card className="participant-account-card">
+                                <Card id="account-information" className="participant-account-card">
+                                    <div className="participant-pass-label"><span>REPRESENTATIVE PASS</span><span>VANKY CUP</span></div>
                                     <div className="flex items-center gap-2 mb-6 text-[#c6cdd8]">
                                         <UserIcon className="w-5 h-5" />
                                         <h3 className="text-sm font-bold uppercase tracking-wider">アカウント情報</h3>
                                     </div>
-                                    <div className="space-y-5">
+                                    <dl className="space-y-5">
                                         <div>
-                                            <label className="text-xs text-[#bdc5d1] block mb-1">代表者氏名</label>
-                                            <p className="text-white font-medium text-lg">{user.name}</p>
+                                            <dt className="text-xs text-[#bdc5d1] block mb-1">代表者氏名</dt>
+                                            <dd className="text-white font-medium text-lg">{user.name}</dd>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-[#bdc5d1] block mb-1">メールアドレス</label>
-                                            <p className="text-white font-medium">{user.email}</p>
+                                            <dt className="text-xs text-[#bdc5d1] block mb-1">メールアドレス</dt>
+                                            <dd className="text-white font-medium">{user.email}</dd>
                                         </div>
                                         <div>
-                                            <label className="text-xs text-[#bdc5d1] block mb-1">電話番号</label>
-                                            <p className="text-white font-medium">{user.phone}</p>
+                                            <dt className="text-xs text-[#bdc5d1] block mb-1">電話番号</dt>
+                                            <dd className="text-white font-medium">{user.phone}</dd>
                                         </div>
-                                    </div>
+                                    </dl>
                                     <div className="mt-8 pt-6 border-t border-[#8791a1]/50">
                                         <Button
                                             variant="outline"
@@ -251,6 +444,7 @@ export default function UserDashboard() {
                                             <Settings className="w-4 h-4" /> プロフィール編集
                                         </Button>
                                     </div>
+                                    <div className="participant-pass-footer" aria-hidden="true"><span>ONE TEAM.<br />ONE GOOD DAY.</span><span className="participant-print-bars" /></div>
                                 </Card>
                             </div>
 
@@ -305,202 +499,6 @@ export default function UserDashboard() {
                             })()}
                         </div>
 
-                        {/* Right Column: Entries */}
-                        <div className="lg:col-span-2 space-y-8">
-                            {/* Actions */}
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-[#ffb2be]" />
-                                    エントリー中の大会
-                                </h3>
-                                <Link href="/team/register" className="w-full sm:w-auto">
-                                    <Button variant="primary" className="w-full sm:w-auto">
-                                        <Plus className="w-5 h-5 mr-2" /> 他の大会に新規エントリー
-                                    </Button>
-                                </Link>
-                            </div>
-
-                            {activeEntries.some(entry => entry.status === 'draft') && (
-                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3 text-amber-400/90 text-sm">
-                                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-bold text-amber-400 mb-1">【重要】メンバー登録のお願い</p>
-                                    <p>以下の大会へのエントリーは完了していますが、まだメンバー登録が終わっていません。<br className="hidden sm:block" />各大会の<strong className="text-amber-300">エントリー期限を過ぎると、メンバーの追加や内容の編集ができなくなります</strong>ので、お早めに「チーム編集・メンバー追加」からご登録ください。</p>
-                                </div>
-                            </div>
-                            )}
-
-                            {/* Active Entries Section */}
-                            <section>
-                                {activeEntries.length === 0 ? (
-                                    <Card className="p-12 border-dashed border-[#8791a1]/50 bg-[#242830]/20 text-center">
-                                        <div className="w-20 h-20 bg-[#343b47]/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Trophy className="w-10 h-10 text-[#bdc5d1]" />
-                                        </div>
-                                        <h4 className="text-xl font-medium text-[#edf0f5] mb-3">エントリーはありません</h4>
-                                        <p className="text-[#c6cdd8] mb-8 leading-relaxed">
-                                            現在開催中の大会にエントリーして、<br className="hidden sm:block" />
-                                            チームの力を試しましょう！
-                                        </p>
-                                        <Link href="/team/register">
-                                            <Button variant="secondary" size="lg">大会を探す</Button>
-                                        </Link>
-                                    </Card>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {activeEntries.map((entry) => (
-                                            <div
-                                                key={entry.id}
-                                            >
-                                                <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
-                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#c47c89]/40 transition-all duration-300">
-                                                        <div className="flex flex-col sm:flex-row relative">
-                                                            {/* Status Indicator Bar */}
-                                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${entry.status === 'submitted' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-
-                                                            <div className="p-6 pl-8 flex-1">
-                                                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#e0e5ed] border border-white/10">
-                                                                        {(entry as any).projectName || entry.tournamentId}
-                                                                    </div>
-                                                                    <div className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !(entry as any).isWaitlist
-                                                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                                            : (entry as any).isWaitlist
-                                                                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                                                                : 'bg-slate-500/10 text-[#c6cdd8] border border-[#a6afbe]/20'
-                                                                        }`}>
-                                                                        {entry.status === 'submitted' && !(entry as any).isWaitlist ? (
-                                                                            <span className="relative flex h-2 w-2">
-
-                                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                                            </span>
-                                                                        ) : null}
-                                                                        {(entry as any).isWaitlist ? 'キャンセル待ち' : (entry.status === 'submitted' ? '登録完了' : '下書き')}
-                                                                    </div>
-                                                                </div>
-
-                                                                <h4 className="text-2xl font-bold text-white group-hover:text-[#ffb2be] transition-colors mb-4">
-                                                                    {entry.teamName}
-                                                                </h4>
-
-                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-[#c6cdd8]">
-                                                                    <span className="flex items-center gap-1.5 bg-[#242830]/50 px-2.5 py-1 rounded-lg">
-                                                                        <UserIcon className="w-4 h-4 text-[#ffb2be]" /> 選手 {entry.players?.length || 0}名
-                                                                    </span>
-                                                                    <span className="flex items-center gap-1.5">
-                                                                        <History className="w-4 h-4" /> 登録日: {new Date(entry.createdAt).toLocaleDateString()}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 bg-white/[0.02] mt-2 sm:mt-0">
-                                                                {(entry as any).projectEndDate && (() => {
-                                                                    const deadline = new Date((entry as any).projectEndDate);
-                                                                    const diffTime = deadline.getTime() - new Date().getTime();
-                                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                                    return (
-                                                                        <div className={`text-xs mb-3 font-medium text-center sm:text-right ${diffTime > 0 ? "text-amber-400" : "text-red-400"}`}>
-                                                                            {diffTime > 0 ? (
-                                                                                <>締切まであと <span className="text-base font-bold text-amber-300">{diffDays}</span> 日<br /><span className="opacity-80 text-[10px]">({deadline.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })})</span></>
-                                                                            ) : (
-                                                                                <>募集終了<br /><span className="opacity-80 text-[10px]">編集できません</span></>
-                                                                            )}
-                                                                        </div>
-                                                                    );
-                                                                })()}
-                                                                <div className="w-full sm:w-auto bg-[#cb3146]/10 sm:bg-transparent border border-[#c47c89]/30 sm:border-transparent rounded-lg sm:rounded-none py-2.5 sm:py-0 flex items-center justify-center gap-2 text-sm font-bold text-[#ffb2be] group-hover:text-[#ffc7d0] transition-colors">
-                                                                    チーム編集・メンバー追加 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                </Link>
-                                                {entry.status === 'submitted' && (
-                                                    <div className="participant-entry-actions">
-                                                        <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-[#343b47] border border-[#8791a1] hover:bg-[#46505f] hover:border-[#c47c89]/50 text-[#e0e5ed] hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
-                                                            <Printer className="w-4 h-4" /> 請求書（PDF）を発行
-                                                        </Link>
-                                                        {entry.isPaid && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    if ((entry as any).receiptViewedAt) {
-                                                                        alert("すでに領収書は発行・確認済みです。二度目の発行はできません。");
-                                                                    } else {
-                                                                        setReceiptNameInput(entry.teamName);
-                                                                        setIsEditingReceiptName(false);
-                                                                        setReceiptModalEntryId(entry.id);
-                                                                    }
-                                                                }}
-                                                                disabled={!!(entry as any).receiptViewedAt}
-                                                                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${
-                                                                    (entry as any).receiptViewedAt
-                                                                        ? 'bg-[#343b47] text-[#bdc5d1] border border-[#8791a1] cursor-not-allowed'
-                                                                        : 'bg-[#a62034] border border-[#c47c89] hover:bg-[#cb3146] text-white'
-                                                                }`}
-                                                            >
-                                                                <FileText className="w-4 h-4" /> 領収書を発行
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </section>
-
-                            {/* Past Entries Section */}
-                            <section>
-                                <div className="flex items-center gap-2 mb-4 text-[#c6cdd8] px-2">
-                                    <History className="w-5 h-5" />
-                                    <h3 className="text-sm font-bold uppercase tracking-wider">過去の大会履歴</h3>
-                                </div>
-                                {pastEntries.length === 0 ? (
-                                    <div className="p-8 bg-[#242830]/20 rounded-2xl border border-white/5 text-center text-[#bdc5d1] backdrop-blur-sm">
-                                        <p>過去に参加した大会の履歴がありません</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {pastEntries.map((entry) => (
-                                            <div
-                                                key={entry.id}
-                                            >
-                                                <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
-                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#8791a1] transition-all duration-300 bg-[#15171d]/40">
-                                                        <div className="flex flex-col sm:flex-row relative">
-                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#46505f]" />
-                                                            <div className="p-6 pl-8 flex-1">
-                                                                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                                                    <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#c6cdd8] border border-white/10">
-                                                                        {(entry as any).projectName || entry.tournamentId}
-                                                                    </div>
-                                                                    <div className="text-xs font-bold px-3 py-1 rounded-full bg-[#343b47] text-[#c6cdd8] border border-[#8791a1]">
-                                                                        大会終了
-                                                                    </div>
-                                                                </div>
-                                                                <h4 className="text-2xl font-bold text-[#c6cdd8] group-hover:text-[#edf0f5] transition-colors mb-4">
-                                                                    {entry.teamName}
-                                                                </h4>
-                                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-[#bdc5d1]">
-                                                                    <span className="flex items-center gap-1.5 bg-[#242830]/30 px-2.5 py-1 rounded-lg">
-                                                                        <UserIcon className="w-4 h-4 text-[#bdc5d1]" /> 選手 {entry.players?.length || 0}名
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="px-4 pb-4 sm:p-6 flex flex-col items-center justify-center sm:justify-end sm:items-end sm:border-l border-white/5 mt-2 sm:mt-0">
-                                                                 <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold text-[#bdc5d1] group-hover:text-[#c6cdd8] transition-colors">
-                                                                    詳細を確認する <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                 </Link>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </section>
-                        </div>
                     </div>
                 </div>
             </main>

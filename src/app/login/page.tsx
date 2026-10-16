@@ -8,8 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, Suspense } from "react";
-import { CupMark } from "@/components/entry/CupMark";
-import { ParticipantHeader, ParticipantFormTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantStory } from "@/components/participant/ParticipantStory";
 
 function LoginContent() {
     const router = useRouter();
@@ -59,19 +59,11 @@ function LoginContent() {
             <ParticipantHeader backHref="/" backLabel="トップへ戻る" />
             <main className="participant-form-page">
             <div className="participant-form-layout">
-                <aside className="participant-form-aside">
-                    <div className="participant-form-intro">
-                        <p className="participant-eyebrow">TEAM DESK / VANKYCUP</p>
-                        <h2 className="text-[38px] font-bold leading-relaxed tracking-tight">コートに立つまでの<br />準備は、ここから。</h2>
-                        <p>大会への申し込み後は、代表者のアカウントでチームを管理できます。</p>
-                        <div className="participant-guide"><h2>マイページでできること</h2><ol>
-                            <li><div><h3>申し込み内容を確認</h3><p>参加する大会とチームの登録状況を確認できます。</p></div></li>
-                            <li><div><h3>メンバーを登録</h3><p>名前やリストバンド、保険の情報をまとめて管理できます。</p></div></li>
-                            <li><div><h3>必要な書類を保存</h3><p>参加費の請求書や、発行可能な領収書を確認できます。</p></div></li>
-                        </ol></div>
-                        <CupMark className="participant-mark" />
-                    </div>
-                </aside>
+                <ParticipantStory eyebrow="YOUR TEAM, YOUR COURT." title={<>コートに立つまでの<br />準備は、ここから。</>} description="大会への申し込み後は、代表者のアカウントでチームを管理できます。" guideTitle="マイページでできること" steps={[
+                    { title: "参加状況を確認", description: "エントリーした大会と、登録の進み具合を確認。" },
+                    { title: "メンバーを登録", description: "選手の名前・リストバンド・保険をまとめて管理。" },
+                    { title: "必要な書類を保存", description: "参加費の請求書や、発行できる領収書を確認。" },
+                ]} />
                 <Card className="participant-form-card">
                     <ParticipantFormTitle eyebrow="REPRESENTATIVE LOGIN" title="代表者ログイン" description="登録したメールアドレスとパスワードを入力してください。" />
                     <div className="participant-form-content">
@@ -142,6 +134,7 @@ function LoginContent() {
                         </p>
                     </div>
                     </div>
+                    <ParticipantFormFooter />
                 </Card>
             </div>
             </main>

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantSectionTitle, ParticipantFormFooter, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User } from "@/lib/types";
 
 function EditTeamContent() {
@@ -150,12 +150,13 @@ function EditTeamContent() {
             <ParticipantHeader backHref={`/team/dashboard?id=${entryId}`} backLabel="チームへ戻る" />
             <main className="participant-main participant-main-narrow">
                 <ParticipantHeading eyebrow="TEAM SETTINGS" title="チーム設定" description="チームの紹介と代表者の連絡先を確認・変更できます。" />
+                <ParticipantSectionNav label="チーム設定の項目" items={[{ href: "#edit-team-info", label: "チーム情報" }, { href: "#edit-representative-info", label: "代表者情報" }]} />
                 <Card className="p-6 sm:p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         {/* Team Info */}
                         <div className="space-y-4">
-                            <h2 className="participant-section-title">チーム情報</h2>
+                            <ParticipantSectionTitle id="edit-team-info" number="01" title="チーム情報" description="紹介文は大会当日のチーム紹介に使われます。" />
 
                             <div className="space-y-2">
 
@@ -242,7 +243,7 @@ function EditTeamContent() {
 
                         {/* Representative Info */}
                         <div className="space-y-4 pt-4">
-                            <h2 className="participant-section-title">代表者情報</h2>
+                            <ParticipantSectionTitle id="edit-representative-info" number="02" title="代表者情報" description="運営から連絡できる情報をご登録ください。" />
 
                             <div className="space-y-2">
 
@@ -288,13 +289,15 @@ function EditTeamContent() {
                             </div>
                         )}
 
-                        <div className="pt-4 flex justify-end">
+                        <div className="participant-settings-save">
+                            <p>変更した内容を確認して、<br />保存ボタンを押してください。</p>
                             <Button type="submit" disabled={isSaving} className="bg-[#a62034] hover:bg-[#cb3146] min-w-[120px]">
                                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> 保存</>}
                             </Button>
                         </div>
 
                     </form>
+                    <ParticipantFormFooter />
                 </Card>
             </main>
         </>

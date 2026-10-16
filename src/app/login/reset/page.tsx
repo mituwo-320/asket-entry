@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ParticipantHeader, ParticipantFormTitle } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter } from "@/components/participant/ParticipantFrame";
+import { ParticipantStory } from "@/components/participant/ParticipantStory";
 
 function ResetPasswordForm() {
     const router = useRouter();
@@ -217,12 +218,20 @@ export default function ResetPasswordPage() {
     return (
         <>
             <ParticipantHeader backHref="/login" backLabel="ログインへ戻る" />
-            <main className="participant-main participant-main-narrow">
+            <main className="participant-form-page">
+              <div className="participant-form-layout">
+                <ParticipantStory eyebrow="BACK TO YOUR TEAM." title={<>もう一度、<br />チームのもとへ。</>} description="ログインできないときは、登録したメールアドレスからパスワードを再設定できます。" guideTitle="再設定の流れ" steps={[
+                    { title: "メールアドレスを入力", description: "チームの申し込みに使ったアドレスを入力。" },
+                    { title: "メールのリンクを開く", description: "受信トレイに届いた再設定リンクから進みます。" },
+                    { title: "新しいパスワードで再開", description: "設定が終わったら、ログイン画面へ。" },
+                ]} />
                 <Card className="participant-form-card">
                     <Suspense fallback={<div className="participant-form-content text-center py-12"><Loader2 className="w-7 h-7 animate-spin mx-auto mb-4" />読み込み中…</div>}>
                         <ResetPasswordForm />
                     </Suspense>
+                    <ParticipantFormFooter />
                 </Card>
+              </div>
             </main>
         </>
     );

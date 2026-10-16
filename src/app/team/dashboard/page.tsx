@@ -10,7 +10,7 @@ import { PlayerForm } from "@/components/ui/PlayerForm";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog, AlertDialog } from "@/components/ui/ConfirmDialog";
 import { useSearchParams } from "next/navigation";
-import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
 
 function DashboardContent() {
     const searchParams = useSearchParams();
@@ -286,9 +286,10 @@ function DashboardContent() {
                     <ParticipantHeading eyebrow="TEAM ROSTER" title={teamEntry.teamName} description={(teamEntry as any).projectName || teamEntry.tournamentId}>
                         <span className="participant-status-tag">{(teamEntry as any).isWaitlist ? 'キャンセル待ち' : teamEntry.status === 'submitted' ? '本エントリー完了' : '仮エントリー・メンバー登録中'}</span>
                     </ParticipantHeading>
+                    <ParticipantSectionNav items={[{ href: "#team-overview", label: "チームの概要" }, { href: "#team-members", label: "メンバー登録" }, { href: "#team-confirmation", label: "確定・書類" }]} />
 
                     {teamEntry.status === 'submitted' && !isAdmin ? (
-                        <div className="p-5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 flex items-start gap-4">
+                        <div className="participant-notice p-5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 flex items-start gap-4">
                             <CheckCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                             <div>
                                 <h3 className="font-bold text-lg mb-2">✅ 本エントリー完了済み</h3>
@@ -310,7 +311,7 @@ function DashboardContent() {
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                         return (
-                            <div className={`p-5 rounded-xl border flex items-start gap-4 ${diffTime > 0 ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
+                            <div className={`participant-notice p-5 rounded-xl border flex items-start gap-4 ${diffTime > 0 ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-red-500/10 border-red-500/30 text-red-400"}`}>
                                 <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                                 <div>
                                     <h3 className="font-bold text-lg mb-1">
@@ -335,15 +336,15 @@ function DashboardContent() {
                     })()}
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Card className="p-4 bg-[#242830] border-[#697383]">
+                    <div id="team-overview" className="participant-summary-grid gap-4">
+                        <Card className="participant-stat-card p-4 bg-[#242830] border-[#697383]">
                             <div className="flex items-center gap-2 mb-2">
                                 <Users className="w-4 h-4 text-[#ffb2be]" />
                                 <span className="text-xs text-[#c6cdd8]">登録選手</span>
                             </div>
                             <p className="text-2xl font-bold text-white">{totalPlayers}<span className="text-sm font-normal text-[#bdc5d1] ml-1">名</span></p>
                         </Card>
-                        <Card className="p-4 bg-[#242830] border-[#697383]">
+                        <Card className="participant-stat-card p-4 bg-[#242830] border-[#697383]">
                             <div className="flex items-center gap-2 mb-2">
                                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                                 <span className="text-xs text-[#c6cdd8]">保険加入</span>
@@ -351,7 +352,7 @@ function DashboardContent() {
                             <p className="text-2xl font-bold text-emerald-400">{insuranceCount}<span className="text-sm font-normal text-[#bdc5d1] ml-1">名</span></p>
                         </Card>
                         {(teamEntry as any).hasClinic && (
-                            <Card className="p-4 bg-[#34313a]/20 border-[#c47c89]/20 col-span-2 md:col-span-2 flex flex-col justify-between">
+                            <Card className="participant-clinic-card p-4 bg-[#34313a]/20 border-[#c47c89]/20 col-span-2 md:col-span-2 flex flex-col justify-between">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-xs text-[#ffc7d0] font-bold">{(teamEntry as any).clinicTitle || "🏀 バスケクリニック参加希望"}</span>
                                 </div>
@@ -420,12 +421,9 @@ function DashboardContent() {
                     )}
 
                     {/* Player List */}
-                    <Card className="participant-member-list overflow-hidden">
+                    <Card id="team-members" className="participant-member-list overflow-hidden">
                         <div className="p-6 border-b border-[#697383] flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-lg font-bold text-white mb-1">選手リスト</h2>
-                                <p className="text-sm text-[#c6cdd8]">{(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'}</p>
-                            </div>
+                            <ParticipantSectionTitle number="02" title="選手リスト" description={(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'} />
                             {canEditPlayers && (
                                 <Button onClick={() => {
                                     setEditingPlayer(null);
@@ -450,8 +448,9 @@ function DashboardContent() {
                                     )}
                                 </div>
                             ) : (
-                                teamEntry.players.map((player) => (
-                                    <div key={player.id} className="participant-player-card bg-[#15171d]/50 hover:bg-[#242830]/80 border border-[#697383] rounded-xl p-4 transition-all">
+                                teamEntry.players.map((player, index) => (
+                                    <div key={player.id} data-wristband={player.wristbandColor} className="participant-player-card bg-[#15171d]/50 hover:bg-[#242830]/80 border border-[#697383] rounded-xl p-4 transition-all">
+                                        <span className="participant-player-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
@@ -508,7 +507,7 @@ function DashboardContent() {
                     </Card>
 
                     {/* Finalize Action or Invoice Action */}
-                    <div className="pt-8 mb-12">
+                    <div id="team-confirmation" className="pt-8 mb-12">
                         {teamEntry.status === 'draft' ? (
                             <div className="participant-finalize text-center space-y-6">
                                 <div>
