@@ -39,7 +39,7 @@
 /* Tournament printwork: a court, a paper ticket, ink and woven club colors. */
 .cup-home { overflow: hidden; position: relative; isolation: isolate; background: radial-gradient(ellipse at 83% 12%, #6e182125, transparent 48%), linear-gradient(130deg, #25262c, #16181d 50%, #101216); }
 .cup-home::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(90deg, #10121655, #10121600 55%), url('/basketball-court-background.webp'); background-repeat: no-repeat; background-position: center top; background-size: 100% 1100px, max(1600px, 100%) auto; mask-image: linear-gradient(#000 0px, #000 740px, transparent 1100px); opacity: .9; }
-.cup-home::before { content: ""; position: absolute; inset: 12px 12px auto; height: 5px; background: linear-gradient(90deg, #d63043 0 90px, #efefec 90px 130px, #777d88 130px 170px, #c9cbd430 170px); }
+.cup-home::before { content: ""; position: absolute; inset: 12px 12px auto; z-index: 3; height: 5px; background: linear-gradient(90deg, #d63043 0 90px, #efefec 90px 130px, #777d88 130px 170px, #c9cbd430 170px); pointer-events: none; }
 .cup-print-texture { position: absolute; inset: 0; background: url('/entry-grain.svg') repeat; opacity: .13; mix-blend-mode: soft-light; pointer-events: none; z-index: -1; }
 .cup-header, .cup-hero, .cup-flow, .cup-footer { width: min(1180px, calc(100% - 96px)); margin-inline: auto; }
 .cup-header { position: relative; display: flex; align-items: center; gap: 24px; min-height: 102px; border-bottom: 1px solid #b8becb40; z-index: 2; background: linear-gradient(180deg, #111319ed, #111319b8); }
