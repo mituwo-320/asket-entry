@@ -6,7 +6,7 @@ export function WristbandChoices({ value, onChange }: { value: string; onChange:
   const name = useId();
   return <fieldset className="space-y-3">
     <legend className="text-sm font-medium">リストバンドの色</legend>
-    <p className="text-xs text-[#c2cbb5]">学生時代のバスケットボール経験に合わせて選んでください。</p>
+    <p className="text-xs text-[#c6cdd8]">学生時代のバスケットボール経験に合わせて選んでください。</p>
     <div className="participant-choice-group grid grid-cols-1 sm:grid-cols-3 gap-2">
       {[
         { color: "赤", description: "経験5年以上" },

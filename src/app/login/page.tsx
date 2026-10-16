@@ -98,8 +98,8 @@ function LoginContent() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <label htmlFor="login-password" className="text-sm font-medium text-[#e0e5d4] tracking-wide">パスワード</label>
-                                <Link href="/login/reset" className="text-xs text-[#f18a5c] hover:text-[#f18a5c] transition-colors">
+                                <label htmlFor="login-password" className="text-sm font-medium text-[#e4e8ef] tracking-wide">パスワード</label>
+                                <Link href="/login/reset" className="text-xs text-[#ffb2be] hover:text-[#ffb2be] transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
                             </div>
@@ -133,10 +133,10 @@ function LoginContent() {
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-[#778867] text-center">
-                        <p className="text-sm text-[#c2cbb5]">
+                    <div className="mt-8 pt-6 border-t border-[#707b8c] text-center">
+                        <p className="text-sm text-[#c6cdd8]">
                             アカウントをお持ちでない場合は{" "}
-                            <Link href="/team/register" className="text-[#f18a5c] hover:text-[#f18a5c] font-medium transition-colors">
+                            <Link href="/team/register" className="text-[#ffb2be] hover:text-[#ffb2be] font-medium transition-colors">
                                 新規登録
                             </Link>
                         </p>

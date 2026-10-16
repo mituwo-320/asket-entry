@@ -279,7 +279,7 @@ function DashboardContent() {
     const canEditPlayers = isAdmin || (!isDeadlinePassed && teamEntry.status !== 'submitted');
 
     return (
-        <div className="min-h-screen text-[#e8eddc] font-sans selection:bg-[#e5a371]/30">
+        <div className="min-h-screen text-[#edf0f5] font-sans selection:bg-[#cb3146]/30">
             <ParticipantHeader backHref="/dashboard" actions={canEditPlayers ? <Link href={`/team/edit?id=${entryId}`} className="participant-back">チーム設定</Link> : null} />
             <main className="participant-main">
                 <div className="max-w-5xl mx-auto space-y-8">
@@ -336,26 +336,26 @@ function DashboardContent() {
 
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Card className="p-4 bg-[#283722] border-[#7b8c68]">
+                        <Card className="p-4 bg-[#242830] border-[#697383]">
                             <div className="flex items-center gap-2 mb-2">
-                                <Users className="w-4 h-4 text-[#f0b17f]" />
-                                <span className="text-xs text-[#c2cbb5]">登録選手</span>
+                                <Users className="w-4 h-4 text-[#ffb2be]" />
+                                <span className="text-xs text-[#c6cdd8]">登録選手</span>
                             </div>
-                            <p className="text-2xl font-bold text-white">{totalPlayers}<span className="text-sm font-normal text-[#b7c5a7] ml-1">名</span></p>
+                            <p className="text-2xl font-bold text-white">{totalPlayers}<span className="text-sm font-normal text-[#bdc5d1] ml-1">名</span></p>
                         </Card>
-                        <Card className="p-4 bg-[#283722] border-[#7b8c68]">
+                        <Card className="p-4 bg-[#242830] border-[#697383]">
                             <div className="flex items-center gap-2 mb-2">
                                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                                <span className="text-xs text-[#c2cbb5]">保険加入</span>
+                                <span className="text-xs text-[#c6cdd8]">保険加入</span>
                             </div>
-                            <p className="text-2xl font-bold text-emerald-400">{insuranceCount}<span className="text-sm font-normal text-[#b7c5a7] ml-1">名</span></p>
+                            <p className="text-2xl font-bold text-emerald-400">{insuranceCount}<span className="text-sm font-normal text-[#bdc5d1] ml-1">名</span></p>
                         </Card>
                         {(teamEntry as any).hasClinic && (
-                            <Card className="p-4 bg-[#4a482b]/20 border-[#ccaa7c]/20 col-span-2 md:col-span-2 flex flex-col justify-between">
+                            <Card className="p-4 bg-[#34313a]/20 border-[#c47c89]/20 col-span-2 md:col-span-2 flex flex-col justify-between">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs text-[#f5c79b] font-bold">{(teamEntry as any).clinicTitle || "🏀 バスケクリニック参加希望"}</span>
+                                    <span className="text-xs text-[#ffc7d0] font-bold">{(teamEntry as any).clinicTitle || "🏀 バスケクリニック参加希望"}</span>
                                 </div>
-                                <p className={`text-xl font-black leading-tight ${teamEntry.clinicParticipation === null ? 'text-amber-400' : 'text-[#f0b17f]'}`}>
+                                <p className={`text-xl font-black leading-tight ${teamEntry.clinicParticipation === null ? 'text-amber-400' : 'text-[#ffb2be]'}`}>
                                     {teamEntry.clinicParticipation === null
                                         ? "未回答 (要選択)"
                                         : teamEntry.clinicParticipation
@@ -364,7 +364,7 @@ function DashboardContent() {
                                 </p>
                                 <div className="flex justify-between items-end mt-2">
                                     {teamEntry.status === 'draft' ? (
-                                        <p className="text-[9px] text-[#b7c5a7]">※上部の「チーム設定」から変更できます</p>
+                                        <p className="text-[9px] text-[#bdc5d1]">※上部の「チーム設定」から変更できます</p>
                                     ) : (
                                         !isDeadlinePassed && (
                                             <button
@@ -373,7 +373,7 @@ function DashboardContent() {
                                                     setTempClinicCount(teamEntry.clinicCount || 1);
                                                     setClinicModalOpen(true);
                                                 }}
-                                                className="text-xs text-[#f0b17f] hover:text-[#f5c79b] font-bold underline transition-colors"
+                                                className="text-xs text-[#ffb2be] hover:text-[#ffc7d0] font-bold underline transition-colors"
                                             >
                                                 {teamEntry.clinicParticipation === null ? "希望を回答する" : "変更する"}
                                             </button>
@@ -386,15 +386,15 @@ function DashboardContent() {
 
                     {/* Team Introduction Section */}
                     {teamEntry.status === 'draft' && (
-                        <Card className="p-6 bg-[#283722] border-[#7b8c68]">
+                        <Card className="p-6 bg-[#242830] border-[#697383]">
                             <div className="flex items-center gap-2 mb-4">
                                 <h2 className="text-xl font-bold text-white">チーム紹介・意気込み</h2>
                             </div>
-                            <p className="text-sm text-[#c2cbb5] mb-4">
+                            <p className="text-sm text-[#c6cdd8] mb-4">
                                 大会当日にMCがこの情報をもとにチームの紹介を行います！アピールポイントや意気込みなど、色々と書いてもらえると嬉しいです！
                             </p>
                             <textarea aria-label="チーム紹介・意気込み" disabled={!canEditPlayers}
-                                className="w-full bg-[#1c291b] border border-[#7b8c68] rounded-lg p-4 text-white text-sm focus:border-[#ccaa7c] focus:ring-1 focus:ring-orange-300 transition-colors"
+                                className="w-full bg-[#15171d] border border-[#697383] rounded-lg p-4 text-white text-sm focus:border-[#c47c89] focus:ring-1 focus:ring-orange-300 transition-colors"
                                 rows={4}
                                 placeholder="例：〇〇から参加します！〇〇ブースターで結成したチームです！優勝目指して頑張ります！"
                                 defaultValue={teamEntry.teamIntroduction || ""}
@@ -415,22 +415,22 @@ function DashboardContent() {
                                     }
                                 }}
                             />
-                            <p className="text-xs text-[#b7c5a7] mt-2">入力後、外をタップすると自動保存されます。</p>
+                            <p className="text-xs text-[#bdc5d1] mt-2">入力後、外をタップすると自動保存されます。</p>
                         </Card>
                     )}
 
                     {/* Player List */}
                     <Card className="participant-member-list overflow-hidden">
-                        <div className="p-6 border-b border-[#7b8c68] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="p-6 border-b border-[#697383] flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-lg font-bold text-white mb-1">選手リスト</h2>
-                                <p className="text-sm text-[#c2cbb5]">{(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'}</p>
+                                <p className="text-sm text-[#c6cdd8]">{(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'}</p>
                             </div>
                             {canEditPlayers && (
                                 <Button onClick={() => {
                                     setEditingPlayer(null);
                                     setIsModalOpen(true);
-                                }} className="bg-[#9f623b] hover:bg-[#e5a371] text-white">
+                                }} className="bg-[#a62034] hover:bg-[#cb3146] text-white">
                                     <Plus className="w-4 h-4 mr-2" /> 選手を追加
                                 </Button>
                             )}
@@ -438,42 +438,42 @@ function DashboardContent() {
 
                         <div className="grid grid-cols-1 gap-3 p-4">
                             {teamEntry.players.length === 0 ? (
-                                <div className="p-8 text-center bg-[#1c291b]/50 rounded-xl border border-[#7b8c68]">
-                                    <p className="text-[#b7c5a7]">選手が登録されていません</p>
+                                <div className="p-8 text-center bg-[#15171d]/50 rounded-xl border border-[#697383]">
+                                    <p className="text-[#bdc5d1]">選手が登録されていません</p>
                                     {canEditPlayers && (
                                         <Button onClick={() => {
                                             setEditingPlayer(null);
                                             setIsModalOpen(true);
-                                        }} variant="outline" className="mt-4 border-[#91a07f]">
+                                        }} variant="outline" className="mt-4 border-[#8791a1]">
                                             <Plus className="w-4 h-4 mr-2" /> 最初の選手を追加
                                         </Button>
                                     )}
                                 </div>
                             ) : (
                                 teamEntry.players.map((player) => (
-                                    <div key={player.id} className="participant-player-card bg-[#1c291b]/50 hover:bg-[#283722]/80 border border-[#7b8c68] rounded-xl p-4 transition-all">
+                                    <div key={player.id} className="participant-player-card bg-[#15171d]/50 hover:bg-[#242830]/80 border border-[#697383] rounded-xl p-4 transition-all">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="font-bold text-white text-lg">{player.name}</span>
                                                     {player.isRepresentative && (
-                                                        <span className="text-[10px] bg-[#e5a371]/20 text-[#f0b17f] px-2 py-0.5 rounded border border-[#ccaa7c]/30 font-bold">
+                                                        <span className="text-[10px] bg-[#cb3146]/20 text-[#ffb2be] px-2 py-0.5 rounded border border-[#c47c89]/30 font-bold">
                                                             代表
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-[#b7c5a7]">{player.furigana}</p>
+                                                <p className="text-xs text-[#bdc5d1]">{player.furigana}</p>
                                             </div>
                                             {canEditPlayers && (
                                                 <div className="flex gap-2">
                                                     <button aria-label={`${player.name}の情報を編集`} onClick={() => {
                                                         setEditingPlayer(player);
                                                         setIsModalOpen(true);
-                                                    }} className="p-2 text-[#c2cbb5] hover:text-white bg-[#283722] hover:bg-[#3a4a30] rounded-lg transition-colors border border-[#7b8c68]">
+                                                    }} className="p-2 text-[#c6cdd8] hover:text-white bg-[#242830] hover:bg-[#343b47] rounded-lg transition-colors border border-[#697383]">
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     {!player.isRepresentative && (
-                                                        <button aria-label={`${player.name}を削除`} onClick={() => handleDeletePlayer(player.id)} className="p-2 text-[#c2cbb5] hover:text-red-400 bg-[#283722] hover:bg-red-950/50 rounded-lg transition-colors border border-[#7b8c68]">
+                                                        <button aria-label={`${player.name}を削除`} onClick={() => handleDeletePlayer(player.id)} className="p-2 text-[#c6cdd8] hover:text-red-400 bg-[#242830] hover:bg-red-950/50 rounded-lg transition-colors border border-[#697383]">
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     )}
@@ -481,21 +481,21 @@ function DashboardContent() {
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-[#7b8c68]/50">
+                                        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-[#697383]/50">
                                             <div className={`p-2.5 rounded-lg border flex flex-col gap-1 items-start ${player.wristbandColor === '赤' ? 'bg-red-900/10 border-red-500/20' :
                                                 player.wristbandColor === '青' ? 'bg-blue-900/10 border-blue-500/20' :
                                                     'bg-yellow-900/10 border-yellow-500/20'
                                                 }`}>
-                                                <span className="text-[10px] uppercase font-bold tracking-wider text-[#b7c5a7]">レベル/リストバンド</span>
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-[#bdc5d1]">レベル/リストバンド</span>
                                                 <span className={`text-sm font-bold ${player.wristbandColor === '赤' ? 'text-red-400' :
                                                     player.wristbandColor === '青' ? 'text-blue-400' : 'text-yellow-400'
                                                     }`}>
                                                     {player.wristbandColor}
                                                 </span>
                                             </div>
-                                            <div className={`p-2.5 rounded-lg border flex flex-col gap-1 items-start ${player.insurance ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-[#283722]/50 border-[#7b8c68]'}`}>
-                                                <span className="text-[10px] uppercase font-bold tracking-wider text-[#b7c5a7]">スポーツ保険</span>
-                                                <span className={`text-sm font-bold flex items-center gap-1.5 ${player.insurance ? 'text-emerald-400' : 'text-[#c2cbb5]'}`}>
+                                            <div className={`p-2.5 rounded-lg border flex flex-col gap-1 items-start ${player.insurance ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-[#242830]/50 border-[#697383]'}`}>
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-[#bdc5d1]">スポーツ保険</span>
+                                                <span className={`text-sm font-bold flex items-center gap-1.5 ${player.insurance ? 'text-emerald-400' : 'text-[#c6cdd8]'}`}>
                                                     {player.insurance ? <ShieldCheck className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                                                     {player.insurance ? '加入' : '未加入'}
                                                 </span>
@@ -512,8 +512,8 @@ function DashboardContent() {
                         {teamEntry.status === 'draft' ? (
                             <div className="participant-finalize text-center space-y-6">
                                 <div>
-                                    <h3 className="text-xl font-bold text-[#f5c79b] mb-2">メンバー登録はすべて完了しましたか？</h3>
-                                    <p className="text-sm text-[#e4d6b4]/80">
+                                    <h3 className="text-xl font-bold text-[#ffc7d0] mb-2">メンバー登録はすべて完了しましたか？</h3>
+                                    <p className="text-sm text-[#e3d8dd]/80">
                                         すべてのメンバーの登録が終わったら、「本エントリーを完了する」を押して請求書を発行してください。<br className="hidden md:block" />
                                         <strong className="text-amber-400">※これ以降、メンバー情報（追加・編集・削除）の変更は一切できなくなります。</strong>
                                     </p>
@@ -528,10 +528,10 @@ function DashboardContent() {
                                 </Button>
                             </div>
                         ) : (
-                            <div className="bg-[#283722] border border-[#7b8c68] rounded-2xl p-6 md:p-8 text-center space-y-4">
+                            <div className="bg-[#242830] border border-[#697383] rounded-2xl p-6 md:p-8 text-center space-y-4">
                                 <h3 className="text-lg font-bold text-white mb-2">本エントリー完了済み・書類</h3>
                                 {/* 請求書ボタン */}
-                                <Link href={`/team/invoice?id=${teamEntry.id}`} target="_blank" className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-[#3a4a30] hover:bg-[#4b5a3d] text-white font-bold py-4 px-8 rounded-lg shadow transition-colors">
+                                <Link href={`/team/invoice?id=${teamEntry.id}`} target="_blank" className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-[#343b47] hover:bg-[#46505f] text-white font-bold py-4 px-8 rounded-lg shadow transition-colors">
                                     <Printer className="w-5 h-5" /> 請求書（PDF）を発行・確認する
                                 </Link>
                                 {/* 領収書ボタン：支払い確認済みの場合のみ表示 */}
@@ -541,7 +541,7 @@ function DashboardContent() {
                                             // 閲覧済み：ボタン無効化
                                             <button
                                                 disabled
-                                                className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-[#3a4a30]/50 border border-[#91a07f] text-[#b7c5a7] font-bold py-4 px-8 rounded-lg shadow cursor-not-allowed"
+                                                className="w-full md:w-auto inline-flex justify-center items-center gap-2 bg-[#343b47]/50 border border-[#8791a1] text-[#bdc5d1] font-bold py-4 px-8 rounded-lg shadow cursor-not-allowed"
                                             >
                                                 <Printer className="w-5 h-5" /> 領収書は確認済みです（再表示不可）
                                             </button>
@@ -593,7 +593,7 @@ function DashboardContent() {
             {/* 領収書発行モーダル */}
             {receiptModal && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-[#1c291b]/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModal(false)} />
+                    <div className="absolute inset-0 bg-[#15171d]/80 backdrop-blur-sm" onClick={() => !isIssuingReceipt && setReceiptModal(false)} />
                     <div role="dialog" aria-modal="true" aria-labelledby="team-receipt-title" className="participant-dialog relative w-full max-w-md p-6 space-y-5">
                         <h2 id="team-receipt-title" className="text-lg font-bold text-white">領収書の発行</h2>
                         
@@ -610,14 +610,14 @@ function DashboardContent() {
                         </div>
 
                         {/* 宛名表示 */}
-                        <div className="bg-[#1c291b]/60 rounded-xl p-4 border border-[#91a07f]">
-                            <p className="text-xs text-[#b7c5a7] mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
+                        <div className="bg-[#15171d]/60 rounded-xl p-4 border border-[#8791a1]">
+                            <p className="text-xs text-[#bdc5d1] mb-1 font-bold uppercase tracking-wider">領収書の宛名（御社名）</p>
                             {isEditingReceiptName ? (
                                 <input
                                     type="text" aria-label="領収書の宛名"
                                     value={receiptNameInput}
                                     onChange={(e) => setReceiptNameInput(e.target.value)}
-                                    className="w-full bg-[#283722] border border-[#ccaa7c] rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-orange-300"
+                                    className="w-full bg-[#242830] border border-[#c47c89] rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:ring-2 focus:ring-orange-300"
                                     placeholder="例：株式会社〇〇 様、△△チーム"
                                     autoFocus
                                 />
@@ -630,14 +630,14 @@ function DashboardContent() {
                         {!isEditingReceiptName ? (
                             <button
                                 onClick={() => setIsEditingReceiptName(true)}
-                                className="text-sm text-[#f0b17f] hover:text-[#f5c79b] underline"
+                                className="text-sm text-[#ffb2be] hover:text-[#ffc7d0] underline"
                             >
                                 宛名を変更する
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsEditingReceiptName(false)}
-                                className="text-sm text-[#c2cbb5] hover:text-[#dce4cf] underline"
+                                className="text-sm text-[#c6cdd8] hover:text-[#e0e5ed] underline"
                             >
                                 変更をキャンセル
                             </button>
@@ -648,13 +648,13 @@ function DashboardContent() {
                             <button
                                 onClick={() => handleIssueReceipt(receiptNameInput || undefined)}
                                 disabled={isIssuingReceipt}
-                                className="w-full bg-[#9f623b] hover:bg-[#e5a371] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
+                                className="w-full bg-[#a62034] hover:bg-[#cb3146] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors"
                             >
                                 {isIssuingReceipt ? '発行中...' : 'この内容で発行する'}
                             </button>
                             <button
                                 onClick={() => !isIssuingReceipt && setReceiptModal(false)}
-                                className="w-full bg-[#3a4a30] hover:bg-[#4b5a3d] text-[#dce4cf] font-bold py-3 rounded-xl transition-colors"
+                                className="w-full bg-[#343b47] hover:bg-[#46505f] text-[#e0e5ed] font-bold py-3 rounded-xl transition-colors"
                             >
                                 戻る（発行しない）
                             </button>
@@ -672,32 +672,32 @@ function DashboardContent() {
             />
             {/* バスケクリニック参加確認モーダル */}
             {clinicModalOpen && teamEntry && (
-                <div className="fixed inset-0 bg-[#1c291b]/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+                <div className="fixed inset-0 bg-[#15171d]/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
                     <div role="dialog" aria-modal="true" aria-labelledby="team-clinic-title" className="participant-dialog p-6 max-w-md w-full space-y-6">
                         <div className="text-center">
                             <h3 id="team-clinic-title" className="text-lg font-black text-white flex items-center justify-center gap-2">
                                 🏀 {teamEntry.status === 'submitted' ? 'バスケクリニック参加希望の変更' : 'バスケクリニック参加希望の確認'}
                             </h3>
-                            <p className="text-xs text-[#c2cbb5] mt-2 leading-relaxed">
+                            <p className="text-xs text-[#c6cdd8] mt-2 leading-relaxed">
                                 {teamEntry.status === 'submitted'
                                     ? `${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を変更してください。`
                                     : `本エントリーを完了する前に、${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。`}
                             </p>
                         </div>
 
-                        <div className="space-y-4 bg-[#1c291b]/50 p-4 rounded-xl border border-white/5">
+                        <div className="space-y-4 bg-[#15171d]/50 p-4 rounded-xl border border-white/5">
                             <div className="flex flex-col gap-3">
-                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-[#e8eddc]">
+                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-[#edf0f5]">
                                     <input
                                         type="radio"
                                         name="tempClinicParticipation"
                                         checked={tempClinicParticipation === true}
                                         onChange={() => setTempClinicParticipation(true)}
-                                        className="w-4 h-4 text-indigo-600 border-[#91a07f] bg-[#283722] focus:ring-orange-300 cursor-pointer"
+                                        className="w-4 h-4 text-indigo-600 border-[#8791a1] bg-[#242830] focus:ring-orange-300 cursor-pointer"
                                     />
                                     クリニックに参加する
                                 </label>
-                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-[#e8eddc]">
+                                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-medium text-[#edf0f5]">
                                     <input
                                         type="radio"
                                         name="tempClinicParticipation"
@@ -706,19 +706,19 @@ function DashboardContent() {
                                             setTempClinicParticipation(false);
                                             setTempClinicCount(0);
                                         }}
-                                        className="w-4 h-4 text-indigo-600 border-[#91a07f] bg-[#283722] focus:ring-orange-300 cursor-pointer"
+                                        className="w-4 h-4 text-indigo-600 border-[#8791a1] bg-[#242830] focus:ring-orange-300 cursor-pointer"
                                     />
                                     参加しない
                                 </label>
                             </div>
 
                             {tempClinicParticipation === true && (
-                                <div className="space-y-2 pt-2 border-t border-[#7b8c68] animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <label htmlFor="team-clinic-count" className="text-sm font-medium text-[#c2cbb5] block mb-1">参加予定人数 (1〜{(teamEntry as any).clinicLimit || 20}名)</label>
+                                <div className="space-y-2 pt-2 border-t border-[#697383] animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <label htmlFor="team-clinic-count" className="text-sm font-medium text-[#c6cdd8] block mb-1">参加予定人数 (1〜{(teamEntry as any).clinicLimit || 20}名)</label>
                                     <select id="team-clinic-count"
                                         value={tempClinicCount}
                                         onChange={(e) => setTempClinicCount(parseInt(e.target.value, 10))}
-                                        className="bg-[#1c291b] border border-[#7b8c68] text-[#e8eddc] text-sm rounded-md focus:ring-1 focus:ring-orange-300 focus:border-[#ccaa7c] block w-full p-2.5 outline-none font-sans"
+                                        className="bg-[#15171d] border border-[#697383] text-[#edf0f5] text-sm rounded-md focus:ring-1 focus:ring-orange-300 focus:border-[#c47c89] block w-full p-2.5 outline-none font-sans"
                                     >
                                         {Array.from({ length: (teamEntry as any).clinicLimit || 20 }, (_, i) => i + 1).map((n) => (
                                             <option key={n} value={n}>
@@ -751,7 +751,7 @@ function DashboardContent() {
                             )}
                             <button
                                 onClick={() => !isLoading && setClinicModalOpen(false)}
-                                className="w-full bg-[#3a4a30] hover:bg-[#4b5a3d] text-[#dce4cf] font-bold py-3 rounded-xl transition-colors"
+                                className="w-full bg-[#343b47] hover:bg-[#46505f] text-[#e0e5ed] font-bold py-3 rounded-xl transition-colors"
                             >
                                 キャンセル
                             </button>

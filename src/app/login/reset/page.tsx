@@ -90,18 +90,18 @@ function ResetPasswordForm() {
     if (isSuccess && !isConfirming) {
         return (
             <div className="participant-form-content text-center space-y-6">
-                <div className="w-16 h-16 bg-[#f18a5c]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
-                    <Mail className="w-8 h-8 text-[#f18a5c]" />
+                <div className="w-16 h-16 bg-[#c52d40]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
+                    <Mail className="w-8 h-8 text-[#ffb2be]" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-[#f3f0e8] mb-2">メールを送信しました</h2>
-                    <p className="text-[#c2cbb5] text-sm">
+                    <h2 className="text-2xl font-bold text-[#f7f7f5] mb-2">メールを送信しました</h2>
+                    <p className="text-[#c6cdd8] text-sm">
                         入力されたメールアドレスにパスワード再設定用のリンクを送信しました。<br />
                         受信トレイをご確認いただき、リンクから再設定を行ってください。
                     </p>
                 </div>
                 <Button
-                    className="w-full bg-[#3a4a30] hover:bg-[#3a4a30] text-[#f3f0e8] font-medium py-6 transition-all duration-300"
+                    className="w-full bg-[#343b47] hover:bg-[#343b47] text-[#f7f7f5] font-medium py-6 transition-all duration-300"
                     onClick={() => router.push("/login")}
                 >
                     ログイン画面へ戻る
@@ -113,18 +113,18 @@ function ResetPasswordForm() {
     if (isSuccess && isConfirming) {
         return (
             <div className="participant-form-content text-center space-y-6">
-                <div className="w-16 h-16 bg-[#f18a5c]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
-                    <CheckCircle2 className="w-8 h-8 text-[#f18a5c]" />
+                <div className="w-16 h-16 bg-[#c52d40]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
+                    <CheckCircle2 className="w-8 h-8 text-[#ffb2be]" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-[#f3f0e8] mb-2">再設定完了</h2>
-                    <p className="text-[#c2cbb5] text-sm">
+                    <h2 className="text-2xl font-bold text-[#f7f7f5] mb-2">再設定完了</h2>
+                    <p className="text-[#c6cdd8] text-sm">
                         パスワードの再設定が完了しました。<br />
                         新しいパスワードでログインしてください。
                     </p>
                 </div>
                 <Button
-                    className="w-full bg-[#f18a5c] hover:bg-[#f6a078] text-white font-medium py-6 shadow-none transition-all duration-300"
+                    className="w-full bg-[#c52d40] hover:bg-[#ad1d31] text-white font-medium py-6 shadow-none transition-all duration-300"
                     onClick={() => router.push("/login")}
                 >
                     ログイン画面へ戻る
@@ -149,7 +149,7 @@ function ResetPasswordForm() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                            className="bg-[#15171d] border-[#707b8c] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                         />
                     </div>
                 ) : (
@@ -161,7 +161,7 @@ function ResetPasswordForm() {
                                 type="email"
                                 value={emailParam || ""}
                                 disabled
-                                className="bg-[#283722] border-[#778867] text-[#c2cbb5] h-11"
+                                className="bg-[#242830] border-[#707b8c] text-[#c6cdd8] h-11"
                             />
                         </div>
                         <div className="space-y-2 pt-2">
@@ -174,7 +174,7 @@ function ResetPasswordForm() {
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
-                                className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                                className="bg-[#15171d] border-[#707b8c] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
                             <Input
                                 label="新しいパスワード（確認）"
@@ -184,7 +184,7 @@ function ResetPasswordForm() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="bg-[#1c291b] border-[#778867] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
+                                className="bg-[#15171d] border-[#707b8c] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
                         </div>
                     </div>
@@ -198,7 +198,7 @@ function ResetPasswordForm() {
 
                 <Button
                     type="submit"
-                    className="w-full bg-[#f18a5c] hover:bg-[#f6a078] text-white font-medium py-6 shadow-none transition-all duration-300"
+                    className="w-full bg-[#c52d40] hover:bg-[#ad1d31] text-white font-medium py-6 shadow-none transition-all duration-300"
                     disabled={isLoading}
                 >
                     {isLoading ? (
