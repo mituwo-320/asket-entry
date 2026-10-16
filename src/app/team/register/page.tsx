@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CheckCircle2, Loader2, UserCheck, MessageCircle, Copy, Check, AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantSectionNav, ParticipantSectionTitle, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantPassword, ParticipantAccountNote } from "@/components/participant/ParticipantPassword";
 import { ParticipantStory } from "@/components/participant/ParticipantStory";
 import { WristbandChoices, InsuranceChoices } from "@/components/participant/ParticipantChoices";
 import { ParticipantConfirmDialog as ConfirmDialog } from "@/components/participant/ParticipantDialog";
@@ -89,6 +91,7 @@ export default function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setError("");
 
         if (!formData.existingUserId && formData.password !== formData.confirmPassword) {
@@ -304,6 +307,7 @@ export default function RegisterPage() {
                 <ParticipantFormTitle eyebrow="REGISTRATION FORM" title="チームの参加申し込み" description="必須項目を入力してください。チーム名は登録後にも変更できます。" />
                 <ParticipantSectionNav label="申し込みフォームの項目" items={[{ href: "#entry-team", label: "大会・チーム" }, { href: "#entry-leader", label: "代表者" }, { href: "#entry-details", label: "紹介・設定" }]} />
                 <div className="participant-form-content">
+                    {!formData.existingUserId && <ParticipantAccountNote title="登録済みのアカウントをお持ちの方"><p><Link href="/login">ログインしてから申し込む</Link>と、代表者情報を引き継げます。</p></ParticipantAccountNote>}
                     {activeProject?.entryEndDate && <p className="mb-6 text-sm text-[#ffd8a8]">登録期限：{new Date(activeProject.entryEndDate).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                     {formData.existingUserId && (
                         <div className="bg-[#343b47] border border-[#707b8c] rounded-xl p-4 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -345,7 +349,7 @@ export default function RegisterPage() {
                         </div>
                     )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} aria-busy={isLoading}><fieldset disabled={isLoading} className="space-y-5 participant-auth-fields">
                     <div className="space-y-4">
                         <ParticipantSectionTitle id="entry-team" number="01" title="大会・チーム情報" description="参加する日程と、チームの名前を教えてください。" />
                         <div className="space-y-2">
@@ -586,16 +590,16 @@ export default function RegisterPage() {
                         {!formData.existingUserId && (
                             <div className="space-y-2">
                                 <label className="text-xs font-medium text-[#c6cdd8] uppercase tracking-wider ml-1">ログイン設定 <span className="text-red-300 ml-1">*必須</span></label>
-                                <Input
-                                    type="password" autoComplete="new-password"
+                                <ParticipantPassword
+                                    autoComplete="new-password"
                                     label="パスワード（必須）" placeholder="パスワード (PIN)"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     required
                                     className="bg-[#15171d] border-[#707b8c] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                                 />
-                                <Input
-                                    type="password" autoComplete="new-password"
+                                <ParticipantPassword
+                                    autoComplete="new-password"
                                     label="パスワードの確認（必須）" placeholder="パスワード (確認用)"
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -641,7 +645,7 @@ export default function RegisterPage() {
                             return isFull ? "キャンセル待ちとしてエントリーする" : "上記の内容でエントリーする";
                         })()}
                     </Button>
-                    </form>
+                    </fieldset></form>
                 </div>
                 <ParticipantFormFooter />
             </Card>

@@ -459,3 +459,30 @@ body:has([data-participant-dialog]) { overflow: hidden; }
 @media print {
   .participant-document-actions, .participant-preparation, .participant-dialog-layer, .participant-state-cover { display: none !important; }
 }
+
+/* Account desk: compact printed guidance beside clear, tactile controls. */
+.participant-auth-fields { min-width: 0; }
+.participant-password-field { display: flex; flex-direction: column; gap: 8px; }
+.participant-password-field > label { color: #e7e9ee; font-size: 14px; font-weight: 500; margin-left: 4px; }
+.participant-password-control { position: relative; }
+.participant-surface .participant-password-control input { padding-right: 89px; }
+.participant-password-control > button { position: absolute; right: 4px; top: 4px; bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 76px; min-height: 40px; padding: 0 8px; border-left: 1px solid #bdc1c7; color: #3c4653; background: #eeeef0; border-radius: 0 5px 5px 0; font-size: 12px; }
+.participant-password-control > button:hover { background: #e2d9d9; color: #912b3b; }
+.participant-password-field > p { color: #c8cfda; font-size: 12px; line-height: 1.8; }
+.participant-account-note { position: relative; margin-block: 24px; padding: 18px 19px 17px 23px; border: 1px solid #b9b2aa; border-left: 4px solid #b52d40; border-radius: 2px 7px 7px 2px; color: #323b46; background: #eee9e1 url('/entry-grain.svg'); box-shadow: 0 3px 0 #13182066; text-align: left; }
+.participant-account-note > span { display: block; color: #8d2b3b; font: 600 7px/1.8 var(--font-inter), sans-serif; letter-spacing: .15em; margin-bottom: 6px; }
+.participant-account-note h2 { font-size: 13px; line-height: 1.9; font-weight: 700; }
+.participant-account-note p { font-size: 12px; line-height: 1.95; margin-top: 5px; color: #4c5560; }
+.participant-account-note :is(a, button) { color: #92263a; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.participant-account-note button { min-height: 44px; text-align: left; font-size: 12px; }
+.participant-reset-progress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 27px; padding: 0; list-style: none; text-align: left; }
+.participant-reset-progress li { padding: 9px 0 10px; border-bottom: 2px solid #657080; color: #c5cbd5; font-size: 10px; line-height: 1.8; }
+.participant-reset-progress li > span { display: block; color: #b9c2cf; font: 500 22px/1.4 var(--font-outfit), sans-serif; }
+.participant-reset-progress li[aria-current] { border-color: #f07b8f; color: #fff; font-weight: 700; }
+.participant-reset-progress li[aria-current] > span { color: #ffb7c4; }
+.participant-reset-progress li[data-complete="true"] { border-color: #97b3a3; }
+.participant-auth-address { border-block: 1px dashed #8892a2; padding: 18px 10px; }
+.participant-auth-address > span { color: #c7cfda; font-size: 11px; }
+.participant-auth-address > p { margin-top: 8px; overflow-wrap: anywhere; color: #fff; font-size: 15px; }
+.participant-auth-stamp { display: inline-block; padding: 5px 10px; margin-bottom: 15px; color: #ffb9c5; border: 1px solid #d47b8a; font: 600 9px/1.8 var(--font-inter), sans-serif; letter-spacing: .14em; transform: rotate(-3deg); }
+@media print { .participant-account-note, .participant-reset-progress { display: none !important; } }

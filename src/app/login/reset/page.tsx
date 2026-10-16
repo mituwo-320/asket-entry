@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter } from "@/components/participant/ParticipantFrame";
+import { ParticipantPassword, ParticipantAccountNote, ParticipantResetProgress } from "@/components/participant/ParticipantPassword";
 import { ParticipantStory } from "@/components/participant/ParticipantStory";
 
 function ResetPasswordForm() {
@@ -19,6 +20,9 @@ function ResetPasswordForm() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState("");
 
+    const successHeading = useRef<HTMLHeadingElement>(null);
+    useEffect(() => { if (isSuccess) successHeading.current?.focus(); }, [isSuccess]);
+
     // Form states
     const [email, setEmail] = useState(emailParam || "");
     const [newPassword, setNewPassword] = useState("");
@@ -29,6 +33,7 @@ function ResetPasswordForm() {
 
     const handleRequestReset = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setError("");
         setIsLoading(true);
 
@@ -43,8 +48,8 @@ function ResetPasswordForm() {
             if (!res.ok) throw new Error(data.error || "リクエストに失敗しました");
 
             setIsSuccess(true);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "通信に失敗しました。時間をおいて、もう一度お試しください。");
         } finally {
             setIsLoading(false);
         }
@@ -52,6 +57,7 @@ function ResetPasswordForm() {
 
     const handleConfirmReset = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setError("");
 
         if (newPassword !== confirmPassword) {
@@ -81,8 +87,8 @@ function ResetPasswordForm() {
             if (!res.ok) throw new Error(data.error || "パスワードの再設定に失敗しました");
 
             setIsSuccess(true);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "通信に失敗しました。時間をおいて、もう一度お試しください。");
         } finally {
             setIsLoading(false);
         }
@@ -90,20 +96,23 @@ function ResetPasswordForm() {
 
     if (isSuccess && !isConfirming) {
         return (
-            <div className="participant-form-content text-center space-y-6">
+            <div className="participant-form-content participant-auth-complete text-center space-y-6">
                 <div className="w-16 h-16 bg-[#c52d40]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
-                    <Mail className="w-8 h-8 text-[#ffb2be]" />
+                    <Mail aria-hidden="true" className="w-8 h-8 text-[#ffb2be]" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-[#f7f7f5] mb-2">メールを送信しました</h2>
+                    <ParticipantResetProgress step={2} />
+                    <h1 ref={successHeading} tabIndex={-1} className="text-2xl font-bold text-[#f7f7f5] mb-2">受信トレイをご確認ください</h1>
                     <p className="text-[#c6cdd8] text-sm">
-                        入力されたメールアドレスにパスワード再設定用のリンクを送信しました。<br />
-                        受信トレイをご確認いただき、リンクから再設定を行ってください。
+                        登録済みのアドレスに、再設定用のリンクをお送りします。<br />
+                        届いたメールのリンクを開いて、新しいパスワードを設定してください。
                     </p>
                 </div>
+                <div className="participant-auth-address"><span>入力したメールアドレス</span><p>{email}</p></div>
+                <ParticipantAccountNote title="メールが見つからないとき"><p>迷惑メールフォルダも確認してください。届かない場合は、申し込み時のアドレスをご確認ください。</p><button type="button" onClick={() => { setIsSuccess(false); setError(""); }}>メールアドレスを確認し直す</button></ParticipantAccountNote>
                 <Button
                     className="w-full bg-[#343b47] hover:bg-[#343b47] text-[#f7f7f5] font-medium py-6 transition-all duration-300"
-                    onClick={() => router.push("/login")}
+                    onClick={() => router.push(`/login?email=${encodeURIComponent(isConfirming ? emailParam || "" : email)}`)}
                 >
                     ログイン画面へ戻る
                 </Button>
@@ -113,12 +122,12 @@ function ResetPasswordForm() {
 
     if (isSuccess && isConfirming) {
         return (
-            <div className="participant-form-content text-center space-y-6">
+            <div className="participant-form-content participant-auth-complete text-center space-y-6">
                 <div className="w-16 h-16 bg-[#c52d40]/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-orange-500/20">
-                    <CheckCircle2 className="w-8 h-8 text-[#ffb2be]" />
+                    <CheckCircle2 aria-hidden="true" className="w-8 h-8 text-[#ffb2be]" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-[#f7f7f5] mb-2">再設定完了</h2>
+                    <p className="participant-auth-stamp">RESET COMPLETE</p><h1 ref={successHeading} tabIndex={-1} className="text-2xl font-bold text-[#f7f7f5] mb-2">再設定が完了しました</h1>
                     <p className="text-[#c6cdd8] text-sm">
                         パスワードの再設定が完了しました。<br />
                         新しいパスワードでログインしてください。
@@ -126,7 +135,7 @@ function ResetPasswordForm() {
                 </div>
                 <Button
                     className="w-full bg-[#c52d40] hover:bg-[#ad1d31] text-white font-medium py-6 shadow-none transition-all duration-300"
-                    onClick={() => router.push("/login")}
+                    onClick={() => router.push(`/login?email=${encodeURIComponent(isConfirming ? emailParam || "" : email)}`)}
                 >
                     ログイン画面へ戻る
                 </Button>
@@ -138,7 +147,8 @@ function ResetPasswordForm() {
         <div className="w-full">
             <ParticipantFormTitle eyebrow="ACCOUNT SUPPORT" title="パスワード再設定" description={isConfirming ? "新しいパスワードを入力してください。" : "登録したメールアドレスに、再設定用のリンクをお送りします。"} />
             <div className="participant-form-content">
-            <form onSubmit={isConfirming ? handleConfirmReset : handleRequestReset} className="space-y-6">
+            <ParticipantResetProgress step={isConfirming ? 3 : 1} />
+            <form onSubmit={isConfirming ? handleConfirmReset : handleRequestReset} aria-busy={isLoading}><fieldset disabled={isLoading} className="space-y-6 participant-auth-fields">
                 {!isConfirming ? (
                     <div className="space-y-2">
 
@@ -167,20 +177,19 @@ function ResetPasswordForm() {
                         </div>
                         <div className="space-y-2 pt-2">
 
-                            <Input
+                            <ParticipantPassword
+                                hint="4文字以上で設定してください。"
                                 label="新しいパスワード"
                                 autoComplete="new-password"
-                                type="password"
                                 placeholder="新しいパスワード"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
                                 className="bg-[#15171d] border-[#707b8c] focus:border-orange-500/50 focus:ring-orange-500/20 h-11"
                             />
-                            <Input
+                            <ParticipantPassword
                                 label="新しいパスワード（確認）"
                                 autoComplete="new-password"
-                                type="password"
                                 placeholder="新しいパスワード (確認用)"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -192,7 +201,7 @@ function ResetPasswordForm() {
                 )}
 
                 {error && (
-                    <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-500 text-center animate-in fade-in slide-in-from-top-2">
+                    <div role="alert" className="participant-feedback participant-feedback-error">
                         {error}
                     </div>
                 )}
@@ -208,7 +217,7 @@ function ResetPasswordForm() {
                         isConfirming ? "パスワードを再設定する" : "再設定リンクを送信する"
                     )}
                 </Button>
-            </form>
+            </fieldset></form>
             </div>
         </div>
     );

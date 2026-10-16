@@ -7,27 +7,23 @@ import { Input } from "@/components/ui/Input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, Suspense } from "react";
+import { Suspense } from "react";
 import { ParticipantHeader, ParticipantFormTitle, ParticipantFormFooter, ParticipantState } from "@/components/participant/ParticipantFrame";
+import { ParticipantPassword, ParticipantAccountNote } from "@/components/participant/ParticipantPassword";
 import { ParticipantStory } from "@/components/participant/ParticipantStory";
 
 function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [email, setEmail] = useState("");
+    const [editedEmail, setEmail] = useState<string | null>(null);
+    const email = editedEmail ?? searchParams.get("email") ?? "";
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        const emailParam = searchParams.get('email');
-        if (emailParam) {
-            setEmail(emailParam);
-        }
-    }, [searchParams]);
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setIsLoading(true);
         setError("");
 
@@ -67,7 +63,7 @@ function LoginContent() {
                 <Card className="participant-form-card">
                     <ParticipantFormTitle eyebrow="REPRESENTATIVE LOGIN" title="代表者ログイン" description="登録したメールアドレスとパスワードを入力してください。" />
                     <div className="participant-form-content">
-                    <form onSubmit={handleLogin} className="space-y-6">
+                    <form onSubmit={handleLogin} aria-busy={isLoading}><fieldset disabled={isLoading} className="space-y-6 participant-auth-fields">
                         {error && (
                             <div
                                 role="alert" className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-2"
@@ -91,13 +87,12 @@ function LoginContent() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label htmlFor="login-password" className="text-sm font-medium text-[#e4e8ef] tracking-wide">パスワード</label>
-                                <Link href="/login/reset" className="text-xs text-[#ffb2be] hover:text-[#ffb2be] transition-colors">
+                                <Link href={email ? `/login/reset?email=${encodeURIComponent(email)}` : "/login/reset"} className="text-xs text-[#ffb2be] hover:text-[#ffb2be] transition-colors">
                                     パスワードを忘れた場合
                                 </Link>
                             </div>
-                            <Input
+                            <ParticipantPassword
                                 id="login-password"
-                                type="password"
                                 autoComplete="current-password"
                                 placeholder="••••••••"
                                 value={password}
@@ -123,7 +118,8 @@ function LoginContent() {
                                 </>
                             )}
                         </Button>
-                    </form>
+                    </fieldset></form>
+                    <ParticipantAccountNote title="以前に申し込んだことがある方へ"><p>同じアカウントで別の大会にも申し込めます。まずはログインし、マイページから参加する大会を選んでください。</p></ParticipantAccountNote>
 
                     <div className="mt-8 pt-6 border-t border-[#707b8c] text-center">
                         <p className="text-sm text-[#c6cdd8]">
