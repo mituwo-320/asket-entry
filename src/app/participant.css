@@ -314,12 +314,19 @@
 @media screen and (max-width: 600px) {
   .participant-main { padding-top: 26px; }
   .participant-form-page { padding: 25px 16px 34px; }
+  .participant-story-art { min-height: 230px; padding: 23px; }
+  .participant-story-copy { padding-top: 72px; }
+  .participant-story h2 { font-size: 27px; line-height: 1.45; }
+  .participant-story-description { display: none; }
+  .participant-story-seal { width: 52px; height: 52px; top: 48px; right: 20px; }
+  .participant-story-guide { padding: 16px 22px 20px; }
+  .participant-story-guide-heading { margin-bottom: 14px; }
   .participant-form-title, .participant-form-content { padding: 24px 21px; }
   .participant-form-title h1 { font-size: 25px; }
   .participant-heading { min-height: 220px; padding: 26px 21px; }
   .participant-heading-copy { max-width: 100%; padding-right: 12px; }
   .participant-heading-description { max-width: 90%; font-size: 12px; }
-  .participant-heading-art { width: 65%; opacity: .48; }
+  .participant-heading-art { width: 65%; opacity: .34; }
   .participant-heading-art .participant-mark { display: none; }
   .participant-heading h1 { font-size: 29px; }
   .participant-heading-stats { gap: 8px 14px; font-size: 11px; }
