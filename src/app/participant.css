@@ -1,5 +1,6 @@
 /* Participant workspace. Decorative print details surround functional content. */
 .participant-surface { --entry-bg: #16181d; --entry-panel: #25282f; --entry-line: #626873; --entry-muted: #c3c7cf; --entry-text: #f7f7f5; position: relative; isolation: isolate; min-height: 100vh; background: radial-gradient(ellipse at 95% 0, #8c20301a, transparent 50%), linear-gradient(135deg, #26272e, #191b20 60%, #121419); --entry-accent: #ff9ba5; }
+.participant-surface::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(90deg, #16181d55, #16181d00 60%), url('/basketball-court-background.webp'); background-repeat: no-repeat; background-position: center top; background-size: 100% 1100px, max(1600px, 100%) auto; mask-image: linear-gradient(#000 0px, #000 700px, transparent 1080px); opacity: .75; }
 .participant-surface::before { content: ""; position: absolute; inset: 0; background: url('/entry-grain.svg'); opacity: .08; pointer-events: none; z-index: -1; }
 .participant-surface [data-ui="card"], .participant-panel { border: 1px solid #69717e; border-radius: 4px 15px 15px 4px; background: linear-gradient(140deg, #2b2e36, #22252c 75%); box-shadow: inset 0 1px 0 #ffffff20, 0 3px 0 #080a0e, 0 14px 32px #0004; backdrop-filter: none; }
 .participant-surface [data-ui="input"], .participant-surface :is(select, textarea, input:not([type="checkbox"]):not([type="radio"])) { border: 1px solid #aeb5c0; background: #f7f8fa; color: #20242b; border-radius: 8px; font-size: 16px; min-height: 48px; box-shadow: inset 0 2px 3px #20242b12; color-scheme: light; }
@@ -104,7 +105,7 @@
 .participant-state-mark { display: block; width: 76px; height: 76px; color: #f7c2c7; margin: auto; }
 .participant-state-icon { display: block; width: 28px; height: 28px; color: #a61e31; margin: auto; }
 .participant-state-link { display: inline-flex; align-items: center; min-height: 44px; justify-content: center; border: 1px solid #971a2c; border-radius: 8px; padding: 8px 17px; margin-top: 23px; color: #fff; background: #b9283a; }
-.participant-footer { width: min(1180px, calc(100% - 48px)); margin: auto; padding-block: 24px; border-top: 1px solid #b4bac640; display: flex; gap: 18px; align-items: center; justify-content: space-between; color: #bfc5ce; font: 500 10px/1.5 var(--font-inter), sans-serif; letter-spacing: .04em; }
+.participant-footer { width: min(1180px, calc(100% - 48px)); margin: auto; padding-block: 24px; border-top: 1px solid #b4bac640; display: flex; gap: 18px; align-items: center; justify-content: space-between; color: #bfc5ce; background: #16181deb; border-radius: 8px; padding-inline: 16px; font: 500 10px/1.5 var(--font-inter), sans-serif; letter-spacing: .04em; }
 .participant-footer-brand { display: flex; align-items: center; font: 700 21px/1 var(--font-outfit), sans-serif; letter-spacing: -.05em; color: #f0f1f3; }
 .participant-document-screen { min-height: 100vh; color: #242831; }
 .participant-document-intro { width: min(800px, calc(100% - 40px)); margin: 28px auto; padding: 22px 28px; }
@@ -130,6 +131,7 @@
  .participant-receipt-paper img { right: 0 !important; opacity: .6 !important; }
 }
 @media (max-width: 600px) {
+ .participant-surface::after { opacity: .5; background-size: 100% 1000px, 1200px auto; background-position: center 60px; }
  .participant-header-inner, .participant-main, .participant-footer { width: calc(100% - 32px); }
  .participant-header-inner { min-height: 74px; gap: 12px; flex-wrap: wrap; }
  .participant-header-label { display: none; }
@@ -158,7 +160,7 @@
 }
 @media print {
  .participant-surface { min-height: 0 !important; background: #fff !important; color-scheme: light; }
- .participant-surface::before { display: none; }
+ .participant-surface::before, .participant-surface::after { display: none; }
  .participant-header, .participant-footer { display: none !important; }
  .participant-document-screen { min-height: 0; background: #fff; }
  .participant-document-paper { max-width: none; color: #1e293b; }

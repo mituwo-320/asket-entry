@@ -41,14 +41,7 @@ export default function Home() {
       </header>
       <main>
         <section className="cup-hero" aria-labelledby="entry-heading">
-          <div className="cup-court" aria-hidden="true">
-            <svg viewBox="0 0 700 600" fill="none">
-              <path d="M90 75h520v450H90Z M350 75v450" /><circle cx="350" cy="300" r="70" />
-              <path d="M90 220h110v160H90m520-160H500v160h110M90 140c255 0 255 320 0 320m520-320c-255 0-255 320 0 320" />
-              <path d="M110 270v60m480-60v60" /><circle cx="126" cy="300" r="12" /><circle cx="574" cy="300" r="12" />
-              <path d="M74 59h22m-6-6v22m504-16h22m-6-6v22M74 541h22m-6-16v22m504-6h22m-6-16v22" />
-            </svg>
-          </div>
+          <div className="cup-court" aria-hidden="true" />
           <span className="cup-side-note" aria-hidden="true">VANKY CUP — TEAM ENTRY</span>
           <div className="cup-hero-copy">
             <p className="cup-eyebrow"><span /> みんなでつくる、大会の一日。</p>

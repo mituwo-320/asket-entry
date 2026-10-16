@@ -38,10 +38,11 @@
 
 /* Tournament printwork: a court, a paper ticket, ink and woven club colors. */
 .cup-home { overflow: hidden; position: relative; isolation: isolate; background: radial-gradient(ellipse at 83% 12%, #6e182125, transparent 48%), linear-gradient(130deg, #25262c, #16181d 50%, #101216); }
+.cup-home::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(90deg, #10121655, #10121600 55%), url('/basketball-court-background.webp'); background-repeat: no-repeat; background-position: center top; background-size: 100% 1100px, max(1600px, 100%) auto; mask-image: linear-gradient(#000 0px, #000 740px, transparent 1100px); opacity: .9; }
 .cup-home::before { content: ""; position: absolute; inset: 12px 12px auto; height: 5px; background: linear-gradient(90deg, #d63043 0 90px, #efefec 90px 130px, #777d88 130px 170px, #c9cbd430 170px); }
 .cup-print-texture { position: absolute; inset: 0; background: url('/entry-grain.svg') repeat; opacity: .13; mix-blend-mode: soft-light; pointer-events: none; z-index: -1; }
 .cup-header, .cup-hero, .cup-flow, .cup-footer { width: min(1180px, calc(100% - 96px)); margin-inline: auto; }
-.cup-header { position: relative; display: flex; align-items: center; gap: 24px; min-height: 102px; border-bottom: 1px solid #b8becb40; }
+.cup-header { position: relative; display: flex; align-items: center; gap: 24px; min-height: 102px; border-bottom: 1px solid #b8becb40; z-index: 2; background: linear-gradient(180deg, #111319ed, #111319b8); }
 .cup-header::after { content: ""; position: absolute; height: 3px; background: #b8becb1a; bottom: -5px; inset-inline: 0; }
 .cup-wordmark { display: inline-flex; align-items: baseline; color: var(--entry-text); font-family: var(--font-outfit), sans-serif; font-weight: 800; font-size: 33px; letter-spacing: -1.8px; }
 .cup-wordmark span { font-weight: 400; }
@@ -53,8 +54,7 @@
 .cup-header-login { display: flex; gap: 18px; align-items: center; padding: 12px 0 12px 16px; color: var(--entry-text); font-size: 14px; min-height: 44px; }
 .cup-header-login:hover { color: var(--entry-accent); }
 .cup-hero { position: relative; display: grid; grid-template-columns: 1.12fr 1fr; align-items: center; gap: 64px; padding-block: 76px 72px; }
-.cup-court { position: absolute; width: 710px; height: 610px; top: 5px; left: 5%; pointer-events: none; transform: rotate(-17deg); opacity: .12; }
-.cup-court svg { width: 100%; height: 100%; stroke: #bac0cb; stroke-width: 1.2; }
+.cup-court { display: none; pointer-events: none; }
 .cup-side-note { position: absolute; left: -35px; top: 90px; writing-mode: vertical-rl; transform: rotate(180deg); font-family: var(--font-inter), sans-serif; letter-spacing: .22em; font-size: 8px; color: #c5cbd46b; }
 .cup-hero-copy, .cup-entry-stack { position: relative; z-index: 1; min-width: 0; }
 .cup-eyebrow { display: flex; gap: 10px; align-items: center; font-size: 12px; font-weight: 500; letter-spacing: .1em; color: #ffb5bd; }
@@ -162,8 +162,9 @@
   .cup-header-rule { gap: 3px; }
   .cup-header-rule span { width: 4px; height: 14px; }
   .cup-header-login { font-size: 13px; gap: 9px; padding-left: 4px; }
-  .cup-hero { grid-template-columns: 1fr; gap: 64px; padding-block: 38px 48px; }
-  .cup-court { width: 620px; height: 540px; top: -10px; left: -5%; opacity: .1; }
+  .cup-home::after { display: none; }
+  .cup-hero { grid-template-columns: 1fr; gap: 64px; padding-block: 260px 48px; }
+  .cup-court { display: block; position: absolute; width: calc(100% + 40px); height: 230px; top: 0; left: -20px; background: url('/basketball-court-background.webp') center top / cover no-repeat; mask-image: linear-gradient(#000 82%, transparent); }
   .cup-eyebrow { font-size: 11px; }
   .cup-title-block { margin-top: 20px; }
   .cup-title-caption { font-size: 10px; }
