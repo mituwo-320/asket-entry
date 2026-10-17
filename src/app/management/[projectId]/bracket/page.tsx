@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { TeamEntry, TournamentBracketData, Project } from "@/lib/types";
+import { OperationsHeading, OperationsState } from "@/components/operations/OperationsFrame";
 import TournamentBracket from "@/components/admin/TournamentBracket";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
 import { recordMatchResult, updateMatchScore, undoMatchResult } from "@/lib/bracket-generator";
@@ -245,33 +246,16 @@ export default function ManagementTournamentBracketPage() {
         }
     }, [isLoading, bracketData, activeEntries.length]);
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-                <Loader2 className="animate-spin w-8 h-8 mr-3 text-emerald-500" />
-                <span className="text-lg">読み込み中...</span>
-            </div>
-        );
-    }
-
-    if (!project) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white p-4 text-center">
-                <div>
-                    <p className="text-xl mb-4 font-bold text-red-400">プロジェクトが見つかりません</p>
-                    <Button onClick={() => router.push('/management')} variant="outline" className="border-slate-700">一覧に戻る</Button>
-                </div>
-            </div>
-        );
-    }
+    if (isLoading) return <OperationsState title="対戦表を読み込んでいます" loading />;
+    if (!project) return <OperationsState title="大会情報を確認できませんでした" message="大会一覧から対象の大会を選び直してください。" />;
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col text-slate-200">
+        <div className="operations-bracket min-h-screen flex flex-col text-slate-200">
             {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
+            <header className="operations-bracket-header border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2" onClick={() => router.push(`/management/${projectId}`)}>
+                        <Button aria-label="大会の受付ページへ戻る" variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2" onClick={() => router.push(`/management/${projectId}`)}>
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                         <h1 className="text-base sm:text-lg font-bold text-white tracking-tight line-clamp-1 flex items-center gap-2">
@@ -307,7 +291,8 @@ export default function ManagementTournamentBracketPage() {
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col p-4 w-full max-w-7xl mx-auto">
+            <main id="operations-main" tabIndex={-1} className="flex-1 flex flex-col p-4 w-full max-w-7xl mx-auto">
+                <OperationsHeading eyebrow="TOURNAMENT / MATCH CONTROL" title="対戦表と試合の進行" description="対戦表・表示用画面・操作画面を、用途に合わせて開きます。" />
                 {/* Seed message toast */}
                 <AnimatePresence>
                     {seedMessage && (
@@ -335,7 +320,7 @@ export default function ManagementTournamentBracketPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="max-w-lg mx-auto mt-12 w-full"
                     >
-                        <Card className="p-8 border-white/5 bg-slate-900/60 backdrop-blur-xl">
+                        <Card className="operations-bracket-setup p-8 border-white/5 bg-slate-900/60 backdrop-blur-xl">
                             <div className="text-center mb-8">
                                 <div className="inline-block p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 mb-4">
                                     <Trophy className="w-12 h-12 text-emerald-400" />
@@ -353,6 +338,7 @@ export default function ManagementTournamentBracketPage() {
                                         参加チーム数
                                     </label>
                                     <Input
+                                        aria-label="参加チーム数"
                                         type="number"
                                         min={2}
                                         max={64}

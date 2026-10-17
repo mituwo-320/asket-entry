@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import Link from "next/link";
+import { CupMark } from "@/components/entry/CupMark";
 import { Lock, Loader2, ArrowRight } from "lucide-react";
 
 export default function ManagementLoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setIsLoading(true);
         setError("");
 
@@ -31,7 +32,7 @@ export default function ManagementLoginPage() {
                 const data = await res.json();
                 setError(data.error || "認証に失敗しました");
             }
-        } catch (e) {
+        } catch {
             setError("通信エラーが発生しました");
         } finally {
             setIsLoading(false);
@@ -39,22 +40,17 @@ export default function ManagementLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-            <Card className="w-full max-w-sm p-8 bg-slate-900/80 border-slate-800 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
-
-                <div className="text-center mb-8 relative z-10">
-                    <div className="w-16 h-16 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-                        <Lock className="w-8 h-8 text-emerald-400" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Management Portal</h1>
-                    <p className="text-sm text-slate-400 mt-2">運営チーム用パスワードを入力してください</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <main id="operations-main" className="operations-workspace operations-login" tabIndex={-1}>
+            <aside className="operations-login-poster"><div><span>VANKY CUP / CREW ENTRANCE</span><CupMark /><h2>いい一日を、<br />コートの裏側から。</h2><p>チームの受付、会計、選手情報。<br />大会を支える準備を、ここから。</p></div><ol><li><b>01</b>受付状況を確認</li><li><b>02</b>連絡・入金をチェック</li><li><b>03</b>必要な書類を準備</li></ol></aside>
+            <Card className="operations-login-card">
+                <div className="operations-login-title"><span>OPERATIONS / STAFF ACCESS</span><Lock size={24} aria-hidden="true" /><h1>運営スタッフログイン</h1><p>運営チーム用パスワードを入力してください。</p></div>
+                <form onSubmit={handleSubmit} aria-busy={isLoading}><fieldset disabled={isLoading} className="space-y-6 operations-login-form">
                     <div className="space-y-2">
                         <Input
+                            label="運営用パスワード"
+                            autoComplete="current-password"
                             type="password"
+                            required
                             placeholder="パスワード"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -64,7 +60,7 @@ export default function ManagementLoginPage() {
                     </div>
 
                     {error && (
-                        <div className="text-sm text-red-400 text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                        <div role="alert" className="text-sm text-red-400 text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
                             {error}
                         </div>
                     )}
@@ -74,10 +70,11 @@ export default function ManagementLoginPage() {
                         disabled={isLoading || !password}
                         className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all"
                     >
-                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-2">ログイン <ArrowRight className="w-4 h-4" /></span>}
+                        {isLoading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />ログイン中…</> : <span className="flex items-center gap-2">ログイン <ArrowRight className="w-4 h-4" /></span>}
                     </Button>
-                </form>
+                </fieldset></form>
+                <div className="operations-login-foot"><span>STAFF ONLY</span><Link href="/">参加者トップへ戻る</Link></div>
             </Card>
-        </div>
+        </main>
     );
 }
