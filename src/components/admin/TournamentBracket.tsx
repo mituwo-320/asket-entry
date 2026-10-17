@@ -19,7 +19,7 @@ import {
 } from "@/lib/bracket-generator";
 
 interface TournamentBracketProps {
-    appearance?: "default" | "operations";
+    appearance?: "default" | "operations" | "admin";
     bracketData: TournamentBracketData;
     entries: TeamEntry[];
     bracketId: string;

@@ -146,8 +146,8 @@ export interface BlockMatch {
     round: number;
     court?: string;
     referee?: string;
-    slotA: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
-    slotB: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
+    slotA: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string; isBye?: boolean };
+    slotB: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string; isBye?: boolean };
     scoreA?: string | number;
     scoreB?: string | number;
     winnerId?: string;

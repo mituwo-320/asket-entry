@@ -1,0 +1,32 @@
+/* Shared desk skin is opt-in; default public/admin uses remain unchanged. */
+@media screen {
+  :is([data-appearance="operations"], [data-appearance="admin"]).space-y-2 { padding: 12px; color: #29333f; background: #f6f2eb url('/entry-grain.svg'); }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar { padding: 13px 15px; gap: 12px; border-color: #ccc1b3; border-top: 4px solid #ad293f; border-radius: 4px 9px 9px 4px; background: #fffdf8; box-shadow: 0 3px 0 #ded7cb; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar > div { flex-wrap: wrap; gap: 10px; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar > div:last-child { justify-content: flex-end; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar button { min-height: 44px; font-size: 12px; border-radius: 5px; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar button[data-variant="primary"]:not(:disabled) { color: #fff; background: #ad293f; border: 1px solid #8e2034; box-shadow: 0 2px 0 #731a2b; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar button[data-variant="outline"] { color: #414c5b; background: #f7f5f0; border-color: #aeb5bf; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar button[data-variant="outline"][class*="bg-indigo-50"] { color: #8c263b; background: #f8e9ec; border-color: #bf8190; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-pool { background: #f6f2ebf5; border-color: #c8bfb3; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-pool [data-ui="card"] { background: #eee8dd; border-color: #c9bdae; border-radius: 5px; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-canvas { padding-top: 15px; }
+  :is([data-appearance="operations"], [data-appearance="admin"]).space-y-2 .bracket-match-card { box-shadow: 0 3px 0 #26334014, 0 6px 14px #2633400b; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) table th { border-color: #c8beb1; }
+  :is([data-appearance="operations"], [data-appearance="admin"]) :is(button, input):focus-visible { outline: 3px solid #af2c45; outline-offset: 2px; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"])[data-theme="light"] { background: #f5f2ec url('/entry-grain.svg'); }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"])[data-theme="dark"] { background: #181d26; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls { opacity: 1; max-width: calc(100% - 32px); overflow-x: auto; border: 1px solid #9b9192; border-top: 3px solid #bf3049; border-radius: 5px 11px 11px 5px; background: #242b36; box-shadow: 0 3px 0 #080e17, 0 10px 25px #0004; scrollbar-width: thin; scrollbar-color: #bd5367 #242b36; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > * { flex-shrink: 0; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls button { min-height: 44px; min-width: 44px; border-radius: 5px; font-size: 12px; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > button { color: #e7eaf1; background: #343c49; border-color: #7b8798; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > button[class*="bg-indigo-600"], .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > button[class*="from-red-600"] { color: #fff; background: #b12b44; border-color: #ee9aab; animation: none; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > div { background: #343c49; border-color: #7b8798; border-radius: 5px; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls > div > button { color: #e7eaf1; border-color: #7b8798; }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls button:hover { filter: brightness(1.15); }
+  .bracket-fullscreen:is([data-appearance="operations"], [data-appearance="admin"]) .bracket-fullscreen-controls button:focus-visible { outline: 3px solid #ffb9c8; outline-offset: -4px; }
+}
+@media screen and (max-width: 600px) {
+    :is([data-appearance="operations"], [data-appearance="admin"]).space-y-2 { padding: 8px; }
+    :is([data-appearance="operations"], [data-appearance="admin"]) .bracket-editor-toolbar > div { width: 100%; }
+}

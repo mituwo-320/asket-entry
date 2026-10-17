@@ -1,3 +1,4 @@
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,7 @@ interface MatchResultModalProps {
 }
 
 export default function MatchResultModal({ isOpen, onClose, match, getTeamName, onUpdate }: MatchResultModalProps) {
+    const dialogRef = useAdminDialogFocus(isOpen && !!match, onClose);
     const [scoreA, setScoreA] = useState<string>("");
     const [scoreB, setScoreB] = useState<string>("");
     const [status, setStatus] = useState<'scheduled' | 'playing' | 'finished'>('scheduled');
@@ -77,8 +79,9 @@ export default function MatchResultModal({ isOpen, onClose, match, getTeamName, 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md relative z-10 flex flex-col overflow-hidden">
+            <div ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="試合結果編集" className="admin-dialog bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md relative z-10 flex flex-col overflow-hidden">
                 <button
+                    aria-label="閉じる"
                     onClick={onClose}
                     className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
                 >
@@ -123,6 +126,7 @@ export default function MatchResultModal({ isOpen, onClose, match, getTeamName, 
                                         {getTeamName(match.teamIdA)}
                                     </div>
                                     <Input
+                                        aria-label={`${getTeamName(match.teamIdA)}の得点`}
                                         type="number"
                                         value={scoreA}
                                         onChange={(e) => setScoreA(e.target.value)}
@@ -141,6 +145,7 @@ export default function MatchResultModal({ isOpen, onClose, match, getTeamName, 
                                         {getTeamName(match.teamIdB)}
                                     </div>
                                     <Input
+                                        aria-label={`${getTeamName(match.teamIdB)}の得点`}
                                         type="number"
                                         value={scoreB}
                                         onChange={(e) => setScoreB(e.target.value)}

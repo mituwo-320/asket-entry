@@ -5,7 +5,7 @@ import { generateBracket, placeTeamInSlot } from "@/lib/bracket-generator";
 
 beforeEach(() => localStorage.clear());
 
-test.each(["default", "operations"] as const)("%s fullscreen preserves score display, theme preference and close callback", appearance => {
+test.each(["default", "operations", "admin"] as const)("%s fullscreen preserves score display, theme preference and close callback", appearance => {
   const onClose = jest.fn();
   const { container } = render(<BracketFullscreen appearance={appearance} isOpen onClose={onClose} bracketData={generateBracket(8)} entries={[]} onWin={jest.fn()} />);
   fireEvent.click(screen.getByRole("button", { name: "得点表示: OFF" }));
@@ -17,7 +17,7 @@ test.each(["default", "operations"] as const)("%s fullscreen preserves score dis
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-test.each(["default", "operations"] as const)("%s editor keeps the same match result and save workflow", async appearance => {
+test.each(["default", "operations", "admin"] as const)("%s editor keeps the same match result and save workflow", async appearance => {
   let data = generateBracket(8);
   const match = data.initialMatches[0];
   data = placeTeamInSlot(data, match.slotA.slotId, "a", "赤チーム");

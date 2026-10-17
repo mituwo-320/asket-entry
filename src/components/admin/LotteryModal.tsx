@@ -1,3 +1,4 @@
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +20,7 @@ interface LotteryModalProps {
 
 export default function LotteryModal({ isOpen, onClose, participants }: LotteryModalProps) {
     const [winner, setWinner] = useState<Participant | null>(null);
+    const dialogRef = useAdminDialogFocus(isOpen, onClose);
     const [isSpinning, setIsSpinning] = useState(false);
     const [displayCandidate, setDisplayCandidate] = useState<Participant | null>(null);
     const [isSuspenseMode, setIsSuspenseMode] = useState(false);
@@ -79,9 +81,10 @@ export default function LotteryModal({ isOpen, onClose, participants }: LotteryM
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col overflow-hidden">
+            <div ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="大抽選会" className="admin-dialog admin-lottery-dialog bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col overflow-hidden">
                 {/* Close Button */}
                 <button
+                    aria-label="閉じる"
                     onClick={onClose}
                     className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
                 >

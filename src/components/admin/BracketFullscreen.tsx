@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 
 interface BracketFullscreenProps {
-    appearance?: "default" | "operations";
+    appearance?: "default" | "operations" | "admin";
     isOpen: boolean;
     onClose: () => void;
     bracketData: TournamentBracketData;
@@ -1027,7 +1027,7 @@ export default function BracketFullscreen({
         if (cachedName) return cachedName;
         if (!teamId) return '';
         const entry = entries.find(e => e.id === teamId);
-        return entry ? entry.name : teamId;
+        return entry ? entry.teamName : teamId;
     }, [entries]);
 
     // Detect new completions and trigger celebration
@@ -1193,7 +1193,7 @@ export default function BracketFullscreen({
         if (slot.teamName) return slot.teamName;
         if (slot.teamId) {
             const entry = entries.find(e => e.id === slot.teamId);
-            if (entry) return entry.name;
+            if (entry) return entry.teamName;
             return slot.teamId;
         }
         if (slot.isBye) return 'BYE';
@@ -2052,14 +2052,12 @@ export default function BracketFullscreen({
                             animate={{ 
                                 scale: [0.3, 1.1, 1], 
                                 rotate: [-15, 5, 0],
-                                y: 0,
                                 x: isShaking ? [-15, 15, -12, 12, -8, 8, -4, 4, 0] : 0,
                                 y: isShaking ? [-10, 10, -8, 8, -6, 6, -3, 3, 0] : 0
                             }}
                             transition={{ 
                                 scale: { type: "spring", damping: 12, stiffness: 100 },
                                 rotate: { duration: 0.6 },
-                                y: { type: "spring", damping: 12, stiffness: 100 },
                                 x: { duration: 0.5, delay: 0.3 },
                                 y: { duration: 0.5, delay: 0.3 }
                             }}

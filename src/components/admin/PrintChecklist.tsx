@@ -119,7 +119,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
     const isAllCompleted = totalCount > 0 && printedCount === totalCount;
 
     return (
-        <Card className="p-6 bg-slate-900/40 border-white/5 relative overflow-hidden backdrop-blur-md flex flex-col h-[520px]">
+        <Card className="admin-checklist p-6 bg-slate-900/40 border-white/5 relative overflow-hidden backdrop-blur-md flex flex-col h-[520px]">
             {/* Background Gradient Effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
 
@@ -129,7 +129,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                     <Printer className="w-5 h-5 text-indigo-400" />
                     <span>印刷忘れ防止チェックリスト</span>
                 </h3>
-                <Button 
+                <Button aria-label="更新"
                     variant="ghost" 
                     size="sm" 
                     onClick={loadChecklist} 
@@ -209,6 +209,8 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                             >
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                     <button
+                                        aria-label={`${item.name}の印刷確認`}
+                                        aria-pressed={item.isPrinted}
                                         onClick={() => handleToggle(item)}
                                         className={`w-5 h-5 rounded flex items-center justify-center transition-all ${
                                             item.isPrinted 
@@ -228,7 +230,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                                     </span>
                                 </div>
 
-                                <button
+                                <button aria-label="削除"
                                     onClick={() => handleDeleteItem(item.id, item.name)}
                                     className="text-slate-500 hover:text-red-400 p-1 hover:bg-white/5 rounded transition-colors ml-2 flex-shrink-0"
                                 >
@@ -244,6 +246,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             <form onSubmit={handleAddItem} className="mt-auto relative z-10 pt-3 border-t border-white/5 flex gap-2">
                 <Input
                     type="text"
+                    aria-label="追加する印刷物の名前"
                     placeholder="新しい印刷物を追加..."
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}

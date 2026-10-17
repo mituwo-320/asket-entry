@@ -15,3 +15,5 @@ This direction applies to participant pages. Changes to operations/admin screens
 On 2026-10-18 the owner separately requested improvements to operations pages. The `/management` design and validation boundaries are recorded in `docs/operations-design.md`. Keep `/admin` pages and shared bracket/print implementations outside ordinary operations styling changes.
 
 The owner subsequently approved refining the team detail modal and bracket/fullscreen controls. Shared bracket components may expose an optional operations-only appearance; preserve their default admin appearance, match geometry, state transitions, and all existing handlers.
+
+On 2026-10-18 the owner explicitly requested the `/admin` pages and a full review. Apply the same court illustration, charcoal/crimson and paper textures to admin pages and dialogs, using the opt-in `admin` bracket appearance. Preserve financial/deadline/authentication/receipt and match rules. See `docs/admin-design-review.md` for the inventory, specific nonvisual corrections, checks and remaining verification limits.
