@@ -515,14 +515,16 @@ export default function ManagementProjectDetail() {
                             />
                             <motion.div
                                 initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                className="bg-slate-900 border-t sm:border border-slate-700/50 sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] pb-8 sm:pb-0 overflow-y-auto relative z-10 flex flex-col rounded-t-3xl"
+                                role="dialog" aria-modal="true" aria-labelledby="operations-team-title"
+                                className="operations-team-sheet bg-slate-900 border-t sm:border border-slate-700/50 sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] pb-8 sm:pb-0 overflow-y-auto relative z-10 flex flex-col rounded-t-3xl"
                             >
                                 <div className="p-1 flex justify-center sm:hidden">
                                     <div className="w-12 h-1.5 bg-slate-700 rounded-full my-2" />
                                 </div>
-                                <div className="p-4 sm:p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
+                                <div className="operations-team-sheet-header p-4 sm:p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
                                     <div className="pr-8">
-                                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">{selectedEntry.teamName}</h2>
+                                        <p className="operations-sheet-kicker">TEAM FILE / チーム受付票</p>
+                                        <h2 id="operations-team-title" className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">{selectedEntry.teamName}</h2>
                                         <p className="text-slate-400 text-xs sm:text-sm mt-1">{selectedEntry.teamNameKana || "フリガナなし"}</p>
                                     </div>
                                     <button aria-label="チーム詳細を閉じる" onClick={() => setSelectedEntry(null)} className="absolute right-4 top-4 text-slate-400 bg-slate-800 p-1.5 rounded-full hover:bg-slate-700 transition-colors">
@@ -530,14 +532,14 @@ export default function ManagementProjectDetail() {
                                     </button>
                                 </div>
 
-                                <div className="p-4 sm:p-6 space-y-6">
-                                    <div className="bg-slate-950/50 p-4 rounded-xl border border-white/5">
+                                <div className="operations-team-sheet-body p-4 sm:p-6 space-y-6">
+                                    <div className="operations-sheet-introduction bg-slate-950/50 p-4 rounded-xl border border-white/5">
                                         <p className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider">意気込み・紹介文</p>
                                         <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{selectedEntry.teamIntroduction || "（未記入）"}</p>
                                     </div>
 
                                     {project?.hasClinic && (
-                                        <div className="bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
+                                        <div className="operations-sheet-clinic bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
                                             <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">{project.clinicTitle || '🏀 バスケクリニック参加希望状況'}</p>
                                             <p className="text-slate-200 text-sm font-bold">
                                                 {(selectedEntry as any).clinicParticipation
@@ -548,14 +550,15 @@ export default function ManagementProjectDetail() {
                                     )}
 
                                     {/* Editable Management Section */}
-                                    <div className="space-y-4">
+                                    <div className="operations-sheet-memo space-y-4">
                                         <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2 border-b border-white/5 pb-2 uppercase tracking-widest pl-1">
                                             <MessageSquare className="w-4 h-4" /> 運営用メモ設定
                                         </h3>
 
                                         <div className="mb-4">
-                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
+                                            <label htmlFor="operations-uniform" className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
                                             <Input
+                                                id="operations-uniform"
                                                 type="text"
                                                 className="w-full bg-slate-950 border-slate-700 text-slate-200 focus-visible:ring-emerald-500"
                                                 placeholder="例：赤、白、黒 など"
@@ -566,8 +569,9 @@ export default function ManagementProjectDetail() {
                                         </div>
 
                                         <div>
-                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">運営用メモ</label>
+                                            <label htmlFor="operations-memo" className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">運営用メモ</label>
                                             <textarea
+                                                id="operations-memo"
                                                 className="w-full h-40 bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none text-base sm:text-sm"
                                                 placeholder="チームについての備考や引き継ぎ事項などを記入してください..."
                                                 value={selectedEntry.managementMemo || ""}
@@ -580,8 +584,10 @@ export default function ManagementProjectDetail() {
                                             <p className="text-xs text-amber-500/80 mt-2 font-bold px-1">入力箇所から外をタップすると自動保存されます。</p>
                                         </div>
                                         
-                                        <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div className="operations-sheet-actions grid grid-cols-2 gap-3 pt-2">
+                                            <p className="operations-sheet-action-heading col-span-2">受付確認</p>
                                             <Button
+                                                 aria-pressed={!!selectedEntry.isOpenChatJoined}
                                                  className={`h-12 border transition-colors text-sm font-bold shadow-none ${selectedEntry.isOpenChatJoined ? 'bg-emerald-900/20 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                                  onClick={() => handleUpdateEntry(selectedEntry.id, { isOpenChatJoined: !selectedEntry.isOpenChatJoined })}
                                             >
@@ -589,6 +595,7 @@ export default function ManagementProjectDetail() {
                                                 OPチャット{selectedEntry.isOpenChatJoined ? '参加済' : '未確認'}
                                             </Button>
                                             <Button
+                                                aria-pressed={!!selectedEntry.isPaid}
                                                 className={`h-12 border transition-colors text-sm font-bold shadow-none ${selectedEntry.isPaid ? 'bg-blue-900/20 border-blue-500/50 text-blue-400 hover:bg-blue-900/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                                 onClick={() => handleUpdateEntry(selectedEntry.id, { isPaid: !selectedEntry.isPaid })}
                                             >
@@ -596,9 +603,9 @@ export default function ManagementProjectDetail() {
                                                 参加費{selectedEntry.isPaid ? '支払済' : '未払い'}
                                             </Button>
 
-                                            <div className="col-span-2 mt-4 space-y-3">
+                                            <div className="operations-sheet-tools col-span-2 mt-4 space-y-3">
                                                 <Button
-                                                    className="w-full h-12 border bg-indigo-900/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/40 font-bold flex items-center justify-center"
+                                                    className="operations-sheet-print w-full h-12 border bg-indigo-900/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/40 font-bold flex items-center justify-center"
                                                     onClick={() => window.open(`/management/print?teamId=${selectedEntry.id}`, '_blank')}
                                                 >
                                                     <Printer className="w-5 h-5 mr-2" />
@@ -614,7 +621,7 @@ export default function ManagementProjectDetail() {
                                                     仮エントリーに戻す
                                                 </Button>
                                                 <Button
-                                                    className="w-full h-12 border bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-900/30 font-bold flex items-center justify-center gap-2"
+                                                    className="operations-sheet-delete w-full h-12 border bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-900/30 font-bold flex items-center justify-center gap-2"
                                                     onClick={async () => {
                                                         if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。選手データもすべて物理削除され、募集枠が解放されます。")) return;
                                                         try {

@@ -389,7 +389,7 @@ export default function ManagementTournamentBracketPage() {
                         animate={{ opacity: 1 }}
                         className="flex flex-col flex-1 gap-2 h-full"
                     >
-                        <div className="flex items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-lg border border-white/5">
+                        <div className="operations-bracket-links flex items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-lg border border-white/5">
                             <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
                                 <span className="flex items-center gap-1.5 focus:outline-none">
                                     <Monitor className="w-3.5 h-3.5 text-emerald-400" />
@@ -431,8 +431,9 @@ export default function ManagementTournamentBracketPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 min-h-0 bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div className="operations-bracket-board flex-1 min-h-0 bg-white rounded-lg overflow-hidden shadow-sm">
                             <TournamentBracket
+                                appearance="operations"
                                 bracketData={bracketData}
                                 entries={activeEntries}
                                 bracketId={bracketId!}
@@ -447,6 +448,7 @@ export default function ManagementTournamentBracketPage() {
             {/* Admin fullscreen (with win controls) */}
             {bracketData && (
                 <BracketFullscreen
+                    appearance="operations"
                     isOpen={isFullscreen}
                     onClose={() => setIsFullscreen(false)}
                     bracketData={bracketData}

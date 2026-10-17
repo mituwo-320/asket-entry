@@ -13,3 +13,5 @@ The owner approved the basketball court illustration and charcoal/crimson palett
 This direction applies to participant pages. Changes to operations/admin screens need their own task scope.
 
 On 2026-10-18 the owner separately requested improvements to operations pages. The `/management` design and validation boundaries are recorded in `docs/operations-design.md`. Keep `/admin` pages and shared bracket/print implementations outside ordinary operations styling changes.
+
+The owner subsequently approved refining the team detail modal and bracket/fullscreen controls. Shared bracket components may expose an optional operations-only appearance; preserve their default admin appearance, match geometry, state transitions, and all existing handlers.

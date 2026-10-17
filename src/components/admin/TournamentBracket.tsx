@@ -19,6 +19,7 @@ import {
 } from "@/lib/bracket-generator";
 
 interface TournamentBracketProps {
+    appearance?: "default" | "operations";
     bracketData: TournamentBracketData;
     entries: TeamEntry[];
     bracketId: string;
@@ -258,7 +259,7 @@ function BlockMatchCard({
     const placeholderB = getBlockMatchSlotPlaceholder(match.slotB, match.matchId, false);
 
     return (
-        <div className="rounded-xl border border-slate-250 bg-white shadow-sm overflow-hidden text-xs min-w-[200px]">
+        <div className="bracket-match-card rounded-xl border border-slate-250 bg-white shadow-sm overflow-hidden text-xs min-w-[200px]">
             {/* Match Header */}
             <div className="px-2 py-1 bg-slate-50 flex items-center justify-between border-b border-slate-200 text-slate-600 font-bold">
                 <span className="font-mono text-[9px]">{match.matchId.split('-').slice(1).join('-')}</span>
@@ -398,7 +399,7 @@ function MatchCard({
             layout
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`rounded-xl border-2 z-10 relative ${borderColor} bg-white shadow-md overflow-hidden min-w-[240px]`}
+            className={`bracket-match-card rounded-xl border-2 z-10 relative ${borderColor} bg-white shadow-md overflow-hidden min-w-[240px]`}
         >
             {/* Match Header */}
             <div className={`px-3 py-1.5 ${headerBg} flex items-center justify-between border-b ${borderColor}`}>
@@ -830,6 +831,7 @@ function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketDa
 
 // ===== Main Component =====
 export default function TournamentBracket({
+    appearance = "default",
     bracketData,
     entries,
     bracketId,
@@ -981,9 +983,9 @@ export default function TournamentBracket({
     const isBlocksFormat = bracketData.format === 'blocks_and_placement';
 
     return (
-        <div className="space-y-2">
+        <div data-appearance={appearance} className="space-y-2">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
+            <div className="bracket-editor-toolbar flex flex-wrap items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                         <Trophy className="w-4 h-4 text-amber-500" />
@@ -1041,7 +1043,7 @@ export default function TournamentBracket({
 
             {/* Team Pool */}
             {availableEntries.length > 0 && (
-                <div className="sticky top-0 z-40 py-1 bg-white/95 backdrop-blur-md -mx-2 px-2 sm:mx-0 sm:px-0 border-b border-slate-200 shadow-sm">
+                <div className="bracket-editor-pool sticky top-0 z-40 py-1 bg-white/95 backdrop-blur-md -mx-2 px-2 sm:mx-0 sm:px-0 border-b border-slate-200 shadow-sm">
                     <Card className="p-2 border-slate-200 shadow-sm bg-slate-50">
                         <h3 className="text-[10px] font-black text-slate-500 tracking-widest uppercase mb-1.5 flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-indigo-500" />
@@ -1231,7 +1233,7 @@ export default function TournamentBracket({
                 </div>
             ) : (
                 /* ===== RENDER DOUBLE ELIMINATION BRACKET ===== */
-                <div className="w-full overflow-x-auto pb-4 custom-scrollbar" ref={realContainerRef}>
+                <div className="bracket-editor-canvas w-full overflow-x-auto pb-4 custom-scrollbar" ref={realContainerRef}>
                     <div 
                         ref={contentRef} 
                         className="flex gap-8 items-start min-w-max px-2 origin-top-left transition-transform duration-300"

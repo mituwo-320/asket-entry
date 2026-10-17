@@ -161,3 +161,77 @@
 }
 .operations-bracket-setup [data-ui="input"] { color: #27313c; background: #f7f5ef; border-color: #aab3c1; color-scheme: light; }
 .operations-bracket-setup [data-ui="button"][data-variant="primary"], .operations-bracket-header [data-ui="button"][data-variant="primary"] { color: #fff; background: linear-gradient(#c8334b, #aa2138); border-color: #e28a9b; }
+
+/* Detail refinement: a team file laid on the court-side desk. */
+@media screen {
+  .operations-workspace .operations-team-sheet { color: #2b3540; background: #f3eee5 url('/entry-grain.svg'); border: 1px solid #c9beb0; border-top: 5px solid #b72a42; border-radius: 7px 18px 18px 7px; box-shadow: 0 5px 0 #9c9690, 0 10px 0 -3px #d6cfc4, 0 30px 80px #0009; }
+  .operations-workspace .operations-team-sheet-header { padding-top: 23px; padding-bottom: 23px; border-bottom: 1px solid #777b84; background: linear-gradient(90deg, #1b2029 28%, #1b2029a8), url('/basketball-court-background.webp') 65% 40% / cover; }
+  .operations-team-sheet .operations-sheet-kicker { margin-bottom: 9px; color: #ffc0cc; font: 600 9px/1.7 var(--font-inter), sans-serif; letter-spacing: .14em; }
+  .operations-team-sheet #operations-team-title { padding-right: 16px; overflow-wrap: anywhere; line-height: 1.65; }
+  .operations-team-sheet button[aria-label="チーム詳細を閉じる"] { border: 1px solid #8993a4; color: #fff; background: #303744; }
+  .operations-team-sheet .operations-team-sheet-body { padding-top: 25px; }
+  .operations-team-sheet .operations-sheet-introduction { background: #fffdf8; border: 1px solid #d2c7b9; border-left: 4px solid #ae2c42; border-radius: 3px 9px 9px 3px; box-shadow: 0 3px 8px #3b2c1c0b; }
+  .operations-team-sheet .operations-sheet-introduction > p:first-child { color: #8d293d; }
+  .operations-team-sheet .operations-sheet-introduction > p:last-child { color: #323c48; line-height: 1.95; }
+  .operations-team-sheet .operations-sheet-clinic { background: #efe4cf; border: 1px solid #c9b38c; }
+  .operations-team-sheet .operations-sheet-clinic > p { color: #654615; }
+  .operations-team-sheet .operations-sheet-memo > h3 { color: #882b3e; border-bottom: 1px dashed #b9ab9b; padding: 0 0 13px; font-size: 14px; letter-spacing: .04em; }
+  .operations-team-sheet .operations-sheet-memo label { color: #424b55; font-size: 13px; letter-spacing: .03em; }
+  .operations-team-sheet .operations-sheet-memo textarea { background: repeating-linear-gradient(transparent 0 31px, #e1dacf 31px 32px) #fffdf9; line-height: 32px; min-height: 176px; }
+  .operations-team-sheet .operations-sheet-memo textarea + p { color: #735217; line-height: 1.8; font-weight: 500; }
+  .operations-team-sheet .operations-sheet-action-heading { color: #424b55; border-top: 1px dashed #b9ab9b; padding-top: 18px; font-size: 13px; font-weight: 700; }
+  .operations-workspace .operations-team-sheet .operations-sheet-actions > button { min-height: 52px; height: auto; padding: 12px 8px; color: #414b58; background: #fffdf8; border-color: #a6adb3; box-shadow: 0 2px 0 #c6c0b7; }
+  .operations-workspace .operations-team-sheet .operations-sheet-actions > button[aria-pressed="true"] { color: #1d5942; background: #e2efe5; border-color: #668f76; }
+  .operations-team-sheet .operations-sheet-tools { padding-top: 18px; border-top: 1px dashed #b9ab9b; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > button { height: auto; min-height: 48px; padding: 12px; color: #454d57; background: #e8e3db; border-color: #aca59d; border-radius: 6px; box-shadow: none; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > .operations-sheet-print { color: #fff; background: #292f3a; border-color: #717d90; box-shadow: 0 2px 0 #121820; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > .operations-sheet-delete { margin-top: 23px; color: #a0263c; background: #f9e9e7; border-color: #c99b9f; }
+  .operations-workspace .operations-team-sheet .operations-sheet-actions > button:hover { color: #343f4b; background: #eee8de; }
+  .operations-workspace .operations-team-sheet .operations-sheet-actions > button[aria-pressed="true"]:hover { color: #174833; background: #d1e6d7; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > button:hover { color: #343f4b; background: #ddd5c9; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > .operations-sheet-print:hover { color: #fff; background: #3c4656; }
+  .operations-workspace .operations-team-sheet .operations-sheet-tools > .operations-sheet-delete:hover { color: #892035; background: #efd5d5; }
+  .operations-team-sheet :is(button, textarea, input):focus-visible { outline-color: #a52a42; }
+
+  /* The optional skin is used only by /management. Match geometry stays intact. */
+  .operations-bracket-links { flex-wrap: wrap; padding: 14px 17px; background: #242a34; border: 1px solid #7b8798; border-radius: 5px 10px 10px 5px; box-shadow: 0 3px 0 #0c111a; }
+  .operations-bracket-links > div:first-child { color: #d1d7e1; line-height: 1.9; }
+  .operations-bracket-links a { color: #ffb9c8; overflow-wrap: anywhere; }
+  .operations-bracket-links button { min-height: 44px; color: #e3dce0; border: 1px solid #7a818f; }
+  .operations-bracket-board { border: 1px solid #b8afa3; border-radius: 5px 12px 12px 5px; background: #f6f2eb; box-shadow: 0 4px 0 #82818a, 0 18px 30px #0004; }
+  [data-appearance="operations"].space-y-2 { padding: 12px; color: #29333f; background: #f6f2eb url('/entry-grain.svg'); }
+  [data-appearance="operations"] .bracket-editor-toolbar { padding: 13px 15px; gap: 12px; border-color: #ccc1b3; border-top: 4px solid #ad293f; border-radius: 4px 9px 9px 4px; background: #fffdf8; box-shadow: 0 3px 0 #ded7cb; }
+  [data-appearance="operations"] .bracket-editor-toolbar > div { flex-wrap: wrap; gap: 10px; }
+  [data-appearance="operations"] .bracket-editor-toolbar > div:last-child { justify-content: flex-end; }
+  [data-appearance="operations"] .bracket-editor-toolbar button { min-height: 44px; font-size: 12px; border-radius: 5px; }
+  [data-appearance="operations"] .bracket-editor-toolbar button[data-variant="primary"]:not(:disabled) { color: #fff; background: #ad293f; border: 1px solid #8e2034; box-shadow: 0 2px 0 #731a2b; }
+  [data-appearance="operations"] .bracket-editor-toolbar button[data-variant="outline"] { color: #414c5b; background: #f7f5f0; border-color: #aeb5bf; }
+  [data-appearance="operations"] .bracket-editor-toolbar button[data-variant="outline"][class*="bg-indigo-50"] { color: #8c263b; background: #f8e9ec; border-color: #bf8190; }
+  [data-appearance="operations"] .bracket-editor-pool { background: #f6f2ebf5; border-color: #c8bfb3; }
+  [data-appearance="operations"] .bracket-editor-pool [data-ui="card"] { background: #eee8dd; border-color: #c9bdae; border-radius: 5px; }
+  [data-appearance="operations"] .bracket-editor-canvas { padding-top: 15px; }
+  [data-appearance="operations"].space-y-2 .bracket-match-card { box-shadow: 0 3px 0 #26334014, 0 6px 14px #2633400b; }
+  [data-appearance="operations"] table th { border-color: #c8beb1; }
+  [data-appearance="operations"] :is(button, input):focus-visible { outline: 3px solid #af2c45; outline-offset: 2px; }
+
+  .bracket-fullscreen[data-appearance="operations"][data-theme="light"] { background: #f5f2ec url('/entry-grain.svg'); }
+  .bracket-fullscreen[data-appearance="operations"][data-theme="dark"] { background: #181d26; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls { opacity: 1; max-width: calc(100% - 32px); overflow-x: auto; border: 1px solid #9b9192; border-top: 3px solid #bf3049; border-radius: 5px 11px 11px 5px; background: #242b36; box-shadow: 0 3px 0 #080e17, 0 10px 25px #0004; scrollbar-width: thin; scrollbar-color: #bd5367 #242b36; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > * { flex-shrink: 0; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls button { min-height: 44px; min-width: 44px; border-radius: 5px; font-size: 12px; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > button { color: #e7eaf1; background: #343c49; border-color: #7b8798; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > button[class*="bg-indigo-600"], .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > button[class*="from-red-600"] { color: #fff; background: #b12b44; border-color: #ee9aab; animation: none; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > div { background: #343c49; border-color: #7b8798; border-radius: 5px; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls > div > button { color: #e7eaf1; border-color: #7b8798; }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls button:hover { filter: brightness(1.15); }
+  .bracket-fullscreen[data-appearance="operations"] .bracket-fullscreen-controls button:focus-visible { outline: 3px solid #ffb9c8; outline-offset: -4px; }
+  @media (max-width: 600px) {
+    .operations-workspace .operations-team-sheet { border-radius: 16px 16px 0 0; max-height: 94dvh; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+    .operations-team-sheet .operations-team-sheet-header { padding: 18px 20px; }
+    .operations-team-sheet #operations-team-title { font-size: 22px; }
+    .operations-bracket-links > div { width: 100%; }
+    .operations-bracket-links > div:last-child { justify-content: flex-end; }
+    [data-appearance="operations"].space-y-2 { padding: 8px; }
+    [data-appearance="operations"] .bracket-editor-toolbar > div { width: 100%; }
+  }
+}

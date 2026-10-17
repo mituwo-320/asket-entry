@@ -88,3 +88,35 @@ test("payment confirmation is still required and only its acceptance posts the p
   expect(toggle).toHaveAttribute("aria-pressed", "true");
   confirm.mockRestore();
 });
+
+test("team file keeps blur saving, status updates and cancellation of destructive actions", async () => {
+  const user = userEvent.setup();
+  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
+  const open = jest.spyOn(window, "open").mockReturnValue(null);
+  mockData();
+  render(<ManagementDetail />);
+  await user.click(await screen.findByRole("button", { name: "詳細・全メモ" }));
+  const dialog = screen.getByRole("dialog", { name: "コートサイド" });
+  const uniform = within(dialog).getByLabelText("ユニフォーム色");
+  await user.type(uniform, "白");
+  expect(jest.mocked(fetch).mock.calls.some(([url]) => url === "/api/management/entry/update")).toBe(false);
+  await user.tab();
+  await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/management/entry/update", expect.objectContaining({ body: JSON.stringify({ entryId: "entry", updates: { uniformColor: "白" } }) })));
+  const memo = within(dialog).getByLabelText("運営用メモ");
+  await user.type(memo, "受付で確認");
+  await user.tab();
+  await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/management/entry/update", expect.objectContaining({ body: JSON.stringify({ entryId: "entry", updates: { managementMemo: "受付で確認" } }) })));
+  await user.click(within(dialog).getByRole("button", { name: "OPチャット未確認" }));
+  await waitFor(() => expect(within(dialog).getByRole("button", { name: "OPチャット参加済" })).toHaveAttribute("aria-pressed", "true"));
+  await user.click(within(dialog).getByRole("button", { name: "このチームの情報を印刷 (A4)" }));
+  expect(open).toHaveBeenCalledWith("/management/print?teamId=entry", "_blank");
+  await user.click(within(dialog).getByRole("button", { name: "仮エントリーに戻す" }));
+  await user.click(within(dialog).getByRole("button", { name: "このチームを完全に削除する" }));
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(jest.mocked(fetch).mock.calls.some(([url]) => url === "/api/admin/entry/delete")).toBe(false);
+  expect(jest.mocked(fetch).mock.calls.some(([, options]) => options?.body === JSON.stringify({ entryId: "entry", updates: { status: "draft" } }))).toBe(false);
+  await user.click(within(dialog).getByRole("button", { name: "チーム詳細を閉じる" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  confirm.mockRestore();
+  open.mockRestore();
+});
