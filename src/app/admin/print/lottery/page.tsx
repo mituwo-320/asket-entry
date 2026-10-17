@@ -1,8 +1,9 @@
 "use client";
+import { AdminPrintGuide, AdminState } from "@/components/admin/AdminFrame";
 
 import { useEffect, useState } from "react";
 import { TeamEntry } from "@/lib/types";
-import { Loader2, Printer, Ticket, ChevronLeft } from "lucide-react";
+import { Printer, Ticket, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -26,14 +27,9 @@ export default function LotteryPrintPage() {
     }, []);
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-slate-950">
-                <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
-            </div>
-        );
+        return <AdminState loading title="抽選券を準備しています" />;
     }
 
-    // Flatten players
     const tickets = entries.flatMap(entry => {
         return (entry.players || []).map(player => ({
             teamName: entry.teamName,
@@ -44,12 +40,13 @@ export default function LotteryPrintPage() {
     });
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 print:p-0 print:bg-white">
+        <div className="admin-lottery-print min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 print:p-0 print:bg-white">
+            <AdminPrintGuide title="抽選券の印刷" description="選手名とチームを確認し、PDF保存または印刷へ進んでください。" />
             {/* No-Print Header */}
             <div className="max-w-4xl mx-auto mb-8 print:hidden">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div>
-                        <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 mb-2 transition-colors">
+                        <Link href="/admin" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 mb-2 transition-colors">
                             <ChevronLeft className="w-4 h-4 mr-1" /> ダッシュボードに戻る
                         </Link>
                         <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-800">

@@ -1,3 +1,4 @@
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,7 @@ interface ProjectManagerModalProps {
 export default function ProjectManagerModal({ isOpen, onClose, projects, onProjectsUpdate }: ProjectManagerModalProps) {
     const [localProjects, setLocalProjects] = useState<Project[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const dialogRef = useAdminDialogFocus(isOpen, onClose);
     const [isLoading, setIsLoading] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -93,16 +95,16 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+            <div className="admin-dialog-layer fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
                     className="w-full max-w-3xl max-h-[90vh] flex flex-col"
                 >
-                    <Card className="bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
+                    <Card ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="プロジェクト・大会日程の管理" className="admin-dialog bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
+                        <div className="admin-dialog-header flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
                             <div>
                                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                     <Calendar className="w-5 h-5 text-indigo-400" />
@@ -110,7 +112,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                 </h2>
                                 <p className="text-xs text-slate-400 mt-1">複数の大会日程やフェーズを作成し、それぞれの募集期間を設定します。</p>
                             </div>
-                            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
+                            <Button aria-label="閉じる" variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
@@ -143,7 +145,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">プロジェクト名</label>
-                                                        <Input
+                                                        <Input aria-label="プロジェクト名"
                                                             value={p.name}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
@@ -155,7 +157,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">ステータス</label>
-                                                        <select
+                                                        <select aria-label="ステータス"
                                                             value={p.isActive ? 'true' : 'false'}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
@@ -170,7 +172,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">プロジェクト種別</label>
-                                                        <select
+                                                        <select aria-label="プロジェクト種別"
                                                             value={p.isTestProject ? 'true' : 'false'}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
@@ -185,7 +187,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">募集開始日時</label>
-                                                        <Input
+                                                        <Input aria-label="募集開始日時"
                                                             type="datetime-local"
                                                             value={p.entryStartDate ? new Date(new Date(p.entryStartDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
                                                             onChange={(e) => {
@@ -198,7 +200,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">募集終了日時</label>
-                                                        <Input
+                                                        <Input aria-label="募集終了日時"
                                                             type="datetime-local"
                                                             value={p.entryEndDate ? new Date(new Date(p.entryEndDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
                                                             onChange={(e) => {
@@ -212,7 +214,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
 
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] text-indigo-400 uppercase tracking-widest font-bold">大会本番日時 (当日)</label>
-                                                        <Input
+                                                        <Input aria-label="大会本番日時 (当日)"
                                                             type="datetime-local"
                                                             value={p.eventDate ? new Date(new Date(p.eventDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
                                                             onChange={(e) => {
@@ -226,7 +228,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
 
                                                     <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">エントリー上限チーム数</label>
-                                                        <Input
+                                                        <Input aria-label="エントリー上限チーム数"
                                                             type="number"
                                                             min="1"
                                                             placeholder="例: 12"
@@ -242,7 +244,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
 
                                                     <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">キャンセル待ち機能</label>
-                                                        <select
+                                                        <select aria-label="キャンセル待ち機能"
                                                             value={p.isWaitlistEnabled !== false ? 'true' : 'false'}
                                                             onChange={(e) => {
                                                                 const updated = [...localProjects];
@@ -258,7 +260,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
 
                                                     <div className="space-y-1 sm:col-span-2">
                                                         <label className="text-[10px] text-slate-400 uppercase tracking-widest">LINEオープンチャットURL</label>
-                                                        <Input
+                                                        <Input aria-label="LINEオープンチャットURL"
                                                             type="url"
                                                             placeholder="https://line.me/ti/g2/..."
                                                             value={p.lineOpenChatLink || ''}
@@ -298,7 +300,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                         <>
                                                             <div className="space-y-1 sm:col-span-2">
                                                                 <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック タイトル</label>
-                                                                <Input
+                                                                <Input aria-label="クリニック タイトル"
                                                                     value={p.clinicTitle || ''}
                                                                     onChange={(e) => {
                                                                         const updated = [...localProjects];
@@ -311,7 +313,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             </div>
                                                             <div className="space-y-1 sm:col-span-2">
                                                                 <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック 案内文・概要</label>
-                                                                <textarea
+                                                                <textarea aria-label="クリニック 案内文・概要"
                                                                     value={p.clinicDescription || ''}
                                                                     onChange={(e) => {
                                                                         const updated = [...localProjects];
@@ -324,7 +326,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             </div>
                                                             <div className="space-y-1 sm:col-span-2">
                                                                 <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">クリニック上限人数 (1チームあたり)</label>
-                                                                <Input
+                                                                <Input aria-label="クリニック上限人数 (1チームあたり)"
                                                                     type="number"
                                                                     min="1"
                                                                     value={p.clinicLimit !== undefined ? p.clinicLimit : 20}
@@ -377,7 +379,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
                                                             <Edit2 className="w-4 h-4 mr-1" />
                                                             編集
                                                         </Button>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)} disabled={isLoading} className="h-8 text-red-500 hover:bg-red-500/20 hover:text-red-400">
+                                                        <Button aria-label="削除" variant="ghost" size="sm" onClick={() => handleDelete(p.id)} disabled={isLoading} className="h-8 text-red-500 hover:bg-red-500/20 hover:text-red-400">
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
                                                     </div>

@@ -2,7 +2,9 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, Printer, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ParticipantDocumentActions } from "@/components/participant/ParticipantDocumentActions";
+import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
 function ReceiptContent() {
@@ -71,7 +73,7 @@ function ReceiptContent() {
     }, [entryId]);
 
     if (!entryId) return <AlreadyViewedBlock message="IDが無効です。" />;
-    if (isLoading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+    if (isLoading) return <ParticipantState title="領収書を準備しています" loading />;
 
     if (viewState === 'not_issued') return <AlreadyViewedBlock message="領収書がまだ発行されていません。" />;
     if (viewState === 'already_viewed') return <AlreadyViewedBlock message="この領収書は既に確認済みです。再表示はできません。" showContactNote />;
@@ -103,37 +105,17 @@ function ReceiptContent() {
     const amountStr = grandTotal.toLocaleString('ja-JP');
 
     return (
-        <div className="min-h-screen bg-slate-100 font-sans text-slate-900" style={{ fontFamily: "'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif" }}>
+        <div className="participant-document-screen">
+            <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
+            <main id="participant-main" tabIndex={-1}>
+            <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="領収書" description="この画面を閉じる前に、必ずPDF保存または印刷を行ってください。" />
+            <div role="alert" className="participant-document-warning print:hidden flex items-start gap-3"><AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" /><p><strong>表示できるのは1度のみです。</strong><br />画面を閉じると再表示できません。今すぐPDFとして保存または印刷してください。</p></div>
 
-            {/* ⚠️ 1回限り警告バナー（非印刷） */}
-            <div className="print:hidden bg-red-700 text-white px-4 py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>
-                    ⚠️ この画面は<span className="underline">1度しか表示されません</span>。必ず今すぐPDF保存または印刷してください。閉じると再表示できなくなります。
-                </span>
-            </div>
-
-            {/* 操作バー（非印刷） */}
-            <div className="print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center text-slate-300 hover:text-white transition-colors font-sans"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    前の画面へ戻る
-                </button>
-                <button
-                    onClick={() => { document.title = pdfFileName; window.print(); }}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded flex items-center gap-2 font-bold transition-colors shadow-lg font-sans"
-                >
-                    <Printer className="w-4 h-4" />
-                    PDFとして保存・印刷
-                </button>
-            </div>
+            <ParticipantDocumentActions onPrint={() => { document.title = pdfFileName; window.print(); }} />
 
             {/* 印刷エリア（A4） */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white shadow-xl my-8 print:my-0 print:shadow-none"
-                style={{ padding: '20mm 18mm', minHeight: '260mm' }}>
+            <div className="participant-document-paper participant-receipt-paper w-full max-w-[210mm] mx-auto bg-white shadow-xl my-8 print:my-0 print:shadow-none"
+                style={{ padding: '20mm 18mm', minHeight: '260mm', fontFamily: "'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif" }}>
 
                 <h1 className="text-4xl font-bold tracking-[0.5em] text-center mb-8 print:mb-6" style={{ letterSpacing: '0.5em' }}>
                     領　収　書
@@ -187,42 +169,19 @@ function ReceiptContent() {
                     @page { size: A4 portrait; margin: 0; }
                 }
             `}</style>
+            </main>
         </div>
     );
 }
 
 // 閲覧済み・未発行の場合に表示するブロック
 function AlreadyViewedBlock({ message, showContactNote }: { message: string; showContactNote?: boolean }) {
-    const router = useRouter();
-    return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-            <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-8 max-w-md w-full space-y-4">
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-500/10 mx-auto">
-                    <AlertTriangle className="w-7 h-7 text-red-400" />
-                </div>
-                <h2 className="text-xl font-bold text-white">表示できません</h2>
-                <p className="text-slate-300 text-sm leading-relaxed">{message}</p>
-                {showContactNote && (
-                    <p className="text-xs text-slate-500 leading-relaxed border-t border-slate-700 pt-4">
-                        領収書の再発行が必要な場合は、<br />
-                        運営（tatsuo0301@gmail.com）までお問い合わせください。
-                    </p>
-                )}
-                <button
-                    onClick={() => router.back()}
-                    className="mt-2 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    前の画面に戻る
-                </button>
-            </div>
-        </div>
-    );
+    return <><ParticipantHeader backHref="/dashboard" /><ParticipantState title="領収書を表示できません" message={showContactNote ? `${message} 再発行が必要な場合は、運営（tatsuo0301@gmail.com）までお問い合わせください。` : message} /></>;
 }
 
 export default function TeamReceiptPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>}>
+        <Suspense fallback={<ParticipantState title="領収書を準備しています" loading />}>
             <ReceiptContent />
         </Suspense>
     );

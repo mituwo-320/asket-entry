@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { OperationsPrintGuide, OperationsState } from "@/components/operations/OperationsFrame";
 import { Loader2, Printer, ArrowLeft } from "lucide-react";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
@@ -46,9 +47,9 @@ function ReceiptContent() {
         fetchData();
     }, [entryId]);
 
-    if (!entryId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid Entry ID</div>;
-    if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
-    if (!teamEntry || !user) return <div className="min-h-screen bg-white flex items-center justify-center">Team Entry Not Found</div>;
+    if (!entryId) return <OperationsState title="領収書を選択してください" message="大会の受付ページから、対象チームの領収書を開いてください。" />;
+    if (isLoading) return <OperationsState title="領収書を準備しています" loading />;
+    if (!teamEntry || !user) return <OperationsState title="領収書を確認できませんでした" message="大会の受付ページに戻り、対象チームを選び直してください。" />;
 
     const participationFee = settings?.participationFee || 2500;
     const insuranceFee = settings?.insuranceFee || 150;
@@ -83,8 +84,9 @@ function ReceiptContent() {
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900" style={{ fontFamily: "'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif" }}>
+            <OperationsPrintGuide title="領収書の控えを確認" description="宛名・金額・発行日を確認し、PDF保存または印刷を行ってください。" />
             {/* 非印刷 操作バー */}
-            <div className="print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
+            <div className="operations-document-toolbar print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
                 <button
                     onClick={() => router.back()}
                     className="flex items-center text-slate-300 hover:text-white transition-colors font-sans"

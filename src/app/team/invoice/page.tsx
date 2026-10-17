@@ -2,8 +2,9 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, Printer, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { ParticipantDocumentActions } from "@/components/participant/ParticipantDocumentActions";
+import { ParticipantHeader, ParticipantHeading, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
 function InvoiceContent() {
@@ -52,9 +53,9 @@ function InvoiceContent() {
         }
     }, [teamEntry]);
 
-    if (!entryId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid Entry ID</div>;
-    if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
-    if (!teamEntry || !user) return <div className="min-h-screen bg-white flex items-center justify-center">Team Entry Not Found</div>;
+    if (!entryId) return <ParticipantState title="請求書を選択してください" message="マイページから対象のチームの請求書を開いてください。" />;
+    if (isLoading) return <ParticipantState title="請求書を準備しています" loading />;
+    if (!teamEntry || !user) return <ParticipantState title="請求書を確認できませんでした" message="マイページに戻り、時間をおいてもう一度お試しください。" />;
 
     const participationFee = settings?.participationFee || 2500;
     const insuranceFee = settings?.insuranceFee || 150;
@@ -78,29 +79,15 @@ function InvoiceContent() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-100 font-sans text-slate-800">
-            {/* Non-printable Top Bar */}
-            <div className="print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
-                <button 
-                    onClick={() => router.back()} 
-                    className="flex items-center text-slate-300 hover:text-white transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    前の画面へ戻る
-                </button>
-                <div className="flex gap-4">
-                    <button 
-                        onClick={() => window.print()} 
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded flex items-center gap-2 font-bold transition-colors shadow-lg"
-                    >
-                        <Printer className="w-4 h-4" />
-                        PDFとして保存・印刷
-                    </button>
-                </div>
-            </div>
+        <div className="participant-document-screen font-sans">
+            <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
+            <main id="participant-main" tabIndex={-1}>
+            <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="請求書" description="内容を確認し、PDFとして保存または印刷してください。" />
+
+            <ParticipantDocumentActions onPrint={() => window.print()} />
 
             {/* Printable Area */}
-            <div className="w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
+            <div className="participant-document-paper w-full max-w-[210mm] mx-auto bg-white p-6 sm:p-[10mm] print:p-[5mm] shadow-xl my-8 print:my-0 print:shadow-none print:text-[13px] flex flex-col">
                 
                 {/* Header */}
                 <div className="mb-6 text-center">
@@ -210,13 +197,14 @@ function InvoiceContent() {
                     }
                 }
             `}</style>
+            </main>
         </div>
     );
 }
 
 export default function InvoicePage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>}>
+        <Suspense fallback={<ParticipantState title="請求書を準備しています" loading />}>
             <InvoiceContent />
         </Suspense>
     );

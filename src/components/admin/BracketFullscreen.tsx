@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 
 interface BracketFullscreenProps {
+    appearance?: "default" | "operations" | "admin";
     isOpen: boolean;
     onClose: () => void;
     bracketData: TournamentBracketData;
@@ -561,7 +562,7 @@ function FullscreenBlockMatchCard({
     };
 
     return (
-        <div className={`rounded-xl border bg-white overflow-hidden text-xs shadow-sm ${styles.cardBorder}`}>
+        <div className={`bracket-match-card rounded-xl border bg-white overflow-hidden text-xs shadow-sm ${styles.cardBorder}`}>
             {/* Header */}
             <div className={`px-2 py-1 flex items-center justify-between border-b text-[10px] font-bold ${
                 theme === 'dark' ? 'bg-slate-800 text-slate-200 border-slate-700' : 'bg-slate-100 text-slate-800 border-slate-250'
@@ -770,7 +771,7 @@ function ProjectionMatch({
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border-2 ${styles.cardBorder} ${styles.cardBg} overflow-hidden z-10 relative
+            className={`bracket-match-card rounded-xl border-2 ${styles.cardBorder} ${styles.cardBg} overflow-hidden z-10 relative
                         ${matchHighlight ? 'shadow-2xl ring-4 ring-amber-400/50' : 'shadow-lg shadow-black/5'}`}
             style={{ width: layout.cardWidth }}
         >
@@ -938,6 +939,7 @@ function SectionLabel({
 
 // ===== Main Fullscreen Component =====
 export default function BracketFullscreen({
+    appearance = "default",
     isOpen,
     onClose,
     bracketData,
@@ -1025,7 +1027,7 @@ export default function BracketFullscreen({
         if (cachedName) return cachedName;
         if (!teamId) return '';
         const entry = entries.find(e => e.id === teamId);
-        return entry ? entry.name : teamId;
+        return entry ? entry.teamName : teamId;
     }, [entries]);
 
     // Detect new completions and trigger celebration
@@ -1191,7 +1193,7 @@ export default function BracketFullscreen({
         if (slot.teamName) return slot.teamName;
         if (slot.teamId) {
             const entry = entries.find(e => e.id === slot.teamId);
-            if (entry) return entry.name;
+            if (entry) return entry.teamName;
             return slot.teamId;
         }
         if (slot.isBye) return 'BYE';
@@ -1369,10 +1371,10 @@ export default function BracketFullscreen({
     const hasWinners = bracketData.winnersMatches.length > 0;
 
     return (
-        <div ref={containerRef} className={`fixed inset-0 z-[150] ${styles.bg} overflow-hidden flex flex-col font-sans p-4`}>
+        <div ref={containerRef} data-appearance={appearance} data-theme={theme} className={`bracket-fullscreen fixed inset-0 z-[150] ${styles.bg} overflow-hidden flex flex-col font-sans p-4`}>
 
             {/* Subtle floating controls panel */}
-            <div className={`absolute top-4 right-4 z-[200] flex items-center gap-2 p-1.5 rounded-2xl shadow-xl border transition-all duration-300 opacity-20 hover:opacity-100 ${styles.controlBg} ${styles.controlBorder}`}>
+            <div className={`bracket-fullscreen-controls absolute top-4 right-4 z-[200] flex items-center gap-2 p-1.5 rounded-2xl shadow-xl border transition-all duration-300 opacity-20 hover:opacity-100 ${styles.controlBg} ${styles.controlBorder}`}>
                 <button
                     onClick={() => setShowTheatreMode(!showTheatreMode)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-sm border shadow-sm transition-all ${
@@ -2050,14 +2052,12 @@ export default function BracketFullscreen({
                             animate={{ 
                                 scale: [0.3, 1.1, 1], 
                                 rotate: [-15, 5, 0],
-                                y: 0,
                                 x: isShaking ? [-15, 15, -12, 12, -8, 8, -4, 4, 0] : 0,
                                 y: isShaking ? [-10, 10, -8, 8, -6, 6, -3, 3, 0] : 0
                             }}
                             transition={{ 
                                 scale: { type: "spring", damping: 12, stiffness: 100 },
                                 rotate: { duration: 0.6 },
-                                y: { type: "spring", damping: 12, stiffness: 100 },
                                 x: { duration: 0.5, delay: 0.3 },
                                 y: { duration: 0.5, delay: 0.3 }
                             }}

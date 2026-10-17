@@ -1,5 +1,7 @@
 "use client";
 
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/Button";
 import { X, Play, Clock, LayoutGrid } from 'lucide-react';
@@ -11,6 +13,7 @@ interface ScheduleGeneratorModalProps {
 }
 
 export default function ScheduleGeneratorModal({ onClose, onGenerate }: ScheduleGeneratorModalProps) {
+    const dialogRef = useAdminDialogFocus(true, onClose);
     const [startTime, setStartTime] = useState("10:00");
     const [courts, setCourts] = useState(2);
     const [matchDuration, setMatchDuration] = useState(15);
@@ -51,14 +54,14 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10 flex flex-col"
+                ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="スケジュール自動生成" className="admin-dialog bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10 flex flex-col"
             >
-                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-900/95 backdrop-blur z-20">
+                <div className="admin-dialog-header p-6 border-b border-white/5 flex justify-between items-center bg-slate-900/95 backdrop-blur z-20">
                     <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                         <Play className="w-5 h-5 text-indigo-400" />
                         スケジュール自動生成
                     </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
+                    <button aria-label="閉じる" onClick={onClose} className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -71,7 +74,7 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                                     <Clock className="w-3 h-3 inline mr-1 mb-0.5" />
                                     試合開始時刻
                                 </label>
-                                <input
+                                <input aria-label="試合開始時刻"
                                     type="time"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
@@ -83,7 +86,7 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                                     <LayoutGrid className="w-3 h-3 inline mr-1 mb-0.5" />
                                     コート数
                                 </label>
-                                <select
+                                <select aria-label="コート数"
                                     value={courts}
                                     onChange={(e) => setCourts(Number(e.target.value))}
                                     className="w-full bg-slate-950/50 border border-slate-700/50 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-inner"
@@ -99,7 +102,7 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                                 <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
                                     1試合の所要時間 (分)
                                 </label>
-                                <input
+                                <input aria-label="1試合の所要時間 (分)"
                                     type="number"
                                     min={5}
                                     value={matchDuration}
@@ -111,7 +114,7 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                                 <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
                                     試合間隔 (分)
                                 </label>
-                                <input
+                                <input aria-label="試合間隔 (分)"
                                     type="number"
                                     min={0}
                                     value={interval}
@@ -125,7 +128,7 @@ export default function ScheduleGeneratorModal({ onClose, onGenerate }: Schedule
                             <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
                                 作成する試合枠数 (1コートあたり)
                             </label>
-                            <input
+                            <input aria-label="作成する試合枠数 (1コートあたり)"
                                 type="number"
                                 min={1}
                                 max={30}

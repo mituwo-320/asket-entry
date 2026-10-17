@@ -1,3 +1,4 @@
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,7 @@ interface BackupManagerModalProps {
 
 export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, projects }: BackupManagerModalProps) {
     const [backups, setBackups] = useState<BackupItem[]>([]);
+    const dialogRef = useAdminDialogFocus(isOpen, onClose);
     const [isLoading, setIsLoading] = useState(false);
     const [isRestoring, setIsRestoring] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -124,16 +126,16 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+            <div className="admin-dialog-layer fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
                     className="w-full max-w-2xl max-h-[85vh] flex flex-col"
                 >
-                    <Card className="bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
+                    <Card ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="自動バックアップからのデータ復元" className="admin-dialog bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
+                        <div className="admin-dialog-header flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
                             <div>
                                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                     <HardDrive className="w-5 h-5 text-indigo-400" />
@@ -141,7 +143,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
                                 </h2>
                                 <p className="text-xs text-slate-400 mt-1">シードデータの作成（流し込み）や削除の直前に自動保存された履歴から、データを以前の状態に復元できます。</p>
                             </div>
-                            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
+                            <Button aria-label="閉じる" variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
                                 <X className="w-5 h-5 text-slate-400 hover:text-white" />
                             </Button>
                         </div>
@@ -162,7 +164,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
                                     <span>手動バックアップの作成</span>
                                 </h3>
                                 <div className="flex flex-col sm:flex-row gap-3">
-                                    <select
+                                    <select aria-label="バックアップ対象のプロジェクト"
                                         value={backupProjectId}
                                         onChange={(e) => setBackupProjectId(e.target.value)}
                                         className="flex-1 h-9 bg-slate-900 border border-slate-700 rounded-md text-sm px-3 text-slate-200"

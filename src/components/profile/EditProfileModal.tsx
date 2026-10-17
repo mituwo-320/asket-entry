@@ -4,8 +4,8 @@ import { useState } from "react";
 import { User } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { X, Save, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Save, Loader2 } from "lucide-react";
+import { ParticipantDialog } from "@/components/participant/ParticipantDialog";
 
 interface EditProfileModalProps {
     isOpen: boolean;
@@ -15,6 +15,11 @@ interface EditProfileModalProps {
 }
 
 export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileModalProps) {
+    if (!isOpen) return null;
+    return <ProfileEditor onClose={onClose} user={user} onSave={onSave} />;
+}
+
+function ProfileEditor({ onClose, user, onSave }: Omit<EditProfileModalProps, "isOpen">) {
     const [formData, setFormData] = useState<User>({ ...user });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,6 +30,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setIsLoading(true);
         setError(null);
 
@@ -43,52 +49,25 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
             const data = await res.json();
             onSave(data.user);
             onClose();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "保存できませんでした。もう一度お試しください。");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
-
-                    {/* Modal */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
-                    >
-                        <div className="bg-slate-900 border border-slate-700/50 shadow-2xl rounded-2xl w-full max-w-lg pointer-events-auto overflow-hidden">
-                            <div className="flex items-center justify-between p-6 border-b border-white/5">
-                                <h2 className="text-xl font-bold text-white">プロフィール編集</h2>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <ParticipantDialog isOpen onClose={onClose} title="プロフィール編集" description="大会運営から連絡できるよう、代表者の氏名と電話番号を確認してください。" busy={isLoading}>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="participant-dialog-account"><span>ログインメールアドレス</span><p>{user.email}</p></div>
                                 {error && (
-                                    <div className="p-3 mb-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg">
+                                    <div role="alert" className="participant-feedback participant-feedback-error">
                                         {error}
                                     </div>
                                 )}
 
-                                <div className="space-y-4">
+                                <fieldset disabled={isLoading} className="space-y-4">
+                                    <legend className="participant-sr-only">代表者の連絡先</legend>
                                     <Input
                                         id="name"
                                         name="name"
@@ -106,10 +85,10 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
                                         onChange={handleChange}
                                         required
                                     />
-                                </div>
+                                </fieldset>
 
-                                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-white/5">
-                                    <Button type="button" variant="ghost" onClick={onClose}>
+                                <div className="participant-dialog-actions">
+                                    <Button type="button" variant="outline" disabled={isLoading} onClick={onClose}>
                                         キャンセル
                                     </Button>
                                     <Button type="submit" variant="primary" disabled={isLoading}>
@@ -121,10 +100,6 @@ export function EditProfileModal({ isOpen, onClose, user, onSave }: EditProfileM
                                     </Button>
                                 </div>
                             </form>
-                        </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+        </ParticipantDialog>
     );
 }

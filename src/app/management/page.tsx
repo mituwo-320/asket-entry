@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Loader2, Calendar, ArrowLeft, ChevronRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { Calendar, ChevronRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { Project, TeamEntry } from "@/lib/types";
+import { OperationsHeader, OperationsHeading, OperationsState } from "@/components/operations/OperationsFrame";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -71,33 +72,16 @@ export default function ManagementProjectList() {
     };
 
     if (isLoading) {
-        return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white"><Loader2 className="animate-spin w-8 h-8 mb-4 text-emerald-500" /> <span className="text-sm tracking-widest text-slate-400">データ読み込み中...</span></div>;
+        return <OperationsState title="運営データを読み込んでいます" loading />;
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200">
+        <div className="operations-workspace">
             {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl shadow-lg shadow-emerald-500/20 border border-emerald-400/20">
-                            <Calendar className="w-5 h-5 text-white" />
-                        </div>
-                        <h1 className="text-lg font-bold text-white tracking-tight">Management Portal</h1>
-                    </div>
-                    <div>
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white" onClick={handleLogout}>
-                            <ArrowLeft className="w-4 h-4 mr-1" /> <span className="text-xs sm:text-sm">ログアウト</span>
-                        </Button>
-                    </div>
-                </div>
-            </header>
+            <OperationsHeader backHref="/" backLabel="トップへ" title="運営デスク"><Button variant="ghost" size="sm" onClick={handleLogout}>ログアウト</Button></OperationsHeader>
 
-            <main className="container mx-auto px-4 py-8 max-w-4xl">
-                <div className="mb-8 pl-1">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">大会の選択</h2>
-                    <p className="text-slate-400 text-sm">管理するプロジェクト（大会）を選んでください。</p>
-                </div>
+            <main id="operations-main" tabIndex={-1} className="operations-main">
+                <OperationsHeading eyebrow="TOURNAMENT / SELECT" title="今日の運営を、ここから。" description="担当する大会を選んで、受付・参加状況・必要な書類を確認します。"><p className="operations-heading-note">開催中の大会 {projects.filter(p => !p.isTestProject).length} 件</p></OperationsHeading>
 
                 {projects.length === 0 ? (
                     <div className="text-center py-16 bg-slate-900/30 rounded-2xl border border-white/5">
@@ -130,7 +114,7 @@ export default function ManagementProjectList() {
                                         return (
                                             <motion.div variants={itemVariants} key={project.id}>
                                                 <Link href={`/management/${project.id}`}>
-                                                    <Card className="group relative overflow-hidden bg-slate-900/60 hover:bg-slate-800/80 border-slate-700/50 hover:border-emerald-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
+                                                    <Card className="operations-project-pass group relative overflow-hidden bg-slate-900/60 hover:bg-slate-800/80 border-slate-700/50 hover:border-emerald-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
                                                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-transform">
                                                             <Calendar className="w-16 h-16 text-emerald-400" />
                                                         </div>
@@ -155,7 +139,7 @@ export default function ManagementProjectList() {
                                                                 )}
                                                                 
                                                                 <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
-                                                                    <span className="text-[10px] text-emerald-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
+                                                                    <span className="text-[10px] text-emerald-500 block uppercase tracking-wider font-bold mb-0.5">参加枠内の請求総額</span>
                                                                     <span className="text-lg font-black text-emerald-400">¥{projectTotalAmount.toLocaleString()}</span>
                                                                 </div>
                                                             </div>
@@ -185,6 +169,7 @@ export default function ManagementProjectList() {
                                         <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 uppercase font-black tracking-wide">Test Mode</span>
                                     </h3>
                                     <Button 
+                                        aria-expanded={showTestProjects}
                                         variant="outline" 
                                         size="sm" 
                                         className="h-8 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900 flex items-center gap-1.5"
@@ -228,7 +213,7 @@ export default function ManagementProjectList() {
                                             return (
                                                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} key={project.id}>
                                                     <Link href={`/management/${project.id}`}>
-                                                        <Card className="group relative overflow-hidden bg-slate-900/40 hover:bg-slate-800/60 border-slate-800/80 hover:border-amber-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
+                                                        <Card className="operations-project-pass operations-project-test group relative overflow-hidden bg-slate-900/40 hover:bg-slate-800/60 border-slate-800/80 hover:border-amber-500/50 transition-all p-6 cursor-pointer flex flex-col h-full">
                                                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-transform">
                                                                 <Calendar className="w-16 h-16 text-amber-400" />
                                                             </div>
@@ -256,7 +241,7 @@ export default function ManagementProjectList() {
                                                                     )}
                                                                     
                                                                     <div className="bg-slate-950/50 rounded-lg px-3 py-2 border border-white/5 ml-auto">
-                                                                        <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">確定チーム請求総額</span>
+                                                                        <span className="text-[10px] text-slate-500 block uppercase tracking-wider font-bold mb-0.5">参加枠内の請求総額</span>
                                                                         <span className="text-lg font-black text-slate-400">¥{projectTotalAmount.toLocaleString()}</span>
                                                                     </div>
                                                                 </div>

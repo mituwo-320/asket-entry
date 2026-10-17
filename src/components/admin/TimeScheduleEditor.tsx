@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Match, ScheduleEvent, TeamEntry } from '@/lib/types';
 import { Loader2, Save, Plus, Edit2, Trash2, X } from 'lucide-react';
 
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 import ScheduleGeneratorModal from './ScheduleGeneratorModal';
 
 interface TimeScheduleEditorProps {
+    tournamentId: string;
     entries: TeamEntry[];
     matches: Match[];
     refreshData: () => void;
@@ -19,7 +21,7 @@ interface TimeSlot {
     fullEvent?: ScheduleEvent;
 }
 
-export default function TimeScheduleEditor({ entries, matches, refreshData }: TimeScheduleEditorProps) {
+export default function TimeScheduleEditor({ tournamentId, entries, matches, refreshData }: TimeScheduleEditorProps) {
     const [events, setEvents] = useState<ScheduleEvent[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -40,15 +42,10 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
         return counts;
     }, [matches, entries]);
 
-    // Fetch Events on Mount
-    useEffect(() => {
-        fetchEvents();
-    }, []);
-
-    const fetchEvents = async () => {
+    const fetchEvents = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/schedule/events?tournamentId=2024-Spring');
+            const res = await fetch(`/api/schedule/events?tournamentId=${encodeURIComponent(tournamentId)}`);
             if (res.ok) {
                 const data = await res.json();
                 setEvents(data.events || []);
@@ -58,7 +55,11 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
         } finally {
             setLoading(false);
         }
-    };
+    }, [tournamentId]);
+
+    useEffect(() => {
+        fetchEvents();
+    }, [fetchEvents]);
 
     // Helper to get Team Name
     const getTeamName = (id: string) => {
@@ -106,6 +107,8 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
     const scheduleSlots = processSchedule();
 
     const [editingItem, setEditingItem] = useState<Match | ScheduleEvent | null>(null);
+
+    const editDialogRef = useAdminDialogFocus(isEditModalOpen && !!editingItem, () => setIsEditModalOpen(false));
 
     const openEdit = (item: Match | ScheduleEvent) => {
         setEditingItem(item);
@@ -184,7 +187,7 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    tournamentId: '2024-Spring',
+                    tournamentId,
                     config // We will pass this to the API
                 })
             });
@@ -216,11 +219,11 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
 
     // Render Logic
     return (
-        <div className="bg-slate-900/40 rounded-2xl shadow-sm border border-white/5 overflow-hidden relative">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-900/20">
+        <div className="admin-schedule bg-slate-900/40 rounded-2xl shadow-sm border border-white/5 overflow-hidden relative">
+            <div className="admin-schedule-toolbar p-6 border-b border-white/5 flex justify-between items-center bg-slate-900/20">
                 <h3 className="text-lg font-bold text-white tracking-tight">タイムスケジュール</h3>
                 <div className="flex gap-3">
-                    <button onClick={() => { refreshData(); fetchEvents(); }} className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/5">
+                    <button aria-label="更新" onClick={() => { refreshData(); fetchEvents(); }} className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/5">
                         <Loader2 className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button
@@ -228,7 +231,7 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
                             // Create a new blank event
                             const newEvent: ScheduleEvent = {
                                 id: `evt_${Date.now()}`,
-                                tournamentId: '2024-Spring',
+                                tournamentId,
                                 type: 'break',
                                 title: '新規イベント',
                                 startTime: '12:00',
@@ -247,6 +250,7 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
                         自動生成
                     </button>
                     <button
+                        aria-pressed={showTeamSidebar}
                         onClick={() => setShowTeamSidebar(!showTeamSidebar)}
                         className={`flex items-center gap-1.5 font-bold text-sm px-4 py-2 rounded-xl transition-all border ${showTeamSidebar ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/50' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}
                     >
@@ -387,10 +391,10 @@ export default function TimeScheduleEditor({ entries, matches, refreshData }: Ti
             {isEditModalOpen && editingItem && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
-                    <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl max-w-lg w-full relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center p-6 border-b border-white/5 bg-slate-900/95 backdrop-blur z-20">
+                    <div ref={editDialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="予定の編集" className="admin-dialog bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl max-w-lg w-full relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="admin-dialog-header flex justify-between items-center p-6 border-b border-white/5 bg-slate-900/95 backdrop-blur z-20">
                             <h3 className="text-xl font-bold text-white tracking-tight">予定の編集</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
+                            <button aria-label="閉じる" onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -563,7 +567,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className={labelClass}>開始時間</label>
-                    <input
+                    <input aria-label="開始時間"
                         type="time"
                         value={formData.time || formData.startTime || ''}
                         onChange={(e) => isEvent ? handleChange('startTime', e.target.value) : handleChange('time', e.target.value)}
@@ -572,7 +576,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                 </div>
                 <div>
                     <label className={labelClass}>コート</label>
-                    <select
+                    <select aria-label="コート"
                         value={formData.court || ''}
                         onChange={(e) => handleChange('court', e.target.value)}
                         className={inputClass}
@@ -590,7 +594,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                 <>
                     <div>
                         <label className={labelClass}>イベント名</label>
-                        <input
+                        <input aria-label="イベント名"
                             type="text"
                             value={formData.title || ''}
                             onChange={(e) => handleChange('title', e.target.value)}
@@ -599,7 +603,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                     </div>
                     <div>
                         <label className={labelClass}>終了時間(目安)</label>
-                        <input
+                        <input aria-label="終了時間(目安)"
                             type="time"
                             value={formData.endTime || ''}
                             onChange={(e) => handleChange('endTime', e.target.value)}
@@ -608,7 +612,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                     </div>
                     <div>
                         <label className={labelClass}>タイプ</label>
-                        <select
+                        <select aria-label="タイプ"
                             value={formData.type}
                             onChange={(e) => handleChange('type', e.target.value)}
                             className={inputClass}
@@ -625,7 +629,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                 <>
                     <div>
                         <label className={labelClass}>試合番号 (例: A-1)</label>
-                        <input
+                        <input aria-label="試合番号 (例: A-1)"
                             type="text"
                             value={formData.matchNumber || ''}
                             onChange={(e) => handleChange('matchNumber', e.target.value)}
@@ -634,7 +638,7 @@ function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match |
                     </div>
                     <div>
                         <label className={labelClass}>審判/TOチーム</label>
-                        <select
+                        <select aria-label="審判/TOチーム"
                             value={formData.refereeTeamId || ''}
                             onChange={(e) => handleChange('refereeTeamId', e.target.value)}
                             className={inputClass}

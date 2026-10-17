@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { AdminState } from "@/components/admin/AdminFrame";
 import { TournamentBracketData, TeamEntry } from "@/lib/types";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
-import { Loader2, Trophy, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { Trophy, RefreshCw, Wifi, WifiOff } from "lucide-react";
 
 interface DisplayData {
     bracketId: string;
@@ -90,20 +91,12 @@ export default function BracketDisplayPage() {
     }, [fetchData]);
 
     if (isLoading) {
-        return (
-            <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} flex flex-col items-center justify-center gap-4`}>
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-2xl shadow-indigo-500/30">
-                    <Trophy className="w-10 h-10 text-white" />
-                </div>
-                <Loader2 className={`w-8 h-8 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'} animate-spin`} />
-                <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} text-sm font-bold tracking-widest uppercase`}>接続中...</p>
-            </div>
-        );
+        return <AdminState loading title="表示用の対戦表に接続しています" />;
     }
 
     if (!data) {
         return (
-            <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} flex flex-col items-center justify-center gap-6 text-center px-8`}>
+            <div className={`admin-display-empty min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} flex flex-col items-center justify-center gap-6 text-center px-8`}>
                 <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900/60 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
                     <Trophy className={`w-16 h-16 ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} mx-auto mb-4`} />
                     <h2 className="text-xl font-black mb-2">トーナメント表がありません</h2>
@@ -123,7 +116,7 @@ export default function BracketDisplayPage() {
     return (
         <div className={`relative min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-white'}`}>
             {/* Status indicator (top-right corner, very subtle, matching background) */}
-            <div className="fixed top-3 right-4 z-[210] flex items-center gap-2 opacity-30 hover:opacity-85 transition-opacity">
+            <div className="admin-display-connection fixed bottom-3 right-4 z-[210] flex items-center gap-2">
                 {isConnected ? (
                     <Wifi className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
@@ -136,6 +129,7 @@ export default function BracketDisplayPage() {
 
             {/* Bracket always open in display mode */}
             <BracketFullscreen
+                appearance="admin"
                 isOpen={true}
                 onClose={() => {}}   // no-op — can't close display mode
                 bracketData={data.brackets}
