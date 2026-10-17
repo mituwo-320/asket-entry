@@ -5,6 +5,7 @@ import { CupMark } from "@/components/entry/CupMark";
 
 export function ParticipantTheme({ children }: { children: ReactNode }) {
   return <div className="entry-surface participant-surface">
+    <a className="entry-skip-link" href="#participant-main">本文へ移動</a>
     {children}
     <footer className="participant-footer print:hidden"><span className="participant-footer-brand">vankycup<i aria-hidden="true" /></span><span>PLAY TOGETHER.</span><span>&copy; {new Date().getFullYear()} vankycup</span></footer>
   </div>;
@@ -47,11 +48,11 @@ export function ParticipantFormFooter() {
 }
 
 export function ParticipantState({ title, message, loading = false, href = "/dashboard", linkLabel = "マイページへ戻る" }: { title: string; message?: string; loading?: boolean; href?: string; linkLabel?: string }) {
-  return <div className="participant-state-screen"><section className="participant-state" aria-busy={loading}>
+  return <main id="participant-main" tabIndex={-1} className="participant-state-screen"><section className="participant-state" aria-busy={loading}>
     <div className="participant-state-cover" aria-hidden="true"><span>VANKY CUP / TEAM DESK</span></div>
     {loading ? <Loader2 className="participant-state-icon animate-spin" aria-hidden="true" /> : <CupMark className="participant-state-mark" />}
     <h1 aria-live={loading ? "polite" : undefined}>{title}</h1>{message ? <p>{message}</p> : null}
     {!loading ? <Link href={href} className="participant-state-link">{linkLabel}</Link> : null}
     <ParticipantFormFooter />
-  </section></div>;
+  </section></main>;
 }

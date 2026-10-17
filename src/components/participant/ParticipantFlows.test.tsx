@@ -199,5 +199,19 @@ test("account with completed registrations does not show an unfinished-member wa
   await screen.findByRole("heading", { name: "マイページ" });
   expect(screen.queryByText("【重要】メンバー登録のお願い")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "ログアウト" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /チーム編集・メンバー追加/ })).toHaveAttribute("href", "/team/dashboard?id=test-entry");
+  expect(screen.getByRole("link", { name: /チーム・登録内容を確認/ })).toHaveAttribute("href", "/team/dashboard?id=test-entry");
+});
+
+test("collapsing contact guidance keeps tournament chat links accessible and can be expanded again", async () => {
+  const user = userEvent.setup();
+  localStorage.setItem("currentUser", JSON.stringify(account));
+  jest.mocked(fetch).mockImplementation(url => response(String(url).startsWith("/api/user/entries") ? { entries: [baseEntry] } : url === "/api/admin/projects" ? { projects: [{ ...project, lineOpenChatLink: "https://example.test/tournament-chat" }] } : {}) as ReturnType<typeof fetch>);
+  render(<UserDashboard />);
+  await screen.findByRole("heading", { name: "マイページ" });
+  await user.click(screen.getByRole("button", { name: "LINEのお知らせを閉じる" }));
+  const expand = screen.getByRole("button", { name: "LINEのお知らせを詳しく見る" });
+  expect(expand).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByRole("link", { name: /チャットを開く/ })).toHaveAttribute("href", "https://example.test/tournament-chat");
+  await user.click(expand);
+  expect(screen.getByRole("button", { name: "LINEのお知らせを閉じる" })).toHaveAttribute("aria-expanded", "true");
 });

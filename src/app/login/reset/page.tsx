@@ -227,7 +227,7 @@ export default function ResetPasswordPage() {
     return (
         <>
             <ParticipantHeader backHref="/login" backLabel="ログインへ戻る" />
-            <main className="participant-form-page">
+            <main id="participant-main" tabIndex={-1} className="participant-form-page">
               <div className="participant-form-layout">
                 <ParticipantStory eyebrow="BACK TO YOUR TEAM." title={<>もう一度、<br />チームのもとへ。</>} description="ログインできないときは、登録したメールアドレスからパスワードを再設定できます。" guideTitle="再設定の流れ" steps={[
                     { title: "メールアドレスを入力", description: "チームの申し込みに使ったアドレスを入力。" },

@@ -107,6 +107,7 @@ function ReceiptContent() {
     return (
         <div className="participant-document-screen">
             <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
+            <main id="participant-main" tabIndex={-1}>
             <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="領収書" description="この画面を閉じる前に、必ずPDF保存または印刷を行ってください。" />
             <div role="alert" className="participant-document-warning print:hidden flex items-start gap-3"><AlertTriangle className="w-5 h-5 flex-shrink-0 mt-1" /><p><strong>表示できるのは1度のみです。</strong><br />画面を閉じると再表示できません。今すぐPDFとして保存または印刷してください。</p></div>
 
@@ -168,6 +169,7 @@ function ReceiptContent() {
                     @page { size: A4 portrait; margin: 0; }
                 }
             `}</style>
+            </main>
         </div>
     );
 }

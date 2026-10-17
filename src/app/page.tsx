@@ -33,13 +33,14 @@ export default function Home() {
   return (
     <div className="entry-surface cup-home">
       <div className="cup-print-texture" aria-hidden="true" />
+      <a className="entry-skip-link" href="#entry-main">本文へ移動</a>
       <header className="cup-header">
         <Link href="/" aria-label="ヴァンキーカップ トップ" className="cup-wordmark">vanky<span>cup</span><i aria-hidden="true" /></Link>
         <span className="cup-header-label">大会参加受付</span>
         <div className="cup-header-rule" aria-hidden="true"><span /><span /><span /></div>
         <Link href="/login" className="cup-header-login">ログイン <ArrowUpRight aria-hidden="true" size={16} /></Link>
       </header>
-      <main>
+      <main id="entry-main" tabIndex={-1}>
         <section className="cup-hero" aria-labelledby="entry-heading">
           <div className="cup-court" aria-hidden="true" />
           <span className="cup-side-note" aria-hidden="true">VANKY CUP — TEAM ENTRY</span>

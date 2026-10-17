@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, CheckCircle2, MessageCircle, X } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, MessageCircle, X, ChevronDown } from "lucide-react";
 import type { Project, TeamEntry } from "@/lib/types";
 
-export function ParticipantContactBoard({ projects, entries, defaultLink, onDismiss }: { projects: Project[]; entries: TeamEntry[]; defaultLink?: string; onDismiss: () => void }) {
+export function ParticipantContactBoard({ projects, entries, defaultLink, onDismiss, collapsed = false }: { projects: Project[]; entries: TeamEntry[]; defaultLink?: string; onDismiss: () => void; collapsed?: boolean }) {
   const [now] = useState(() => Date.now());
   const contacts = projects.filter(project => {
     if (!entries.some(entry => entry.tournamentId === project.id)) return false;
@@ -12,8 +12,8 @@ export function ParticipantContactBoard({ projects, entries, defaultLink, onDism
     return !!(project.lineOpenChatLink || defaultLink);
   });
   if (contacts.length === 0) return null;
-  return <section className="participant-contact-board" aria-labelledby="contact-board-title">
-    <header><div><p>COURTSIDE / INFORMATION</p><h2 id="contact-board-title"><MessageCircle size={20} aria-hidden="true" />大会からの大切な連絡</h2></div><button type="button" aria-label="LINEのお知らせを閉じる" onClick={onDismiss}><X size={19} aria-hidden="true" /></button></header>
+  return <section className="participant-contact-board" aria-labelledby="contact-board-title" data-collapsed={collapsed}>
+    <header><div><p>COURTSIDE / INFORMATION</p><h2 id="contact-board-title"><MessageCircle size={20} aria-hidden="true" />大会からの大切な連絡</h2></div><button type="button" aria-label={collapsed ? "LINEのお知らせを詳しく見る" : "LINEのお知らせを閉じる"} aria-expanded={!collapsed} onClick={onDismiss}>{collapsed ? <ChevronDown size={19} aria-hidden="true" /> : <X size={19} aria-hidden="true" />}</button></header>
     <p className="participant-contact-intro">集合時間や持ち物、当日の変更はLINEオープンチャットへ。代表者の方は参加必須です。大会ごとのチャットにご参加ください。</p>
     <ul>{contacts.map(project => {
       const projectEntries = entries.filter(entry => entry.tournamentId === project.id);

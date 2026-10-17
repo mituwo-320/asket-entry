@@ -183,7 +183,7 @@ export default function RegisterPage() {
     return (
         <>
         <ParticipantHeader backHref="/" backLabel="トップへ戻る" />
-        <main className="participant-form-page">
+        <main id="participant-main" tabIndex={-1} className="participant-form-page">
         <div className="participant-form-layout">
             <ParticipantStory eyebrow="MAKE IT A TEAM DAY." title={<>仲間と一緒に、<br />次のコートへ。</>} description="まずは代表者の方がチームを申し込み、登録後に他のメンバーを追加します。" guideTitle="申し込みから当日まで" steps={[
                 { title: "チームを申し込む", description: "大会日程を選び、チームと代表者を登録します。" },

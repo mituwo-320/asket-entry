@@ -48,7 +48,7 @@ export function ParticipantRegistrationComplete({ teamName, projectName, email, 
 
   return <>
     <ParticipantHeader backHref="/dashboard" />
-    <main className="participant-completion-page">
+    <main id="participant-main" tabIndex={-1} className="participant-completion-page">
       <section className="participant-completion-ticket" aria-labelledby="registration-complete-title" data-waitlist={isWaitlist}>
         <div className="participant-completion-cover" aria-hidden="true"><span>VANKY CUP / TEAM ENTRY</span><CupMark /><span>PLAY<br />TOGETHER.</span></div>
         <header className="participant-completion-result">

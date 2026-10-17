@@ -81,6 +81,7 @@ function InvoiceContent() {
     return (
         <div className="participant-document-screen font-sans">
             <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
+            <main id="participant-main" tabIndex={-1}>
             <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="請求書" description="内容を確認し、PDFとして保存または印刷してください。" />
 
             <ParticipantDocumentActions onPrint={() => window.print()} />
@@ -196,6 +197,7 @@ function InvoiceContent() {
                     }
                 }
             `}</style>
+            </main>
         </div>
     );
 }

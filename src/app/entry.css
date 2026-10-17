@@ -220,3 +220,8 @@
 }
 .entry-form-screen { background: radial-gradient(ellipse at 50% 0%, #7021321a, transparent 60%); }
 .entry-surface select:focus-visible, .entry-surface textarea:focus-visible, .entry-surface [data-ui="input"]:focus-visible { outline: 3px solid #ef5967; outline-offset: 3px; }
+
+/* Keyboard access remains visible above the illustrated surfaces. */
+.entry-skip-link { position: absolute; top: 10px; left: 16px; z-index: 500; display: inline-flex; align-items: center; min-height: 46px; padding: 10px 18px; border: 2px solid #92263a; border-radius: 6px; color: #282d36; background: #fff9ee; font-size: 14px; font-weight: 700; transform: translateY(-180%); }
+.entry-skip-link:focus { transform: translateY(0); outline: 3px solid #ffb2bf; outline-offset: 3px; }
+@media print { .entry-skip-link { display: none !important; } }

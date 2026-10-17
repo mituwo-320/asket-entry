@@ -610,3 +610,56 @@ body:has([data-participant-dialog]) { overflow: hidden; }
   .participant-settings-file > .participant-form-footer { margin-inline: 22px; }
 }
 @media print { .participant-contact-board, .participant-desk-booklet { display: none !important; } }
+
+/* Final fit: wrap real names and protect controls at narrow widths and text zoom. */
+@media screen {
+  .participant-surface :is(main, fieldset, .participant-form-card, .participant-desk-sidebar, .participant-section-heading > div, .participant-completion-section-heading > div) { min-width: 0; }
+  .participant-surface :is(.participant-heading-description, .participant-entry-event, .participant-account-card dd, .participant-contact-board h3, .participant-player-card p, .participant-settings-file-note, .participant-status-tag) { overflow-wrap: anywhere; }
+  .participant-surface :is(button, a) { touch-action: manipulation; }
+  .participant-surface [data-ui="button"] { white-space: normal; height: auto; line-height: 1.7; }
+  .participant-surface :is(button, a) > svg { flex-shrink: 0; }
+  .participant-brand { min-height: 44px; align-items: center; }
+  .participant-password-label-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+  .participant-password-label-row a { display: inline-flex; align-items: center; min-height: 44px; }
+  .participant-form-content > div:last-child a { display: inline-flex; align-items: center; min-height: 44px; }
+  .participant-clinic-card button { min-height: 44px; text-align: left; }
+  .participant-player-card > div:first-of-type > div:first-child { min-width: 0; }
+  .participant-player-card > div:first-of-type > div:first-child > div { flex-wrap: wrap; }
+  .participant-contact-board[data-collapsed="true"] :is(.participant-contact-intro, li p, footer) { display: none; }
+  .participant-contact-board[data-collapsed="true"] ul { margin-top: 14px; }
+  .participant-contact-board[data-collapsed="true"] li { padding-block: 12px; }
+  .participant-work-dialog { scroll-padding-top: 160px; }
+  .participant-work-dialog :is(input, textarea, select, button, a) { scroll-margin-block: 160px 30px; }
+}
+@media screen and (max-width: 639px) {
+  .participant-header-inner { align-items: center; row-gap: 4px; }
+  .participant-header-actions { max-width: 100%; }
+  .participant-header-actions > * { min-width: 0; }
+  .participant-entry-stub { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-left: 0; border-top: 1px dashed #8d929a; }
+  .participant-entry-stub::after { display: none; }
+  .participant-entry-main { padding-inline: 22px; }
+  .participant-entry-meta { font-size: 12px; }
+  .participant-notice { padding: 18px 16px; gap: 11px; }
+  .participant-notice > div { min-width: 0; }
+  .participant-notice :is(p, li) { font-size: 13px; line-height: 1.9; }
+  .participant-clinic-card > div:last-child { flex-wrap: wrap; gap: 9px; }
+  .participant-clinic-card > div:last-child p { font-size: 12px; line-height: 1.8; }
+  .participant-player-card > div:first-of-type > div:last-child { flex-shrink: 0; }
+  .participant-player-card p { line-height: 1.8; }
+  .participant-section-heading h2 { font-size: 16px; }
+  .participant-settings-save { align-items: stretch; gap: 12px; }
+  .participant-settings-save > div { flex-basis: 100%; }
+  .participant-settings-save > button { width: 100%; }
+  .participant-completion-next, .participant-inline-action { white-space: normal; text-align: center; }
+  .participant-footer { flex-wrap: wrap; gap: 12px; }
+}
+@media screen and (max-width: 380px) {
+  .participant-header-inner { gap: 4px 12px; }
+  .participant-header-actions { flex-basis: 100%; justify-content: space-between; margin-left: 0; }
+  .participant-story-guide { padding-inline: 16px; }
+  .participant-story-guide ol { gap: 10px; }
+  .participant-section-nav a { padding-inline: 9px; }
+  .participant-completion-result, .participant-completion-body { padding-inline: 19px; }
+  .participant-completion-section-heading { gap: 10px; }
+  .participant-completion-line a { flex-wrap: wrap; }
+}

@@ -145,7 +145,7 @@ function EditTeamContent() {
     return (
         <>
             <ParticipantHeader backHref={`/team/dashboard?id=${entryId}`} backLabel="チームへ戻る" />
-            <main className="participant-main participant-main-narrow">
+            <main id="participant-main" tabIndex={-1} className="participant-main participant-main-narrow">
                 <ParticipantHeading eyebrow="TEAM SETTINGS" title="チーム設定" description="チームの紹介と代表者の連絡先を確認・変更できます。" />
                 <ParticipantSectionNav label="チーム設定の項目" items={[{ href: "#edit-team-info", label: "チーム情報" }, { href: "#edit-representative-info", label: "代表者情報" }]} />
                 <Card className="participant-settings-file">

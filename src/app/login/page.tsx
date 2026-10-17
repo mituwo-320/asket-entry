@@ -53,7 +53,7 @@ function LoginContent() {
     return (
         <>
             <ParticipantHeader backHref="/" backLabel="トップへ戻る" />
-            <main className="participant-form-page">
+            <main id="participant-main" tabIndex={-1} className="participant-form-page">
             <div className="participant-form-layout">
                 <ParticipantStory eyebrow="YOUR TEAM, YOUR COURT." title={<>コートに立つまでの<br />準備は、ここから。</>} description="大会への申し込み後は、代表者のアカウントでチームを管理できます。" guideTitle="マイページでできること" steps={[
                     { title: "参加状況を確認", description: "エントリーした大会と、登録の進み具合を確認。" },
@@ -85,7 +85,7 @@ function LoginContent() {
                         />
 
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
+                            <div className="participant-password-label-row">
                                 <label htmlFor="login-password" className="text-sm font-medium text-[#e4e8ef] tracking-wide">パスワード</label>
                                 <Link href={email ? `/login/reset?email=${encodeURIComponent(email)}` : "/login/reset"} className="text-xs text-[#ffb2be] hover:text-[#ffb2be] transition-colors">
                                     パスワードを忘れた場合

@@ -142,14 +142,14 @@ export default function UserDashboard() {
     return (
         <div className="min-h-screen">
             <ParticipantHeader backHref="/" backLabel="トップへ戻る" actions={<Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="w-4 h-4 mr-2" />ログアウト</Button>} />
-            <main className="participant-main">
+            <main id="participant-main" tabIndex={-1} className="participant-main">
                 <div>
                     <ParticipantHeading eyebrow="YOUR TEAM DESK" title="マイページ" description={`${user.name}さん、登録したチームと参加状況はこちらから確認できます。`}>
                         <div className="participant-heading-stats"><span>エントリー中<strong>{activeEntries.length}</strong>大会</span><span>メンバー未確定<strong>{activeEntries.filter(entry => entry.status === 'draft').length}</strong>チーム</span></div>
                     </ParticipantHeading>
                     <ParticipantSectionNav items={[{ href: "#current-tournaments", label: "参加する大会" }, { href: "#past-tournaments", label: "大会の履歴" }, { href: "#account-information", label: "代表者情報" }]} />
 
-                    {showChatBanner && <ParticipantContactBoard projects={projects} entries={entries} defaultLink={settings.lineOpenChatLink} onDismiss={() => setShowChatBanner(false)} />}
+                    <ParticipantContactBoard collapsed={!showChatBanner} projects={projects} entries={entries} defaultLink={settings.lineOpenChatLink} onDismiss={() => setShowChatBanner(value => !value)} />
 
                     <div className="participant-desk-layout grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Right Column: Entries */}
@@ -250,7 +250,7 @@ export default function UserDashboard() {
                                                                     );
                                                                 })()}
                                                                 <div className="participant-entry-cta">
-                                                                    チーム編集・メンバー追加 <ArrowRight aria-hidden="true" />
+                                                                    {entry.status === "submitted" || ((entry as any).projectEndDate && new Date((entry as any).projectEndDate) <= new Date()) ? "チーム・登録内容を確認" : "チーム編集・メンバー追加"} <ArrowRight aria-hidden="true" />
                                                                 </div>
                                                                 <span className="participant-print-bars" aria-hidden="true" />
                                                             </div>
@@ -260,7 +260,7 @@ export default function UserDashboard() {
                                                 {entry.status === 'submitted' && (
                                                     <div className="participant-entry-actions">
                                                         <Link href={`/team/invoice?id=${entry.id}`} target="_blank" className="bg-[#343b47] border border-[#8791a1] hover:bg-[#46505f] hover:border-[#c47c89]/50 text-[#e0e5ed] hover:text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
-                                                            <Printer className="w-4 h-4" /> 請求書（PDF）を発行
+                                                            <Printer className="w-4 h-4" /> 請求書を確認・保存
                                                         </Link>
                                                         {entry.isPaid && (
                                                             <button

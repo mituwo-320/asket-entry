@@ -288,7 +288,7 @@ function DashboardContent() {
     return (
         <div className="min-h-screen text-[#edf0f5] font-sans selection:bg-[#cb3146]/30">
             <ParticipantHeader backHref="/dashboard" actions={canEditPlayers ? <Link href={`/team/edit?id=${entryId}`} className="participant-back">チーム設定</Link> : null} />
-            <main className="participant-main">
+            <main id="participant-main" tabIndex={-1} className="participant-main">
                 <div className="max-w-5xl mx-auto space-y-8">
                     <ParticipantHeading eyebrow="TEAM ROSTER" title={teamEntry.teamName} description={(teamEntry as any).projectName || teamEntry.tournamentId}>
                         <span className="participant-status-tag">{(teamEntry as any).isWaitlist ? 'キャンセル待ち' : teamEntry.status === 'submitted' ? '本エントリー完了' : '仮エントリー・メンバー登録中'}</span>
