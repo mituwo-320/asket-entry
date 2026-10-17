@@ -6,8 +6,9 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
 import { User, TeamEntry, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { Trophy, Plus, History, Calendar, LogOut, User as UserIcon, Settings, ArrowRight, MessageCircle, AlertCircle, X, Printer, FileText } from "lucide-react";
+import { Trophy, Plus, History, Calendar, LogOut, User as UserIcon, Settings, ArrowRight, AlertCircle, Printer, FileText } from "lucide-react";
 import Link from "next/link";
+import { ParticipantContactBoard } from "@/components/participant/ParticipantContactBoard";
 import { ParticipantDialog } from "@/components/participant/ParticipantDialog";
 import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantState } from "@/components/participant/ParticipantFrame";
 
@@ -148,78 +149,7 @@ export default function UserDashboard() {
                     </ParticipantHeading>
                     <ParticipantSectionNav items={[{ href: "#current-tournaments", label: "参加する大会" }, { href: "#past-tournaments", label: "大会の履歴" }, { href: "#account-information", label: "代表者情報" }]} />
 
-                    {/* LINE OpenChat Urgent Banner */}
-                    {showChatBanner && (() => {
-                        // Find projects that have an OpenChat link and the user is registered in
-                        const chatProjects = projects.filter(p => {
-                            if (!entries.some(e => e.tournamentId === p.id)) return false;
-                            if (p.entryEndDate) {
-                                const ms30 = 30 * 24 * 60 * 60 * 1000;
-                                if (new Date().getTime() - new Date(p.entryEndDate).getTime() > ms30) return false;
-                            }
-                            return !!p.lineOpenChatLink || !!settings.lineOpenChatLink;
-                        });
-                        if (chatProjects.length === 0) return null;
-
-                        // Check if ALL relevant entries are confirmed joined by management
-                        const allConfirmed = chatProjects.every(p =>
-                            entries.some(e => e.tournamentId === p.id && (e as any).isOpenChatJoined === true)
-                        );
-
-                        // If management has confirmed all entries as joined, show green confirmation instead
-                        if (allConfirmed) {
-                            return (
-                                <div className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
-                                    <div className="p-2 bg-emerald-500/20 rounded-xl flex-shrink-0">
-                                        <MessageCircle className="w-5 h-5 text-emerald-400" />
-                                    </div>
-                                    <p className="text-sm text-emerald-300 font-medium">
-                                        ✅ LINEオープンチャットへの参加が確認されています。ありがとうございます！
-                                    </p>
-                                </div>
-                            );
-                        }
-
-                        const chatLink = chatProjects[0]?.lineOpenChatLink || settings.lineOpenChatLink;
-                        return (
-                            <div
-                                className="mb-8 bg-red-500/10 border-2 border-red-500/50 rounded-2xl p-5 relative overflow-hidden"
-                            >
-                                <button
-                                    onClick={() => setShowChatBanner(false)}
-                                    className="absolute top-3 right-3 p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                    aria-label="LINEのお知らせを閉じる"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative">
-                                    <div className="flex items-start gap-3 flex-1">
-                                        <div className="p-2.5 bg-red-500/20 rounded-xl flex-shrink-0">
-                                            <AlertCircle className="w-6 h-6 text-red-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-extrabold text-red-400 text-base">⚠️ LINEオープンチャットへの参加がまだの可能性があります！</p>
-                                            <p className="text-sm text-red-300/80 mt-1">
-                                                大会の集合時間・重要連絡はLINEのみで配信されます。<strong className="text-red-300">未参加の場合、当日の情報が届きません。</strong>
-                                            </p>
-                                            <p className="text-xs text-red-400/50 mt-2">
-                                                ※ このお知らせは参加登録後に必ず表示されます。参加済みの場合は運営が確認後に非表示になります。
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <a
-                                        href={chatLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white font-extrabold py-3 px-5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-green-900/30 flex-shrink-0 w-full sm:w-auto justify-center"
-                                    >
-                                        <MessageCircle className="w-5 h-5" />
-                                        今すぐ参加する
-                                    </a>
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    {showChatBanner && <ParticipantContactBoard projects={projects} entries={entries} defaultLink={settings.lineOpenChatLink} onDismiss={() => setShowChatBanner(false)} />}
 
                     <div className="participant-desk-layout grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Right Column: Entries */}
@@ -378,7 +308,7 @@ export default function UserDashboard() {
                                                 key={entry.id}
                                             >
                                                 <Link href={`/team/dashboard?id=${entry.id}`} className="block group">
-                                                    <Card className="participant-entry-card p-0 overflow-hidden hover:border-[#8791a1] transition-all duration-300 bg-[#15171d]/40">
+                                                    <Card className="participant-entry-card participant-history-pass p-0 overflow-hidden hover:border-[#8791a1] transition-all duration-300 bg-[#15171d]/40">
                                                         <div className="flex flex-col sm:flex-row relative">
                                                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#46505f]" />
                                                             <div className="p-6 pl-8 flex-1">
@@ -449,55 +379,12 @@ export default function UserDashboard() {
                                 </Card>
                             </div>
 
-                            {(() => {
-                                const userProjectsWithChat = projects
-                                    .filter(p => {
-                                        // エントリーしていない大会は除外
-                                        if (!entries.some(e => e.tournamentId === p.id)) return false;
+                            <aside className="participant-desk-booklet">
+                                <span>REPRESENTATIVE / FIELD NOTES</span>
+                                <h3>大会までの準備メモ</h3>
+                                <ol><li><b>01</b><div><strong>メンバーをそろえる</strong><p>各チームのページから選手情報を追加します。</p></div></li><li><b>02</b><div><strong>内容を確定する</strong><p>登録期限とメンバーの内容を確認してください。</p></div></li><li><b>03</b><div><strong>書類を確認する</strong><p>確定後はチームのページから請求書を確認できます。</p></div></li></ol>
+                            </aside>
 
-                                        // エントリー終了日から1ヶ月（30日）経過している場合は非表示にする
-                                        if (p.entryEndDate) {
-                                            const endDate = new Date(p.entryEndDate);
-                                            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-                                            const now = new Date();
-                                            if (now.getTime() - endDate.getTime() > thirtyDaysMs) {
-                                                return false;
-                                            }
-                                        }
-
-                                        // 個別のリンクがあるか、共通のリンクがあれば表示対象とする
-                                        return !!p.lineOpenChatLink || !!settings.lineOpenChatLink;
-                                    })
-                                    .map(p => ({
-                                        ...p,
-                                        displayLink: p.lineOpenChatLink || settings.lineOpenChatLink
-                                    }));
-
-                                return userProjectsWithChat.length > 0 && (
-                                    <div>
-                                        <div className="bg-[#2a3038] rounded-2xl p-6 border border-[#c47c89]/20 shadow-xl space-y-4">
-                                            <h4 className="font-bold text-emerald-300 mb-2 flex items-center gap-2">
-                                                <MessageCircle className="w-5 h-5" /> LINEオープンチャット (必須)
-                                            </h4>
-                                            <p className="text-sm text-emerald-100/70 leading-relaxed">
-                                                リーダーの方へ、大会の集合時間や重要な連絡を配信します。参加する大会のチャットに必ず参加してください。
-                                            </p>
-                                            <div className="space-y-2 mt-4">
-                                                {userProjectsWithChat.map(p => (
-                                                    <a key={p.id} href={p.displayLink} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-[#242830]/50 hover:bg-[#343b47]/80 border border-[#8791a1]/50 transition-colors group">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium text-[#edf0f5]">{p.name}</span>
-                                                            <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                                                                参加する <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
                         </div>
 
                     </div>

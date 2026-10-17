@@ -4,13 +4,13 @@ import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Loader2, Save, CheckCircle2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Save } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantSectionTitle, ParticipantFormFooter, ParticipantState } from "@/components/participant/ParticipantFrame";
 import { TeamEntry, User } from "@/lib/types";
 
 function EditTeamContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const entryId = searchParams.get('id');
 
@@ -20,6 +20,7 @@ function EditTeamContent() {
     const [settings, setSettings] = useState<any>(null);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [savedSignature, setSavedSignature] = useState("");
     const [projectEndDate, setProjectEndDate] = useState<string | null>(null);
     const [teamStatus, setTeamStatus] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -80,27 +81,20 @@ function EditTeamContent() {
                 const user: User | undefined = data.user;
                 const repPlayer = team.players.find(p => p.isRepresentative) || team.players[0];
 
-                setFormData({
+                const initialForm = {
                     teamName: team.teamName,
                     teamNameKana: team.teamNameKana || "",
                     teamIntroduction: team.teamIntroduction || "",
                     representativeName: repPlayer.name,
-                    phone: "",
+                    phone: user?.phone || "",
                     repFurigana: repPlayer.furigana,
                     wristbandColor: repPlayer.wristbandColor || "赤",
                     insurance: repPlayer.insurance,
                     clinicParticipation: (team as any).clinicParticipation !== undefined && (team as any).clinicParticipation !== null ? (team as any).clinicParticipation : null,
                     clinicCount: (team as any).clinicCount || 0,
-                });
-
-                if ((data as any).user) {
-                    const u = (data as any).user as User;
-                    setFormData(prev => ({
-                        ...prev,
-                        phone: u.phone,
-                        // Note: User name and Player name should be synced.
-                    }));
-                }
+                };
+                setFormData(initialForm);
+                setSavedSignature(JSON.stringify(initialForm));
 
             } catch (e) {
                 console.error(e);
@@ -113,8 +107,11 @@ function EditTeamContent() {
         fetchData();
     }, [entryId]);
 
+    const isDirty = savedSignature !== JSON.stringify(formData);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSaving || !isDirty) return;
         setIsSaving(true);
         setError("");
         setSuccessMsg("");
@@ -131,7 +128,7 @@ function EditTeamContent() {
             if (!res.ok) throw new Error("Update failed");
 
             setSuccessMsg("保存しました");
-            setTimeout(() => setSuccessMsg(""), 3000);
+            setSavedSignature(JSON.stringify(formData));
         } catch (e) {
             setError("保存に失敗しました");
         } finally {
@@ -151,8 +148,10 @@ function EditTeamContent() {
             <main className="participant-main participant-main-narrow">
                 <ParticipantHeading eyebrow="TEAM SETTINGS" title="チーム設定" description="チームの紹介と代表者の連絡先を確認・変更できます。" />
                 <ParticipantSectionNav label="チーム設定の項目" items={[{ href: "#edit-team-info", label: "チーム情報" }, { href: "#edit-representative-info", label: "代表者情報" }]} />
-                <Card className="p-6 sm:p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <Card className="participant-settings-file">
+                    <div className="participant-settings-file-cover"><span>TEAM FILE / UPDATE</span><p>チームの登録情報</p><span aria-hidden="true">VANKY CUP</span></div>
+                    <div className="participant-settings-file-note"><p>チーム情報と代表者情報を、まとめて保存します。</p><span data-dirty={isDirty}>{isDirty ? "未保存の変更あり" : "変更はありません"}</span></div>
+                    <form onSubmit={handleSubmit} aria-busy={isSaving}><fieldset disabled={isSaving} className="space-y-6 participant-settings-fields">
 
                         {/* Team Info */}
                         <div className="space-y-4">
@@ -196,7 +195,7 @@ function EditTeamContent() {
                                     <p className="text-xs text-[#c6cdd8] leading-relaxed whitespace-pre-line">
                                         {clinicDescription}
                                     </p>
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-wrap gap-4">
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[#edf0f5]">
                                             <input
                                                 type="radio"
@@ -277,12 +276,6 @@ function EditTeamContent() {
                         </div>
 
 
-                        {successMsg && (
-                            <div role="status" className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400 flex items-center justify-center gap-2">
-                                <CheckCircle2 className="w-4 h-4" /> {successMsg}
-                            </div>
-                        )}
-
                         {error && (
                             <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
                                 {error}
@@ -290,13 +283,13 @@ function EditTeamContent() {
                         )}
 
                         <div className="participant-settings-save">
-                            <p>変更した内容を確認して、<br />保存ボタンを押してください。</p>
-                            <Button type="submit" disabled={isSaving} className="bg-[#a62034] hover:bg-[#cb3146] min-w-[120px]">
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> 保存</>}
+                            <div><p role="status">{isSaving ? "変更を保存しています…" : isDirty ? "変更した内容は、まだ保存されていません。" : successMsg || "変更する項目を入力してください。"}</p><Link href={`/team/dashboard?id=${entryId}`}>チームのページへ戻る</Link></div>
+                            <Button type="submit" disabled={isSaving || !isDirty} className="bg-[#a62034] hover:bg-[#cb3146] min-w-[120px]">
+                                {isSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />保存中…</> : <><Save className="w-4 h-4 mr-2" /> 保存</>}
                             </Button>
                         </div>
 
-                    </form>
+                    </fieldset></form>
                     <ParticipantFormFooter />
                 </Card>
             </main>

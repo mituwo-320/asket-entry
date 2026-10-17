@@ -554,3 +554,59 @@ body:has([data-participant-dialog]) { overflow: hidden; }
   .participant-completion-next { padding-inline: 16px; font-size: 13px; }
 }
 @media print { .participant-completion-cover { display: none !important; } }
+
+/* Pinned notices and a field notebook for the representative's desk. */
+.participant-contact-board { margin-bottom: 30px; padding: 24px 28px 17px; border: 1px solid #bfb9b0; border-top: 4px solid #bd2c42; border-radius: 4px 12px 12px 4px; color: #303842; background: #f1ece4 url('/entry-grain.svg'); box-shadow: 0 4px 0 #92929a, 0 15px 30px #0005; }
+.participant-contact-board > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.participant-contact-board header p { color: #8e2b3d; font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .14em; }
+.participant-contact-board h2 { display: flex; align-items: center; gap: 10px; margin-top: 7px; font-size: 19px; line-height: 1.8; font-weight: 700; }
+.participant-contact-board header button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid #aaa8a5; border-radius: 6px; color: #4c5561; background: #faf7f1; }
+.participant-contact-board header button:hover { background: #e3dbd6; }
+.participant-contact-intro { max-width: 720px; margin: 12px 0 18px; color: #535b65; font-size: 12px; line-height: 1.95; }
+.participant-contact-board ul { list-style: none; border-top: 1px dashed #ada9a4; }
+.participant-contact-board li { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; padding: 18px 0; border-bottom: 1px dashed #ada9a4; }
+.participant-contact-status { display: inline-flex; align-items: center; gap: 6px; color: #8a293a; font-size: 10px; line-height: 1.8; font-weight: 700; }
+.participant-contact-dot { width: 7px; height: 7px; border-radius: 50%; background: #b02e40; }
+.participant-contact-board li[data-confirmed="true"] .participant-contact-status { color: #2c6547; }
+.participant-contact-board h3 { margin-top: 5px; font-size: 15px; line-height: 1.8; font-weight: 700; overflow-wrap: anywhere; }
+.participant-contact-board li p { color: #5b626c; font-size: 11px; line-height: 1.9; margin-top: 5px; }
+.participant-contact-board li a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 11px 15px; border: 1px solid #a3b5a9; border-radius: 5px; color: #fff; background: #276343; font-size: 12px; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 0 #173e2c; }
+.participant-contact-board li a:hover { background: #1b4d33; }
+.participant-contact-board footer { padding-top: 13px; color: #616872; font-size: 10px; line-height: 1.9; }
+.participant-desk-booklet { position: relative; padding: 25px 24px; border: 1px solid #d0c8bd; border-radius: 3px 9px 9px 3px; border-left: 5px solid #b72b3f; color: #333b45; background: #efe9df url('/entry-grain.svg'); box-shadow: 3px 3px 0 #c6bdb5, 5px 5px 0 #6e717a, 0 15px 25px #0004; }
+.participant-desk-booklet > span { color: #8c2c3d; font: 600 7px/1.8 var(--font-inter), sans-serif; letter-spacing: .13em; }
+.participant-desk-booklet h3 { font-size: 17px; font-weight: 700; margin-top: 8px; line-height: 1.8; }
+.participant-desk-booklet ol { margin-top: 18px; list-style: none; }
+.participant-desk-booklet li { display: flex; align-items: flex-start; gap: 11px; padding: 15px 0; border-top: 1px dashed #b5b0aa; }
+.participant-desk-booklet li > b { color: #a0273b; font: 500 22px/1.4 var(--font-outfit), sans-serif; }
+.participant-desk-booklet strong { font-size: 12px; line-height: 1.9; }
+.participant-desk-booklet p { font-size: 11px; line-height: 1.9; margin-top: 4px; color: #5a626c; }
+.participant-history-pass { border-left: 5px solid #a8917c !important; background: linear-gradient(115deg, #31333b, #272b33) !important; box-shadow: inset 0 1px 0 #ffffff17, 0 4px 0 #11151c, 0 12px 25px #0004 !important; }
+.participant-history-pass::before { content: "ARCHIVE / TEAM RECORD"; display: block; margin: 19px 28px -5px; color: #d8bfa7; font: 600 7px/1.8 var(--font-inter), sans-serif; letter-spacing: .16em; }
+.participant-settings-file[data-ui="card"] { padding: 0; overflow: hidden; border-radius: 4px 14px 14px 4px; box-shadow: 0 5px 0 #11151c, 0 20px 40px #0005; }
+.participant-settings-file-cover { position: relative; isolation: isolate; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 7px 20px; padding: 24px 30px; border-bottom: 4px solid #b92b40; color: #2b323c; background: #f3eee6; }
+.participant-settings-file-cover::before { content: ""; position: absolute; inset: 0 0 0 auto; width: 48%; z-index: -1; opacity: .17; background: url('/basketball-court-background.webp') 45% 40% / cover; mask-image: linear-gradient(90deg, transparent, #000); }
+.participant-settings-file-cover > span { font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .14em; color: #8f273b; }
+.participant-settings-file-cover > span:last-child { position: absolute; right: 28px; top: 25px; color: #5b5260; font-size: 7px; }
+.participant-settings-file-cover > p { flex-basis: 100%; font-size: 20px; font-weight: 700; line-height: 1.8; }
+.participant-settings-file-note { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 18px 30px; border-bottom: 1px dashed #7e8898; background: #1e232b; }
+.participant-settings-file-note > p { font-size: 11px; line-height: 1.9; color: #cbd2dc; }
+.participant-settings-file-note > span { font-size: 10px; line-height: 1.8; padding: 4px 8px; border: 1px solid #8f98a7; border-radius: 4px; color: #cdd4de; }
+.participant-settings-file-note > span[data-dirty="true"] { color: #ffccab; border-color: #b38a68; background: #49362c; }
+.participant-settings-fields { min-width: 0; padding: 28px 30px; }
+.participant-settings-fields > .space-y-4 { padding: 0 0 25px; border-bottom: 1px dashed #7e889870; }
+.participant-settings-file > .participant-form-footer { margin: 0 30px; }
+.participant-settings-save a { display: inline-flex; align-items: center; min-height: 44px; color: #ffd2da; text-decoration: underline; text-underline-offset: 4px; font-size: 11px; }
+.participant-settings-save button { min-height: 48px; }
+@media screen and (max-width: 650px) {
+  .participant-contact-board { padding: 20px 21px 16px; }
+  .participant-contact-board h2 { font-size: 17px; }
+  .participant-contact-board li { grid-template-columns: 1fr; gap: 14px; }
+  .participant-contact-board li a { justify-self: stretch; }
+  .participant-settings-file-cover { padding: 22px; }
+  .participant-settings-file-cover > span:last-child { right: 22px; }
+  .participant-settings-file-note { padding: 16px 22px; }
+  .participant-settings-fields { padding: 24px 22px; }
+  .participant-settings-file > .participant-form-footer { margin-inline: 22px; }
+}
+@media print { .participant-contact-board, .participant-desk-booklet { display: none !important; } }
