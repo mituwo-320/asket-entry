@@ -1,8 +1,9 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sendAdminNotificationEmail } from '@/lib/mail';
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const teamId = request.headers.get('x-team-id');
 
@@ -32,9 +33,13 @@ export async function POST(request: Request) {
             console.error("Failed to send admin notification:", e);
         }
 
-        return NextResponse.json({ success: true, entry: updatedEntry });
+        const { user: internalUser, ...entry } = updatedEntry;
+        void internalUser;
+        return NextResponse.json({ success: true, entry });
     } catch (e: any) {
         console.error("Submit entry error:", e);
         return NextResponse.json({ error: "エラーが発生しました。" }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin', 'user'], entry: true, editable: true });

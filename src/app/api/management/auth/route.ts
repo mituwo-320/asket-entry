@@ -1,24 +1,18 @@
 import { NextResponse } from 'next/server';
+import { createSession, safeEqual, sessionSecret, sessionCookieOptions, SESSION_COOKIES } from '@/lib/auth/session';
+import { isSameOrigin } from '@/lib/auth/authorize';
 
 export async function POST(request: Request) {
+    if (!isSameOrigin(request)) return NextResponse.json({ success: false, error: '別のサイトからの操作は許可されていません' }, { status: 403 });
+    const expected = process.env.MANAGEMENT_PASSWORD;
+    try { sessionSecret(); if (!expected) throw new Error('Missing staff credential'); }
+    catch { return NextResponse.json({ success: false, error: '認証の設定が完了していません。運営者にお問い合わせください' }, { status: 503 }); }
     try {
         const { password } = await request.json();
-
-        // Check password
-        if (password === 'gyopai') {
-            const response = NextResponse.json({ success: true });
-            response.cookies.set('management_auth', 'true', {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                path: '/',
-                maxAge: 60 * 60 * 24 * 7 // 1 week
-            });
-            return response;
-        }
-
-        return NextResponse.json({ success: false, error: 'Invalid password' }, { status: 401 });
-    } catch (e) {
-        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
-    }
+        if (typeof password !== 'string' || !safeEqual(password, expected)) return NextResponse.json({ success: false, error: 'パスワードが間違っています' }, { status: 401 });
+        const response = NextResponse.json({ success: true });
+        response.cookies.set(SESSION_COOKIES.management, createSession('management', 'management', expected), sessionCookieOptions());
+        response.headers.set('Cache-Control', 'no-store');
+        return response;
+    } catch { return NextResponse.json({ success: false, error: '入力内容が不正です' }, { status: 400 }); }
 }

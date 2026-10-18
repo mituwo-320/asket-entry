@@ -1,3 +1,4 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { getSetting, updateSetting } from '@/lib/sheets';
 
@@ -10,7 +11,7 @@ export async function GET() {
     }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const success = await updateSetting(body);
@@ -22,3 +23,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });

@@ -1,3 +1,4 @@
+import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
@@ -31,7 +32,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
     const loadBackups = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/backups');
+            const res = await staffFetch('/api/admin/backups');
             if (res.ok) {
                 const data = await res.json();
                 setBackups(data.backups || []);
@@ -58,7 +59,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
         setIsCreating(true);
         setMessage(null);
         try {
-            const res = await fetch('/api/admin/backups', {
+            const res = await staffFetch('/api/admin/backups', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: backupProjectId })
@@ -89,7 +90,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
         setMessage(null);
 
         try {
-            const res = await fetch('/api/admin/backups/restore', {
+            const res = await staffFetch('/api/admin/backups/restore', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fileName: backup.fileName })

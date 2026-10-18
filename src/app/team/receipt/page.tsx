@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -25,8 +26,8 @@ function ReceiptContent() {
         const fetchAndMark = async () => {
             try {
                 const [dataRes, settingsRes] = await Promise.all([
-                    fetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
-                    fetch('/api/settings')
+                    participantFetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
+                    participantFetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {
@@ -52,7 +53,7 @@ function ReceiptContent() {
                     }
 
                     // 初回閲覧：閲覧済みとしてマーク
-                    const viewRes = await fetch('/api/team/receipt/viewed', {
+                    const viewRes = await participantFetch('/api/team/receipt/viewed', {
                         method: 'POST',
                         headers: { 'x-team-id': entryId }
                     });

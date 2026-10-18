@@ -1,8 +1,9 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { cookies } from 'next/headers';
+import { readSession } from "@/lib/auth/session";
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const teamId = request.headers.get('x-team-id');
         const { playerId } = await request.json();
@@ -19,8 +20,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Team entry not found' }, { status: 404 });
         }
 
-        const cookieStore = await cookies();
-        const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
+        const isAdmin = readSession(request.headers.get("cookie"))?.role === "admin";
 
         if (teamEntry.status === 'submitted' && !isAdmin) {
             return NextResponse.json({ success: false, error: '本エントリー完了後の編集はできません' }, { status: 403 });
@@ -63,3 +63,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Failed to delete player' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin', 'user'], entry: true, editable: true });

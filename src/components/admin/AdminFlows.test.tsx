@@ -143,3 +143,17 @@ test("admin dialogs contain keyboard focus, close with Escape and restore the op
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();
 });
+
+
+test("an admin payment save failure does not mark an unpaid entry as paid", async () => {
+  const user = userEvent.setup();
+  const alert = jest.spyOn(window, "alert").mockImplementation(() => {});
+  mockData();
+  const read = jest.mocked(fetch).getMockImplementation()!;
+  jest.mocked(fetch).mockImplementation((url, options) => url === "/api/admin/entry/update" ? response({ error: "保存失敗" }, false) : read(url, options));
+  render(<AdminDashboard />);
+  const payment = await screen.findByRole("button", { name: "赤チームの入金確認" });
+  await user.click(payment);
+  await waitFor(() => expect(alert).toHaveBeenCalledWith("更新に失敗しました"));
+  expect(payment).toHaveAttribute("aria-pressed", "false");
+});

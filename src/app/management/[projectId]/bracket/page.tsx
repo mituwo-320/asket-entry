@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -40,9 +41,9 @@ export default function ManagementTournamentBracketPage() {
     const loadData = async () => {
         try {
             const [dataRes, projectsRes, bracketRes] = await Promise.all([
-                fetch('/api/admin/data'),
-                fetch('/api/admin/projects'),
-                fetch(`/api/admin/bracket?tournamentId=${projectId}`)
+                staffFetch('/api/admin/data'),
+                staffFetch('/api/admin/projects'),
+                staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
             ]);
 
             if (dataRes.ok) {
@@ -88,7 +89,7 @@ export default function ManagementTournamentBracketPage() {
         setIsSeedingTeams(true);
         setSeedMessage(null);
         try {
-            const res = await fetch('/api/admin/bracket/seed-teams', {
+            const res = await staffFetch('/api/admin/bracket/seed-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: projectId, teamCount: count }),
@@ -99,8 +100,8 @@ export default function ManagementTournamentBracketPage() {
                 
                 // Refresh data
                 const [dataRes, bracketRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch(`/api/admin/bracket?tournamentId=${projectId}`)
+                    staffFetch('/api/admin/data'),
+                    staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
                 ]);
                 if (dataRes.ok) {
                     const dataJson = await dataRes.json();
@@ -109,7 +110,7 @@ export default function ManagementTournamentBracketPage() {
                 
                 // Automatically generate a new bracket matching the seeded team count
                 setTeamCount(count);
-                const genRes = await fetch('/api/admin/bracket', {
+                const genRes = await staffFetch('/api/admin/bracket', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tournamentId: projectId, teamCount: count }),
@@ -139,7 +140,7 @@ export default function ManagementTournamentBracketPage() {
 
         setIsGenerating(true);
         try {
-            const res = await fetch('/api/admin/bracket', {
+            const res = await staffFetch('/api/admin/bracket', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: projectId, teamCount }),
@@ -160,7 +161,7 @@ export default function ManagementTournamentBracketPage() {
 
     const saveBracket = async (data: TournamentBracketData, status?: string) => {
         if (!bracketId) return;
-        const res = await fetch('/api/admin/bracket/update', {
+        const res = await staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: data, status }),
@@ -173,7 +174,7 @@ export default function ManagementTournamentBracketPage() {
         const updated = recordMatchResult(bracketData, matchId, winnerId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -186,7 +187,7 @@ export default function ManagementTournamentBracketPage() {
         const updated = undoMatchResult(bracketData, matchId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -229,7 +230,7 @@ export default function ManagementTournamentBracketPage() {
 
         const updated = updateMatchScore(bracketData, matchId, newScoreA, newScoreB);
         setBracketData(updated);
-        fetch('/api/admin/bracket/update', {
+        staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: updated }),

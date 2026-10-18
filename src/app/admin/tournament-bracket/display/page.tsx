@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect, useCallback } from "react";
 import { AdminState } from "@/components/admin/AdminFrame";
@@ -54,7 +55,7 @@ export default function BracketDisplayPage() {
         if (!tournamentId) return;
         try {
             // Fetch bracket
-            const bracketRes = await fetch(`/api/admin/bracket?tournamentId=${tournamentId}`);
+            const bracketRes = await staffFetch(`/api/admin/bracket?tournamentId=${tournamentId}`);
             if (!bracketRes.ok) throw new Error('Failed to fetch bracket');
             const bracketJson = await bracketRes.json();
 
@@ -64,7 +65,7 @@ export default function BracketDisplayPage() {
             }
 
             // Fetch entries
-            const dataRes = await fetch('/api/admin/data');
+            const dataRes = await staffFetch('/api/admin/data');
             const dataJson = await dataRes.json();
 
             setData({

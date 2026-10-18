@@ -35,7 +35,7 @@ export async function getProjects(): Promise<Project[]> {
 export async function getProjectEntryCount(projectId: string): Promise<number> {
     try {
         const count = await db.teamEntry.count({
-            where: { tournamentId: projectId }
+            where: { tournamentId: projectId, status: { not: "cancelled" } }
         });
         return count;
     } catch (e) {
@@ -346,7 +346,7 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
 export async function savePlayerToEntry(entryId: string, player: Player): Promise<boolean> {
     try {
         await db.player.upsert({
-            where: { id: player.id },
+            where: { id: player.id, entryId },
             update: {
                 name: player.name,
                 furigana: player.furigana,
@@ -418,7 +418,7 @@ export async function saveMatches(matches: Match[]): Promise<boolean> {
     }
 }
 
-export async function getMatches(tournamentId: string): Promise<Match[]> {
+export async function getMatches(tournamentId?: string): Promise<Match[]> {
     try {
         const matches = await db.match.findMany({
             where: { tournamentId }

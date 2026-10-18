@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect } from "react";
 import { useAdminDialogFocus } from "@/components/admin/useAdminDialogFocus";
@@ -59,18 +60,18 @@ export default function AdminDashboard() {
     const loadData = async () => {
         try {
             // Fetch basic data
-            const res = await fetch('/api/admin/data');
+            const res = await staffFetch('/api/admin/data');
             const data = await res.json();
             if (data.entries) setEntries(data.entries);
             if (data.users) setUsers(data.users);
 
             // Fetch matches
-            const matchRes = await fetch('/api/matches');
+            const matchRes = await staffFetch('/api/matches');
             const matchData = await matchRes.json();
             if (matchData.matches) setMatches(matchData.matches);
 
             // Fetch Projects (Dates)
-            const projectsRes = await fetch('/api/admin/projects');
+            const projectsRes = await staffFetch('/api/admin/projects');
             if (projectsRes.ok) {
                 const projectsData = await projectsRes.json();
                 if (projectsData.projects) {
@@ -82,7 +83,7 @@ export default function AdminDashboard() {
             }
 
             // Fetch Settings
-            const settingsRes = await fetch('/api/settings');
+            const settingsRes = await staffFetch('/api/settings');
             if (settingsRes.ok) {
                 const settingsData = await settingsRes.json();
                 if (settingsData && settingsData.participationFee !== undefined) setSettings(settingsData);
@@ -117,7 +118,7 @@ export default function AdminDashboard() {
         if (!confirm("現在のエントリー状況で対戦カードを生成しますか？（既存のスケジュールは上書きされる可能性があります）")) return;
         setIsGenerating(true);
         try {
-            const res = await fetch('/api/admin/schedule/generate', {
+            const res = await staffFetch('/api/admin/schedule/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: selectedProjectId })
@@ -154,11 +155,11 @@ export default function AdminDashboard() {
         // Actually, let's trigger a background save.
         const updatedMatch = updatedMatches.find(m => m.id === match.id);
         if (updatedMatch) {
-            fetch('/api/admin/match/update', {
+            staffFetch('/api/admin/match/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ match: updatedMatch })
-            }).catch(e => console.error(e));
+            }).then(response => { if (!response.ok) throw new Error('Save failed'); }).catch(() => alert('得点を保存できませんでした。接続を確認して、再度入力してください。'));
         }
     };
 
@@ -168,14 +169,13 @@ export default function AdminDashboard() {
         // Determine winner logic if needed, but for now just status
 
         try {
-            const res = await fetch('/api/admin/match/update', {
+            const res = await staffFetch('/api/admin/match/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ match: updatedMatch })
             });
-            if (res.ok) {
-                setMatches(matches.map(m => m.id === match.id ? updatedMatch : m));
-            }
+            if (!res.ok) throw new Error('Save failed');
+            setMatches(previous => previous.map(m => m.id === match.id ? updatedMatch : m));
         } catch (e) {
             alert("保存に失敗しました");
         }
@@ -321,7 +321,7 @@ export default function AdminDashboard() {
         }
 
         try {
-            const res = await fetch('/api/settings', {
+            const res = await staffFetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -485,7 +485,7 @@ export default function AdminDashboard() {
                             v1.0.0 (Beta)
                         </span>
                         <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white flex items-center gap-1 sm:gap-2" onClick={async () => {
-                            await fetch('/api/admin/auth/logout', { method: 'POST' });
+                            await staffFetch('/api/admin/auth/logout', { method: 'POST' });
                             window.location.href = '/';
                         }}>
                             <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline text-xs sm:text-sm font-medium">トップへ戻る</span>
@@ -791,19 +791,16 @@ export default function AdminDashboard() {
                                                             aria-pressed={!!entry.isPaid}
                                                             onClick={async () => {
                                                                 const newStatus = !entry.isPaid;
-                                                                // Optimistic Update
-                                                                setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: newStatus } : e));
-
                                                                 try {
-                                                                    await fetch('/api/admin/entry/update', {
+                                                                    const response = await staffFetch('/api/admin/entry/update', {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify({ entryId: entry.id, updates: { isPaid: newStatus } })
                                                                     });
+                                                                    if (!response.ok) throw new Error('Save failed');
+                                                                    setEntries(previous => previous.map(item => item.id === entry.id ? { ...item, isPaid: newStatus } : item));
                                                                 } catch (e) {
                                                                     alert("更新に失敗しました");
-                                                                    // Revert
-                                                                    setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: !newStatus } : e));
                                                                 }
                                                             }}
                                                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${entry.isPaid
@@ -956,11 +953,12 @@ export default function AdminDashboard() {
                                                     onBlur={async (e) => {
                                                         const newVal = e.target.value;
                                                         try {
-                                                            await fetch('/api/admin/entry/update', {
+                                                            const response = await staffFetch('/api/admin/entry/update', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id, updates: { uniformColor: newVal } })
                                                             });
+                                                            if (!response.ok) throw new Error('Save failed');
                                                             setEntries(prev => prev.map(entry => entry.id === selectedEntry.id ? { ...entry, uniformColor: newVal } : entry));
                                                         } catch (err) {
                                                             alert("保存に失敗しました");
@@ -1002,7 +1000,7 @@ export default function AdminDashboard() {
                                                     const newStatus = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
 
                                                     try {
-                                                        const res = await fetch('/api/admin/entry/update', {
+                                                        const res = await staffFetch('/api/admin/entry/update', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: newStatus } })
@@ -1032,7 +1030,7 @@ export default function AdminDashboard() {
                                                     onClick={async () => {
                                                         if (!confirm("本当にこのチームを仮エントリー状態に戻しますか？\n（ユーザーが再度メンバー編集できるようになります）")) return;
                                                         try {
-                                                            const res = await fetch('/api/admin/entry/update', {
+                                                            const res = await staffFetch('/api/admin/entry/update', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: 'draft' } })
@@ -1058,7 +1056,7 @@ export default function AdminDashboard() {
                                                 onClick={async () => {
                                                     if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。登録された選手データもすべて物理削除され、募集枠が解放されます。")) return;
                                                     try {
-                                                        const res = await fetch('/api/admin/entry/delete', {
+                                                        const res = await staffFetch('/api/admin/entry/delete', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({ entryId: selectedEntry.id })
@@ -1252,7 +1250,7 @@ export default function AdminDashboard() {
                                 entries={activeEntries}
                                 matches={activeMatches}
                                 refreshData={() => {
-                                    fetch('/api/matches').then(res => res.json()).then(data => {
+                                    staffFetch('/api/matches').then(res => res.json()).then(data => {
                                         if (data.matches) setMatches(data.matches);
                                     });
                                 }}

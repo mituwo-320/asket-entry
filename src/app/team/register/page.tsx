@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
@@ -58,8 +59,8 @@ export default function RegisterPage() {
         }
 
         Promise.all([
-            fetch("/api/settings").then(res => res.json()).catch(() => null),
-            fetch("/api/projects/active").then(res => res.json()).catch(() => ({ projects: [] }))
+            participantFetch("/api/settings").then(res => res.json()).catch(() => null),
+            participantFetch("/api/projects/active").then(res => res.json()).catch(() => ({ projects: [] }))
         ]).then(([settingsData, projectsData]) => {
             if (settingsData) setSettings(settingsData);
             if (projectsData && projectsData.projects) {
@@ -109,7 +110,7 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            const res = await fetch("/api/team/register", {
+            const res = await participantFetch("/api/team/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -215,7 +216,11 @@ export default function RegisterPage() {
                                     showConfirm(
                                         "別のアカウントで登録",
                                         "現在のアカウントからログアウトして、別のアカウントで登録しますか？",
-                                        () => {
+                                        async () => {
+                                            try {
+                                                const response = await fetch("/api/auth/logout", { method: "POST" });
+                                                if (!response.ok) throw new Error("Logout failed");
+                                            } catch { alert("ログアウトできませんでした。もう一度お試しください。"); return; }
                                             localStorage.removeItem('currentUser');
                                             setFormData(prev => ({
                                                 ...prev,

@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useState } from "react";
 import { User } from "@/lib/types";
@@ -35,7 +36,7 @@ function ProfileEditor({ onClose, user, onSave }: Omit<EditProfileModalProps, "i
         setError(null);
 
         try {
-            const res = await fetch('/api/user/update', {
+            const res = await participantFetch('/api/user/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),

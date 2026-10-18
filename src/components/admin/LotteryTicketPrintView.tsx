@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -32,8 +33,8 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
         const fetchData = async () => {
             try {
                 const [dataRes, projectsRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch('/api/admin/projects')
+                    staffFetch('/api/admin/data'),
+                    staffFetch('/api/admin/projects')
                 ]);
 
                 if (dataRes.ok) {

@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -24,9 +25,9 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
         const fetchData = async () => {
             try {
                 const [dataRes, projectsRes, settingsRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch('/api/admin/projects'),
-                    fetch('/api/settings')
+                    staffFetch('/api/admin/data'),
+                    staffFetch('/api/admin/projects'),
+                    staffFetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {

@@ -1,7 +1,8 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
     try {
         let setting = await db.setting.findUnique({
             where: { id: "default" }
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const { participationFee, insuranceFee } = body;
@@ -52,3 +53,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: '設定データの保存に失敗しました' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: ['admin'] });
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });

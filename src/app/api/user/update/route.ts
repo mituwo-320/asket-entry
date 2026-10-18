@@ -1,8 +1,9 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { saveUser, findUserById } from '@/lib/sheets';
 import { User } from '@/lib/types';
 
-export async function PUT(request: Request) {
+async function handlePUT(request: Request) {
     try {
         const data = await request.json();
         const { id, name, phone, postalCode, address, wristbandColor } = data;
@@ -42,3 +43,5 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'サーバー内部エラーが発生しました' }, { status: 500 });
     }
 }
+
+export const PUT = withAuthorization(handlePUT, { roles: ['admin', 'user'], user: 'body' });

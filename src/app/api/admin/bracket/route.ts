@@ -1,3 +1,4 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { generateBracket } from '@/lib/bracket-generator';
@@ -5,7 +6,7 @@ import { generateBracket } from '@/lib/bracket-generator';
 export const dynamic = 'force-dynamic';
 
 // GET: Fetch bracket data for a tournament
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const tournamentId = searchParams.get('tournamentId') || '2024-Spring';
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
 }
 
 // POST: Create a new bracket
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
     try {
         const body = await req.json();
         const { tournamentId, teamCount } = body;
@@ -70,3 +71,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to create bracket' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: STAFF });
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });

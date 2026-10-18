@@ -1,27 +1,14 @@
+import { withAuthorization, ALL_ROLES } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { getProjects, saveProject, deleteProject } from '@/lib/sheets';
 import { Project } from '@/lib/types';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'node:crypto';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+async function handleGET() {
     try {
-        let projects = await getProjects();
-
-        // --- POLISH: Auto-create a default mock project if none exist so users can test immediately ---
-        if (projects.length === 0) {
-            const mockProject: Project = {
-                id: "2024-Spring", // Keeping this ID to match existing mock data references just in case
-                name: "【テスト用】2026年春季大会",
-                isActive: true,
-                entryStartDate: new Date().toISOString(),
-                entryEndDate: new Date("2026-04-30T23:59:59").toISOString(),
-                eventDate: new Date("2026-05-15T09:00:00").toISOString()
-            };
-            await saveProject(mockProject);
-            projects = [mockProject];
-        }
+        const projects = await getProjects();
 
         return NextResponse.json({ projects });
     } catch (e) {
@@ -29,7 +16,7 @@ export async function GET() {
     }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
 
@@ -63,7 +50,7 @@ export async function POST(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+async function handleDELETE(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const projectId = searchParams.get('id');
@@ -84,3 +71,9 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: ALL_ROLES });
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });
+
+export const DELETE = withAuthorization(handleDELETE, { roles: ['admin'] });

@@ -1,12 +1,12 @@
+import { withAuthorization, ALL_ROLES } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { findTeamEntry, findUserById, getProjects } from '@/lib/sheets';
 import { db } from '@/lib/db';
 
-import { cookies } from 'next/headers';
+import { readSession } from "@/lib/auth/session";
 
-export async function GET(request: Request) {
-    const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
+async function handleGET(request: Request) {
+    const isAdmin = readSession(request.headers.get("cookie"))?.role === "admin";
     const entryId = request.headers.get('x-team-id');
 
     if (!entryId) {
@@ -49,3 +49,5 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: ALL_ROLES, entry: true });

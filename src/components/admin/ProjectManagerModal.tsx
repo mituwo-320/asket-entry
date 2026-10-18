@@ -1,3 +1,4 @@
+import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
@@ -41,7 +42,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
         setIsLoading(true);
         setSaveMessage(null);
         try {
-            const res = await fetch('/api/admin/projects', {
+            const res = await staffFetch('/api/admin/projects', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(project)
@@ -72,7 +73,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
         setIsLoading(true);
         setSaveMessage(null);
         try {
-            const res = await fetch(`/api/admin/projects?id=${projectId}`, { method: 'DELETE' });
+            const res = await staffFetch(`/api/admin/projects?id=${projectId}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 const updatedList = localProjects.filter(p => p.id !== projectId);

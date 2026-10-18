@@ -1,3 +1,4 @@
+import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
 import { useState, useEffect } from "react";
@@ -53,7 +54,7 @@ export default function MatchResultModal({ isOpen, onClose, match, getTeamName, 
                 winnerId: winnerId
             };
 
-            const response = await fetch('/api/match/update', {
+            const response = await staffFetch('/api/match/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ matchId: match.id, updates })

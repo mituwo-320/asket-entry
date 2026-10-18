@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
@@ -22,9 +23,9 @@ export default function ManagementProjectList() {
         try {
             // We just need basic data to show counts. In a massive app, we'd have a specific list endpoint.
             const [projectsRes, dataRes, settingsRes] = await Promise.all([
-                fetch('/api/admin/projects'),
-                fetch('/api/admin/data'),
-                fetch('/api/settings')
+                staffFetch('/api/admin/projects'),
+                staffFetch('/api/admin/data'),
+                staffFetch('/api/settings')
             ]);
             
             if (projectsRes.ok) {
@@ -67,7 +68,7 @@ export default function ManagementProjectList() {
     };
 
     const handleLogout = async () => {
-        await fetch('/api/management/auth/logout', { method: 'POST' });
+        await staffFetch('/api/management/auth/logout', { method: 'POST' });
         router.push('/management/login');
     };
 

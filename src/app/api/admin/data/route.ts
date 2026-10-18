@@ -1,10 +1,11 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 
 import { NextResponse } from 'next/server';
 import { getAllAdminData } from '@/lib/sheets';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+async function handleGET() {
     try {
         const data = await getAllAdminData();
         return NextResponse.json(data);
@@ -13,3 +14,5 @@ export async function GET() {
         return NextResponse.json({ error: 'Failed to fetch admin data' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: STAFF });

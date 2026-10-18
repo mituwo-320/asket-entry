@@ -1,13 +1,13 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { getMatches } from '@/lib/sheets';
-import { DEFAULT_TOURNAMENT_ID } from '@/lib/tournament-constants';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        const tournamentId = searchParams.get('tournamentId') || DEFAULT_TOURNAMENT_ID;
+        const tournamentId = searchParams.get('tournamentId') || undefined;
 
         const matches = await getMatches(tournamentId);
 
@@ -17,3 +17,5 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: STAFF });

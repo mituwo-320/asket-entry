@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -24,8 +25,8 @@ function ReceiptContent() {
         const fetchData = async () => {
             try {
                 const [dataRes, settingsRes] = await Promise.all([
-                    fetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
-                    fetch('/api/settings')
+                    staffFetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
+                    staffFetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {

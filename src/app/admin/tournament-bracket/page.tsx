@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect } from "react";
 import { AdminHeading, AdminState } from "@/components/admin/AdminFrame";
@@ -39,11 +40,11 @@ export default function TournamentBracketPage() {
 
     const loadData = async () => {
         try {
-            const res = await fetch('/api/admin/data');
+            const res = await staffFetch('/api/admin/data');
             const data = await res.json();
             if (data.entries) setEntries(data.entries);
 
-            const projectsRes = await fetch('/api/admin/projects');
+            const projectsRes = await staffFetch('/api/admin/projects');
             if (projectsRes.ok) {
                 const projectsData = await projectsRes.json();
                 if (projectsData.projects) {
@@ -63,7 +64,7 @@ export default function TournamentBracketPage() {
     const loadBracket = async () => {
         if (!selectedProjectId) return;
         try {
-            const res = await fetch(`/api/admin/bracket?tournamentId=${selectedProjectId}`);
+            const res = await staffFetch(`/api/admin/bracket?tournamentId=${selectedProjectId}`);
             const data = await res.json();
             if (data.bracket) {
                 setBracketId(data.bracket.id);
@@ -90,7 +91,7 @@ export default function TournamentBracketPage() {
         setIsSeedingTeams(true);
         setSeedMessage(null);
         try {
-            const res = await fetch('/api/admin/bracket/seed-teams', {
+            const res = await staffFetch('/api/admin/bracket/seed-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: selectedProjectId, teamCount: count }),
@@ -102,7 +103,7 @@ export default function TournamentBracketPage() {
                 
                 // Automatically generate a new bracket matching the seeded team count
                 setTeamCount(count);
-                const genRes = await fetch('/api/admin/bracket', {
+                const genRes = await staffFetch('/api/admin/bracket', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tournamentId: selectedProjectId, teamCount: count }),
@@ -132,7 +133,7 @@ export default function TournamentBracketPage() {
 
         setIsGenerating(true);
         try {
-            const res = await fetch('/api/admin/bracket', {
+            const res = await staffFetch('/api/admin/bracket', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: selectedProjectId, teamCount }),
@@ -153,7 +154,7 @@ export default function TournamentBracketPage() {
 
     const saveBracket = async (data: TournamentBracketData, status?: string) => {
         if (!bracketId) return;
-        const res = await fetch('/api/admin/bracket/update', {
+        const res = await staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: data, status }),
@@ -166,7 +167,7 @@ export default function TournamentBracketPage() {
         const updated = recordMatchResult(bracketData, matchId, winnerId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -179,7 +180,7 @@ export default function TournamentBracketPage() {
         const updated = undoMatchResult(bracketData, matchId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -222,7 +223,7 @@ export default function TournamentBracketPage() {
 
         const updated = updateMatchScore(bracketData, matchId, newScoreA, newScoreB);
         setBracketData(updated);
-        fetch('/api/admin/bracket/update', {
+        staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: updated }),
@@ -405,6 +406,7 @@ export default function TournamentBracketPage() {
                                 <span>編集内容は自動で保存されます</span>
                             </div>
                             <div className="flex items-center gap-2">
+                                {projects.find(project => project.id === selectedProjectId)?.isTestProject && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -415,6 +417,7 @@ export default function TournamentBracketPage() {
                                     <FlaskConical className="w-3 h-3 mr-1" />
                                     テスト追加
                                 </Button>
+                                )}
                                 <Button
                                     variant="ghost"
                                     size="sm"

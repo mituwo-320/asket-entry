@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
@@ -43,7 +44,7 @@ function DashboardContent() {
     const showConfirm = (title: string, message: string, onConfirm: () => void, danger = false, confirmLabel = "削除する") => setConfirmDialog({ open: true, title, message, onConfirm, danger, confirmLabel });
 
     useEffect(() => {
-        fetch("/api/settings").then(res => res.json()).then(setSettings).catch(console.error);
+        participantFetch("/api/settings").then(res => res.json()).then(setSettings).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -51,7 +52,7 @@ function DashboardContent() {
 
         const fetchTeamData = async () => {
             try {
-                const res = await fetch('/api/team/data', {
+                const res = await participantFetch('/api/team/data', {
                     headers: { 'x-team-id': entryId }
                 });
                 if (res.ok) {
@@ -82,7 +83,7 @@ function DashboardContent() {
         setIsSavingPlayer(true);
         setPlayerSaveError(null);
         try {
-            const res = await fetch('/api/player/save', {
+            const res = await participantFetch('/api/player/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ function DashboardContent() {
                 setTeamEntry({ ...teamEntry, players: updatedPlayers });
 
                 try {
-                    const res = await fetch('/api/player/delete', {
+                    const res = await participantFetch('/api/player/delete', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ function DashboardContent() {
         const targetEntry = updatedEntry || teamEntry;
         if (!targetEntry) return;
         try {
-            const res = await fetch('/api/team/submit', {
+            const res = await participantFetch('/api/team/submit', {
                 method: 'POST',
                 headers: { 'x-team-id': targetEntry.id }
             });
@@ -192,7 +193,7 @@ function DashboardContent() {
         if (!teamEntry || tempClinicParticipation === null || isUpdatingClinic) return;
         setIsUpdatingClinic(true);
         try {
-            const updateRes = await fetch('/api/team/update', {
+            const updateRes = await participantFetch('/api/team/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
                 body: JSON.stringify({
@@ -223,7 +224,7 @@ function DashboardContent() {
         if (!teamEntry || tempClinicParticipation === null || isUpdatingClinic) return;
         setIsUpdatingClinic(true);
         try {
-            const updateRes = await fetch('/api/team/update', {
+            const updateRes = await participantFetch('/api/team/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
                 body: JSON.stringify({
@@ -255,7 +256,7 @@ function DashboardContent() {
         if (!teamEntry) return;
         setIsIssuingReceipt(true);
         try {
-            const res = await fetch('/api/team/receipt/issue', {
+            const res = await participantFetch('/api/team/receipt/issue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
                 body: JSON.stringify({ receiptName: customName || null })
@@ -410,7 +411,7 @@ function DashboardContent() {
                                     const newText = e.target.value;
                                     if (newText === teamEntry.teamIntroduction) return;
                                     try {
-                                        const res = await fetch('/api/team/update', {
+                                        const res = await participantFetch('/api/team/update', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json', 'x-team-id': teamEntry.id },
                                             body: JSON.stringify({ teamIntroduction: newText })

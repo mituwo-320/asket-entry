@@ -1,97 +1,58 @@
 import { NextResponse } from 'next/server';
-import { findTeamEntry, saveTeamEntry, findUserById, saveUser, getSetting, getProjects } from '@/lib/sheets';
-import { TeamEntry, User } from '@/lib/types';
-import { cookies } from 'next/headers';
+import { db } from '@/lib/db';
+import { withAuthorization } from '@/lib/auth/authorize';
+import { readSession } from '@/lib/auth/session';
+import { findTeamEntry, findUserById, getProjects } from '@/lib/sheets';
+import type { TeamEntry, Player, User } from '@/lib/types';
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const entryId = request.headers.get('x-team-id');
-        console.log(`[API Update] request for entryId: ${entryId}`);
-        if (!entryId) {
-            return NextResponse.json({ error: 'Entry ID required' }, { status: 400 });
-        }
-
+        if (!entryId) return NextResponse.json({ error: 'Entry ID required' }, { status: 400 });
         const body = await request.json();
-        console.log('[API Update] Payload:', JSON.stringify(body, null, 2));
-
-        // 1. Fetch existing data to verify and merge
+        if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: '入力内容が不正です' }, { status: 400 });
         const existingEntry = await findTeamEntry(entryId);
-        if (!existingEntry) {
-            console.error(`[API Update] Entry not found: ${entryId}`);
-            return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
+        if (!existingEntry) return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
+        const isAdmin = readSession(request.headers.get('cookie'))?.role === 'admin';
+        if (existingEntry.status === 'submitted' && !isAdmin && Object.keys(body).some(key => !['clinicParticipation', 'clinicCount'].includes(key))) {
+            return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
         }
-
-        const cookieStore = await cookies();
-        const isAdmin = cookieStore.get('admin_auth')?.value === 'true';
-
-        if (existingEntry.status === 'submitted' && !isAdmin) {
-            // Only allow updating clinic fields
-            const keys = Object.keys(body);
-            const nonClinicKeys = keys.filter(k => k !== 'clinicParticipation' && k !== 'clinicCount');
-            if (nonClinicKeys.length > 0) {
-                return NextResponse.json({ error: '本エントリー完了後の編集はできません' }, { status: 403 });
-            }
-        }
-
-        const projects = await getProjects();
-        const project = projects.find(p => p.id === existingEntry.tournamentId);
-        if (project?.entryEndDate && new Date() > new Date(project.entryEndDate) && !isAdmin) {
-            return NextResponse.json({ error: 'この大会のエントリー期間は終了しました' }, { status: 403 });
-        }
-
+        const project = (await getProjects()).find(p => p.id === existingEntry.tournamentId);
+        if (project?.entryEndDate && new Date() > new Date(project.entryEndDate) && !isAdmin) return NextResponse.json({ error: 'この大会のエントリー期間は終了しました' }, { status: 403 });
         const user = await findUserById(existingEntry.userId);
-        if (!user) {
-            console.error(`[API Update] User not found: ${existingEntry.userId}`);
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+        for (const key of ['teamName', 'teamNameKana', 'teamIntroduction', 'representativeName', 'repFurigana', 'wristbandColor', 'phone']) {
+            if (body[key] !== undefined && typeof body[key] !== 'string') return NextResponse.json({ error: '入力内容が不正です' }, { status: 400 });
         }
+        if ((body.insurance !== undefined && typeof body.insurance !== 'boolean') || (body.clinicParticipation !== undefined && body.clinicParticipation !== null && typeof body.clinicParticipation !== 'boolean')) return NextResponse.json({ error: '入力内容が不正です' }, { status: 400 });
+        const clinicCount = body.clinicCount !== undefined ? Number(body.clinicCount || 0) : undefined;
+        if (clinicCount !== undefined && (!Number.isInteger(clinicCount) || clinicCount < 0 || (project?.hasClinic && clinicCount > (project.clinicLimit ?? 20)))) return NextResponse.json({ error: 'クリニックの人数が不正です' }, { status: 400 });
 
-        // 2. Update Team Entry (Team Name, Kana, Intro)
-        const updatedEntry: TeamEntry = {
-            ...existingEntry,
-            teamName: body.teamName !== undefined ? body.teamName : existingEntry.teamName,
-            teamNameKana: body.teamNameKana !== undefined ? body.teamNameKana : existingEntry.teamNameKana,
-            teamIntroduction: body.teamIntroduction !== undefined ? body.teamIntroduction : existingEntry.teamIntroduction,
-            clinicParticipation: body.clinicParticipation !== undefined ? body.clinicParticipation : existingEntry.clinicParticipation,
-            clinicCount: body.clinicCount !== undefined ? (body.clinicCount ? parseInt(body.clinicCount.toString(), 10) : 0) : existingEntry.clinicCount,
-        };
+        const entryChanges: Partial<Pick<TeamEntry, 'teamName' | 'teamNameKana' | 'teamIntroduction' | 'clinicParticipation' | 'clinicCount'>> = {};
+        for (const key of ['teamName', 'teamNameKana', 'teamIntroduction', 'clinicParticipation'] as const) if (body[key] !== undefined) entryChanges[key] = body[key];
+        if (clinicCount !== undefined) entryChanges.clinicCount = clinicCount;
+        const representativeChanges: Partial<Pick<Player, 'name' | 'furigana' | 'wristbandColor' | 'insurance'>> = {};
+        if (body.representativeName !== undefined) representativeChanges.name = body.representativeName;
+        if (body.repFurigana !== undefined) representativeChanges.furigana = body.repFurigana;
+        if (body.wristbandColor !== undefined) representativeChanges.wristbandColor = body.wristbandColor;
+        if (body.insurance !== undefined) representativeChanges.insurance = body.insurance;
+        const userChanges: Partial<Pick<User, 'name' | 'phone' | 'wristbandColor'>> = {};
+        if (body.representativeName !== undefined) userChanges.name = body.representativeName;
+        if (body.phone !== undefined) userChanges.phone = body.phone;
+        if (body.wristbandColor !== undefined) userChanges.wristbandColor = body.wristbandColor;
+        const representative = existingEntry.players.find(p => p.isRepresentative) || existingEntry.players[0];
 
-        // 3. Update Representative Player
-        const repIndex = updatedEntry.players.findIndex(p => p.isRepresentative);
-        const playerIndexToUpdate = repIndex >= 0 ? repIndex : 0;
-        
-        if (updatedEntry.players.length > 0) {
-            updatedEntry.players[playerIndexToUpdate] = {
-                ...updatedEntry.players[playerIndexToUpdate],
-                name: body.representativeName !== undefined ? body.representativeName : updatedEntry.players[playerIndexToUpdate].name,
-                furigana: body.repFurigana !== undefined ? body.repFurigana : updatedEntry.players[playerIndexToUpdate].furigana,
-                wristbandColor: body.wristbandColor !== undefined ? body.wristbandColor : updatedEntry.players[playerIndexToUpdate].wristbandColor,
-                insurance: body.insurance !== undefined ? body.insurance : updatedEntry.players[playerIndexToUpdate].insurance,
-            };
-        }
-
-        // 4. Update User Profile
-        const updatedUser: User = {
-            ...user,
-            name: body.representativeName !== undefined ? body.representativeName : user.name,
-            phone: body.phone !== undefined ? body.phone : user.phone,
-            wristbandColor: body.wristbandColor !== undefined ? body.wristbandColor : user.wristbandColor,
-        };
-
-        console.log('[API Update] Saving updates...');
-        // Save both
-        const entrySuccess = await saveTeamEntry(updatedEntry);
-        const userSuccess = await saveUser(updatedUser);
-
-        if (entrySuccess && userSuccess) {
-            console.log('[API Update] Success');
-            return NextResponse.json({ success: true, teamEntry: updatedEntry, user: updatedUser });
-        } else {
-            console.error('[API Update] Failed to save');
-            return NextResponse.json({ error: 'Failed to save data' }, { status: 500 });
-        }
-
-    } catch (e) {
-        console.error('[API Update] Server error:', e);
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        // Save only participant-editable fields. A stale snapshot must not overwrite staff payment/receipt/status changes.
+        await db.$transaction(async tx => {
+            if (Object.keys(entryChanges).length) await tx.teamEntry.update({ where: { id: entryId }, data: entryChanges });
+            if (representative && Object.keys(representativeChanges).length) await tx.player.update({ where: { id: representative.id, entryId }, data: representativeChanges });
+            if (Object.keys(userChanges).length) await tx.user.update({ where: { id: user.id }, data: userChanges });
+        });
+        return NextResponse.json({ success: true, teamEntry: { ...existingEntry, ...entryChanges, players: existingEntry.players.map(p => p.id === representative?.id ? { ...p, ...representativeChanges } : p) }, user: { ...user, ...userChanges } });
+    } catch {
+        console.error('Team profile update failed');
+        return NextResponse.json({ error: '保存に失敗しました。時間をおいて再度お試しください。' }, { status: 500 });
     }
 }
+export const POST = withAuthorization(handlePOST, { roles: ['admin', 'user'], entry: true });

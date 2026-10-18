@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -23,8 +24,8 @@ function InvoiceContent() {
         const fetchData = async () => {
             try {
                 const [dataRes, settingsRes] = await Promise.all([
-                    fetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
-                    fetch('/api/settings')
+                    participantFetch('/api/team/data', { headers: { 'x-team-id': entryId } }),
+                    participantFetch('/api/settings')
                 ]);
                 
                 if (dataRes.ok) {

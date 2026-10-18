@@ -1,3 +1,4 @@
+import { staffFetch } from "@/lib/staff-fetch";
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +22,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/admin/checklist?projectId=${projectId}`);
+            const res = await staffFetch(`/api/admin/checklist?projectId=${projectId}`);
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.items || []);
@@ -49,7 +50,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: targetStatus } : i));
 
         try {
-            const res = await fetch('/api/admin/checklist', {
+            const res = await staffFetch('/api/admin/checklist', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: item.id, isPrinted: targetStatus })
@@ -74,7 +75,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         setIsAdding(true);
         setError(null);
         try {
-            const res = await fetch('/api/admin/checklist', {
+            const res = await staffFetch('/api/admin/checklist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ projectId, name: newItemName.trim() })
@@ -98,7 +99,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         if (!confirm(`「${name}」をチェックリストから削除しますか？`)) return;
 
         try {
-            const res = await fetch(`/api/admin/checklist?id=${id}`, {
+            const res = await staffFetch(`/api/admin/checklist?id=${id}`, {
                 method: 'DELETE'
             });
 

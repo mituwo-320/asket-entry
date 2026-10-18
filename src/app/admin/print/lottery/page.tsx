@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 import { AdminPrintGuide, AdminState } from "@/components/admin/AdminFrame";
 
 import { useEffect, useState } from "react";
@@ -14,7 +15,7 @@ export default function LotteryPrintPage() {
 
     useEffect(() => {
         // Fetch Admin Data directly or appropriate endpoint
-        fetch('/api/admin/data')
+        staffFetch('/api/admin/data')
             .then(res => res.json())
             .then(data => {
                 if (data.entries) setEntries(data.entries);

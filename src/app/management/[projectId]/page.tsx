@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -28,9 +29,9 @@ export default function ManagementProjectDetail() {
     const loadData = async () => {
         try {
             const [dataRes, projectsRes, settingsRes] = await Promise.all([
-                fetch('/api/admin/data'),
-                fetch('/api/admin/projects'),
-                fetch('/api/settings')
+                staffFetch('/api/admin/data'),
+                staffFetch('/api/admin/projects'),
+                staffFetch('/api/settings')
             ]);
             
             if (dataRes.ok) {
@@ -71,19 +72,20 @@ export default function ManagementProjectDetail() {
     };
 
     const handleUpdateEntry = async (entryId: string, updates: Partial<TeamEntry>) => {
-        setEntries(entries.map(e => e.id === entryId ? { ...e, ...updates } : e));
-        if (selectedEntry && selectedEntry.id === entryId) {
-            setSelectedEntry({ ...selectedEntry, ...updates });
-        }
         try {
-            await fetch('/api/management/entry/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await staffFetch('/api/management/entry/update', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ entryId, updates })
             });
-        } catch (e) {
-            alert("更新に失敗しました。再読み込みします。");
-            loadData();
+            if (!response.ok) throw new Error('Save failed');
+            setEntries(previous => previous.map(entry => entry.id === entryId ? { ...entry, ...updates } : entry));
+            // Text fields already contain current typing; do not overwrite newer edits after a blur save.
+            const confirmationUpdates = { ...updates };
+            delete confirmationUpdates.managementMemo;
+            delete confirmationUpdates.uniformColor;
+            setSelectedEntry(previous => previous?.id === entryId ? { ...previous, ...confirmationUpdates } : previous);
+        } catch {
+            alert('更新を保存できませんでした。入力内容を確認し、もう一度お試しください。');
         }
     };
 
@@ -625,7 +627,7 @@ export default function ManagementProjectDetail() {
                                                     onClick={async () => {
                                                         if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。選手データもすべて物理削除され、募集枠が解放されます。")) return;
                                                         try {
-                                                            const res = await fetch('/api/admin/entry/delete', {
+                                                            const res = await staffFetch('/api/admin/entry/delete', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id })

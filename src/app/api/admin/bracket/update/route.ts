@@ -1,8 +1,9 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 // POST: Update bracket data (team placement, match results)
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
     try {
         const body = await req.json();
         const { bracketId, brackets, status } = body;
@@ -28,3 +29,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to update bracket' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });

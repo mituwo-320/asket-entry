@@ -120,3 +120,17 @@ test("team file keeps blur saving, status updates and cancellation of destructiv
   confirm.mockRestore();
   open.mockRestore();
 });
+
+test("a rejected operational update leaves the confirmation unchanged", async () => {
+  const user = userEvent.setup();
+  const alert = jest.spyOn(window, "alert").mockImplementation(() => {});
+  mockData();
+  const read = jest.mocked(fetch).getMockImplementation()!;
+  jest.mocked(fetch).mockImplementation((url, options) => url === "/api/management/entry/update" ? response({ error: "保存できません" }, false) : read(url, options));
+  render(<ManagementDetail />);
+  const toggle = await screen.findByRole("button", { name: "コートサイドのLINE参加確認" });
+  await user.click(toggle);
+  await waitFor(() => expect(alert).toHaveBeenCalled());
+  expect(toggle).toHaveAttribute("aria-pressed", "false");
+  alert.mockRestore();
+});

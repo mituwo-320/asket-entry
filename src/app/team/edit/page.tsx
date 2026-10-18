@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
@@ -48,7 +49,7 @@ function EditTeamContent() {
     });
 
     useEffect(() => {
-        fetch("/api/settings")
+        participantFetch("/api/settings")
             .then(res => res.json())
             .then(data => {
                 setSettings(data);
@@ -62,7 +63,7 @@ function EditTeamContent() {
 
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/team/data', {
+                const res = await participantFetch('/api/team/data', {
                     headers: { 'x-team-id': entryId }
                 });
 
@@ -116,7 +117,7 @@ function EditTeamContent() {
         setError("");
         setSuccessMsg("");
         try {
-            const res = await fetch('/api/team/update', {
+            const res = await participantFetch('/api/team/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

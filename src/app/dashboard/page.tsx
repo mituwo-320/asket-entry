@@ -1,4 +1,5 @@
 "use client";
+import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +33,7 @@ export default function UserDashboard() {
         if (!receiptModalEntryId) return;
         setIsIssuingReceipt(true);
         try {
-            const res = await fetch('/api/team/receipt/issue', {
+            const res = await participantFetch('/api/team/receipt/issue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-team-id': receiptModalEntryId },
                 body: JSON.stringify({ receiptName: customName || receiptNameInput })
@@ -79,9 +80,9 @@ export default function UserDashboard() {
         const fetchData = async () => {
             try {
                 const [entriesRes, projectsRes, settingsRes] = await Promise.all([
-                    fetch(`/api/user/entries?userId=${parsedUser.id}`),
-                    fetch('/api/admin/projects'),
-                    fetch('/api/settings')
+                    participantFetch(`/api/user/entries?userId=${parsedUser.id}`),
+                    participantFetch('/api/admin/projects'),
+                    participantFetch('/api/settings')
                 ]);
                 if (!entriesRes.ok) throw new Error("Failed to fetch entries");
                 const entriesData = await entriesRes.json();
@@ -101,7 +102,11 @@ export default function UserDashboard() {
         fetchData();
     }, [router]);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            const response = await fetch("/api/auth/logout", { method: "POST" });
+            if (!response.ok) throw new Error("Logout failed");
+        } catch { alert("ログアウトできませんでした。もう一度お試しください。"); return; }
         localStorage.removeItem('currentUser');
         router.push('/login');
     };

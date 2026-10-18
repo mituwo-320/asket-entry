@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Match, ScheduleEvent, TeamEntry } from '@/lib/types';
@@ -45,7 +46,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
     const fetchEvents = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/schedule/events?tournamentId=${encodeURIComponent(tournamentId)}`);
+            const res = await staffFetch(`/api/schedule/events?tournamentId=${encodeURIComponent(tournamentId)}`);
             if (res.ok) {
                 const data = await res.json();
                 setEvents(data.events || []);
@@ -120,14 +121,14 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         try {
             if ('type' in updatedItem) {
                 // It's an Event
-                const res = await fetch('/api/schedule/events', {
+                const res = await staffFetch('/api/schedule/events', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ events: [updatedItem] })
                 });
             } else {
                 // It's a Match
-                const res = await fetch('/api/admin/match/update', {
+                const res = await staffFetch('/api/admin/match/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ match: updatedItem })
@@ -161,7 +162,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
 
         setLoading(true);
         try {
-            const res = await fetch(`/api/schedule/events?id=${eventId}`, {
+            const res = await staffFetch(`/api/schedule/events?id=${eventId}`, {
                 method: 'DELETE',
             });
 
@@ -183,7 +184,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
     const handleGenerateSchedule = async (config: any) => {
         setLoading(true);
         try {
-            const res = await fetch('/api/admin/schedule/generate', {
+            const res = await staffFetch('/api/admin/schedule/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
