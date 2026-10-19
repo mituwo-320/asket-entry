@@ -663,3 +663,43 @@ body:has([data-participant-dialog]) { overflow: hidden; }
   .participant-completion-section-heading { gap: 10px; }
   .participant-completion-line a { flex-wrap: wrap; }
 }
+
+/* Previous rosters: compact selection cards within the existing paper-and-court dialog. */
+.participant-member-add-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.participant-member-add-actions button { white-space: normal; }
+.participant-history-note { display: flex; align-items: flex-start; gap: 10px; padding: 14px; margin-bottom: 20px; border-left: 3px solid #d14052; background: #333943; color: #e5e6e3; font-size: 12px; line-height: 1.9; }
+.participant-history-note > svg { flex: 0 0 auto; margin-top: 4px; color: #ffb2be; }
+.participant-history-note strong { display: block; font-weight: 600; }
+.participant-history-team-label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.participant-history-team-label select { width: 100%; min-width: 0; min-height: 46px; padding: 10px; border: 1px solid #989da5; border-radius: 6px; background: #faf8f3; color: #252a32; font-size: 13px; }
+.participant-history-list-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #d1d6dd; }
+.participant-history-list-heading > span { display: inline-flex; align-items: center; gap: 7px; }
+.participant-history-list-heading > button { text-decoration: underline; text-underline-offset: 4px; color: #ffb9c3; }
+.participant-history-list { display: grid; gap: 9px; }
+.participant-history-player { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #7e8795; border-radius: 6px; background: #1b2028; box-shadow: 0 3px 0 #12151b; }
+.participant-history-player[data-selected="true"] { border-color: #ed8798; background: #34313a; box-shadow: 3px 0 0 #c52d40 inset, 0 3px 0 #12151b; }
+.participant-history-player-choice { display: flex; align-items: flex-start; flex: 1; min-width: 0; gap: 11px; cursor: pointer; }
+.participant-history-player-choice > input { flex: 0 0 auto; width: 19px; height: 19px; margin-top: 4px; accent-color: #c52d40; }
+.participant-history-player-choice > span { display: grid; gap: 3px; overflow-wrap: anywhere; }
+.participant-history-player-choice strong { font-size: 14px; color: #faf8f3; }
+.participant-history-player-choice small { font-size: 11px; line-height: 1.8; color: #c9d0d9; }
+.participant-history-player > button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #faf8f3; background: #343a45; font-size: 12px; }
+.participant-history-added { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: #b8d9c4; font-size: 11px; }
+.participant-history-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 12px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #7c8797; }
+.participant-history-selection strong { font-size: 16px; color: #f8f3ed; }
+.participant-history-selection > span { flex-basis: 100%; font-size: 11px; line-height: 1.8; color: #c8d0da; }
+.participant-history-selection > button { font-size: 12px; color: #ffb9c3; text-decoration: underline; text-underline-offset: 4px; }
+.participant-history-selected-names { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px 16px; }
+.participant-history-selected-names button { display: inline-flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #f8f3ed; background: #343a45; font-size: 12px; overflow-wrap: anywhere; }
+.participant-history-actions { position: sticky; bottom: -27px; z-index: 1; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-inline: -8px; margin-top: 18px; padding: 14px 8px; border-top: 1px solid #707b8b; background: #252932; box-shadow: 0 -8px 16px #161b2366; }
+.participant-history-state { display: grid; justify-items: center; gap: 15px; padding-block: 28px; text-align: center; font-size: 13px; line-height: 1.9; color: #d5dbe3; }
+.participant-history-state h3 { color: #faf8f3; font-size: 17px; font-weight: 600; }
+.participant-history-empty, .participant-history-footnote { color: #c8d0da; font-size: 11px; line-height: 1.9; padding-top: 12px; }
+.participant-history-player button:disabled, .participant-history-selection button:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 480px) {
+  .participant-member-add-actions, .participant-member-add-actions button { width: 100%; }
+  .participant-history-player { gap: 7px; padding: 10px; }
+  .participant-history-player > button { padding-inline: 7px; }
+  .participant-history-added { max-width: 4.2em; line-height: 1.7; }
+  .participant-history-actions button { flex: 1; }
+}

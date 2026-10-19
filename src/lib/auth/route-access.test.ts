@@ -13,7 +13,7 @@ const protectedRoutes = [
   ['admin/backups', 'GET'], ['admin/backups', 'POST'], ['admin/backups/restore', 'POST'], ['admin/checklist', 'GET'], ['admin/checklist', 'POST'], ['admin/checklist', 'PATCH'], ['admin/checklist', 'DELETE'],
   ['admin/entry/delete', 'POST'], ['admin/entry/update', 'POST'], ['admin/match/update', 'POST'], ['admin/schedule/generate', 'POST'], ['admin/settings', 'GET'], ['admin/settings', 'POST'],
   ['management/entry/update', 'POST'], ['settings', 'POST'], ['match/update', 'POST'], ['matches', 'GET'], ['schedule/events', 'GET'], ['schedule/events', 'POST'], ['schedule/events', 'DELETE'],
-  ['user/entries', 'GET'], ['user/update', 'PUT'], ['team/data', 'GET'], ['team/update', 'POST'], ['team/submit', 'POST'], ['team/receipt/issue', 'POST'], ['team/receipt/viewed', 'POST'], ['player/save', 'POST'], ['player/delete', 'POST'],
+  ['user/entries', 'GET'], ['user/update', 'PUT'], ['team/data', 'GET'], ['team/update', 'POST'], ['team/submit', 'POST'], ['team/receipt/issue', 'POST'], ['team/receipt/viewed', 'POST'], ['player/save', 'POST'], ['player/delete', 'POST'], ['player/history', 'GET'], ['player/history', 'POST'],
 ] as const;
 const request = (path: string, method: string, cookie = '', body: unknown = {}) => new Request(`https://example.test/api/${path}?userId=user`, { method, headers: { cookie, 'x-team-id': 'entry', 'Content-Type': 'application/json' }, ...(method === 'GET' ? {} : { body: JSON.stringify(body) }) });
 const cookie = (role: 'admin' | 'management' | 'user', id = 'user') => `${SESSION_COOKIES[role]}=${createSession(role, id, role === 'admin' ? process.env.ADMIN_PASSWORD! : role === 'management' ? process.env.MANAGEMENT_PASSWORD! : 'fixture-hash')}`;
@@ -100,4 +100,10 @@ test('receipt issuance and viewing use conditional writes to preserve one-time r
   expect(db.teamEntry.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'entry', isPaid: true, receiptIssuedAt: null } }));
   await route('team/receipt/viewed', 'POST')(request('team/receipt/viewed', 'POST', cookie('admin')));
   expect(db.teamEntry.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({ where: { id: 'entry', isPaid: true, receiptIssuedAt: { not: null }, receiptViewedAt: null } }));
+});
+
+
+test.each(['GET', 'POST'])('player history %s rejects a target entry owned by someone else', async method => {
+  (db.teamEntry.findUnique as jest.Mock).mockResolvedValue({ userId: 'other-user', tournamentId: 'event' });
+  expect((await route('player/history', method)(request('player/history', method, cookie('user')))).status).toBe(403);
 });

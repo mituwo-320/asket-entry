@@ -14,9 +14,11 @@ interface PlayerFormProps {
     onCancel: () => void;
     isSaving?: boolean;
     error?: string | null;
+    submitLabel?: string;
+    cancelLabel?: string;
 }
 
-export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, error }: PlayerFormProps) {
+export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, error, submitLabel = "保存", cancelLabel = "キャンセル" }: PlayerFormProps) {
     const [playerId] = useState(() => initialData?.id || Math.random().toString(36).substr(2, 9));
     const [formData, setFormData] = useState<Partial<Player>>(() => ({
         name: "",
@@ -69,10 +71,10 @@ export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, er
 
             <div className="participant-dialog-actions">
                 <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
-                    キャンセル
+                    {cancelLabel}
                 </Button>
                 <Button type="submit" disabled={isSaving}>
-                    {isSaving ? <><Loader2 size={17} className="animate-spin" aria-hidden="true" />保存中…</> : "保存"}
+                    {isSaving ? <><Loader2 size={17} className="animate-spin" aria-hidden="true" />保存中…</> : submitLabel}
                 </Button>
             </div>
         </form>

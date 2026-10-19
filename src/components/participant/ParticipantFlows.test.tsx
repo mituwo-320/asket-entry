@@ -157,6 +157,7 @@ test.each([
   render(<TeamDashboard />);
   await screen.findByRole("heading", { name: "テストチーム" });
   expect(screen.queryByRole("button", { name: "選手を追加" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "過去のメンバーから追加" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "代表 太郎の情報を編集" })).not.toBeInTheDocument();
   if (entry.status === "draft") expect(screen.getByRole("button", { name: /本エントリーを完了し/ })).toBeDisabled();
 });

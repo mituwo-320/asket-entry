@@ -5,9 +5,10 @@ import { participantFetch } from "@/lib/participant-fetch";
 import { useEffect, useState, Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Users, ShieldCheck, Plus, AlertCircle, Edit2, Trash2, UserCheck, Printer, CheckCircle } from "lucide-react";
+import { Users, ShieldCheck, Plus, History, AlertCircle, Edit2, Trash2, UserCheck, Printer, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Player, TeamEntryDetails } from "@/lib/types";
+import { PlayerHistoryImporter } from "@/components/participant/PlayerHistoryImporter";
 import { PlayerForm } from "@/components/ui/PlayerForm";
 import { ParticipantDialog, ParticipantConfirmDialog as ConfirmDialog, ParticipantAlertDialog as AlertDialog } from "@/components/participant/ParticipantDialog";
 import { ParticipantPreparation } from "@/components/participant/ParticipantPreparation";
@@ -21,6 +22,7 @@ function DashboardContent() {
     const [teamEntry, setTeamEntry] = useState<TeamEntryDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [historyOpen, setHistoryOpen] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
     const [isSavingPlayer, setIsSavingPlayer] = useState(false);
     const [playerSaveError, setPlayerSaveError] = useState<string | null>(null);
@@ -434,9 +436,12 @@ function DashboardContent() {
                         <div className="p-6 border-b border-[#697383] flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <ParticipantSectionTitle number="02" title="選手リスト" description={(teamEntry.status === 'submitted' && !isAdmin) ? '登録済みの選手一覧です。' : '大会に参加する選手を登録してください。'} />
                             {canEditPlayers && (
-                                <Button onClick={() => openPlayerForm()} className="bg-[#a62034] hover:bg-[#cb3146] text-white">
-                                    <Plus className="w-4 h-4 mr-2" /> 選手を追加
-                                </Button>
+                                <div className="participant-member-add-actions">
+                                    <Button variant="outline" onClick={() => setHistoryOpen(true)}><History className="w-4 h-4 mr-2" aria-hidden="true" />過去のメンバーから追加</Button>
+                                    <Button onClick={() => openPlayerForm()} className="bg-[#a62034] hover:bg-[#cb3146] text-white">
+                                        <Plus className="w-4 h-4 mr-2" /> 選手を追加
+                                    </Button>
+                                </div>
                             )}
                         </div>
 
@@ -591,6 +596,12 @@ function DashboardContent() {
                     error={playerSaveError}
                 />
             </ParticipantDialog>
+
+            {historyOpen && canEditPlayers ? <PlayerHistoryImporter key={teamEntry.id} entryId={teamEntry.id} currentPlayers={teamEntry.players} onClose={() => setHistoryOpen(false)} onComplete={result => {
+                setTeamEntry(current => current ? { ...current, players: result.players } : current);
+                setPlayerSaveMessage(result.added ? `${result.added}人のメンバーを追加しました。${result.skipped ? `（${result.skipped}人は登録済みのため追加していません）` : ''}` : '選択したメンバーは登録済みでした。選手リストを更新しました。');
+                setHistoryOpen(false);
+            }} /> : null}
 
             {/* 領収書発行モーダル */}
             {receiptModal && (
