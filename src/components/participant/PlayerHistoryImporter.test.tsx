@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlayerHistoryImporter } from './PlayerHistoryImporter';
 import TeamDashboard from '@/app/team/dashboard/page';
@@ -65,7 +65,7 @@ test('pending addition prevents duplicate requests, edits and closing the dialog
     render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={close} onComplete={jest.fn()} />);
     await user.click(await screen.findByRole('checkbox', { name: '山田 太郎を選択' }));
     const add = screen.getByRole('button', { name: '1人をまとめて追加' });
-    fireEvent.click(add); fireEvent.click(add);
+    await act(async () => { fireEvent.click(add); fireEvent.click(add); });
     expect(jest.mocked(fetch).mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1);
     expect(screen.getByRole('button', { name: '閉じる' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: '山田 太郎を選択' })).toBeDisabled();
@@ -94,12 +94,98 @@ test('missing legacy furigana must be corrected before registration', async () =
     await user.click(screen.getByRole('button', { name: '1人をまとめて追加' }));
     expect(screen.getByRole('alert')).toHaveTextContent('氏名とフリガナを確認');
     expect(jest.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
+    expect(screen.getByRole('heading', { name: '追加するメンバーを確認' })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveFocus();
+});
+test('selected members from multiple teams can be reviewed, edited and removed in one place', async () => {
+    const user = userEvent.setup(); setup([...teams, { ...teams[0], id: 'autumn', teamName: '秋チーム', projectName: '秋の大会', players: [{ ...member, id: 'second', name: '佐藤 花子', furigana: 'サトウ ハナコ', insurance: false, wristbandColor: '黄' }] }]);
+    render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={jest.fn()} onComplete={jest.fn()} />);
+    await user.click(await screen.findByRole('checkbox', { name: '山田 太郎を選択' }));
+    await user.selectOptions(screen.getByLabelText('引用元のチーム'), 'autumn');
+    await user.click(screen.getByRole('checkbox', { name: '佐藤 花子を選択' }));
+    await user.click(screen.getByRole('button', { name: '選択内容を確認' }));
+    expect(screen.getByRole('heading', { name: '追加するメンバーを確認' })).toHaveFocus();
+    const review = screen.getByRole('list', { name: '追加予定のメンバー' });
+    expect(within(review).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(review).getByText('春の大会 / 春チーム')).toBeInTheDocument();
+    expect(within(review).getByText('秋の大会 / 秋チーム')).toBeInTheDocument();
+    await user.click(within(review).getByRole('button', { name: '山田 太郎を編集して追加' }));
+    await user.click(screen.getByRole('radio', { name: /^青/ }));
+    await user.click(screen.getByRole('radio', { name: /^加入しない/ }));
+    await user.click(screen.getByRole('button', { name: '変更を反映' }));
+    const first = within(screen.getByRole('list', { name: '追加予定のメンバー' })).getAllByRole('listitem')[0];
+    expect(within(first).getByText('変更あり')).toBeInTheDocument();
+    expect(within(first).getByText('リストバンド：青')).toBeInTheDocument();
+    expect(within(first).getByText('保険：加入しない')).toBeInTheDocument();
+    expect(within(first).getByRole('button', { name: '山田 太郎を編集して追加' })).toHaveFocus();
+    await user.click(screen.getByRole('button', { name: '佐藤 花子の選択を解除' }));
+    expect(screen.getByRole('button', { name: '1人をまとめて追加' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: '山田 太郎の選択を解除' }));
+    expect(screen.getByText('まだメンバーが選ばれていません。')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '追加するメンバーを確認' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: '0人をまとめて追加' })).toBeDisabled();
+    expect(jest.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
+});
+test('hiragana, katakana and half-width searches find the same member and clearing restores focus', async () => {
+    const user = userEvent.setup(); setup();
+    render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={jest.fn()} onComplete={jest.fn()} />);
+    const search = await screen.findByLabelText('メンバーを検索');
+    for (const term of ['やまだ', 'ヤマダ', 'ﾔﾏﾀﾞ']) {
+        await user.clear(search); await user.type(search, term);
+        expect(screen.getByRole('checkbox', { name: '山田 太郎を選択' })).toBeInTheDocument();
+    }
+    await user.clear(search); await user.type(search, '見つからない');
+    expect(screen.getByText('該当するメンバーがいません。検索条件を変えてください。')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '検索をクリア' }));
+    expect(search).toHaveValue(''); expect(search).toHaveFocus();
+    expect(screen.getByRole('checkbox', { name: '山田 太郎を選択' })).toBeInTheDocument();
+});
+test('closing protects even an unfinished member edit and continuing preserves the form input', async () => {
+    const user = userEvent.setup(); const close = jest.fn(); setup();
+    render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={close} onComplete={jest.fn()} />);
+    await user.click(await screen.findByRole('button', { name: '山田 太郎を編集して追加' }));
+    await user.clear(screen.getByLabelText('氏名')); await user.type(screen.getByLabelText('氏名'), '編集中の名前');
+    await act(async () => { await user.keyboard('{Escape}'); });
+    expect(close).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: '作業を続ける' })).toHaveFocus();
+    expect(screen.queryByLabelText('氏名')).not.toBeVisible();
+    await act(async () => { await user.click(screen.getByRole('button', { name: '作業を続ける' })); });
+    expect(screen.getByLabelText('氏名')).toHaveValue('編集中の名前');
+    expect(screen.getByLabelText('氏名')).toHaveFocus();
+    await user.click(screen.getByRole('button', { name: '変更を反映' }));
+    await user.click(screen.getByRole('button', { name: '閉じる' }));
+    await user.click(screen.getByRole('button', { name: '破棄して閉じる' }));
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
+});
+test('Escape cancels discard confirmation and an empty selection closes immediately', async () => {
+    const user = userEvent.setup(); const close = jest.fn(); setup();
+    render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={close} onComplete={jest.fn()} />);
+    await user.click(await screen.findByRole('checkbox', { name: '山田 太郎を選択' }));
+    await user.click(screen.getByRole('button', { name: '閉じる' }));
+    await act(async () => { await user.keyboard('{Escape}'); });
+    expect(screen.queryByRole('button', { name: '破棄して閉じる' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: '山田 太郎を選択' })).toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: '山田 太郎を選択' }));
+    await user.click(screen.getByRole('button', { name: '閉じる' }));
+    expect(close).toHaveBeenCalledTimes(1);
+});
+test('at the batch limit selected members remain editable and unselected members cannot be added', async () => {
+    const user = userEvent.setup(); setup([{ ...teams[0], players: Array.from({ length: 51 }, (_, index) => ({ ...member, id: `p-${index}`, name: `選手${index}`, furigana: `センシュ${index}` })) }]);
+    render(<PlayerHistoryImporter entryId="current" currentPlayers={[]} onClose={jest.fn()} onComplete={jest.fn()} />);
+    await user.click(await screen.findByRole('button', { name: '表示中をまとめて選択' }));
+    expect(screen.getByRole('button', { name: '50人をまとめて追加' })).toBeEnabled();
+    expect(screen.getByRole('checkbox', { name: '選手50を選択' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '選手50を編集して追加' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: '選手0を編集して追加' }));
+    expect(screen.getByLabelText('氏名')).toHaveValue('選手0');
+    expect(jest.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
 });
 test('the team dashboard reflects imported players and allows ordinary editing of the new copy', async () => {
     const user = userEvent.setup();
     const entry = { id: 'current', userId: 'owner', teamName: '今回のチーム', tournamentId: 'current-project', status: 'draft', projectEndDate: '2099-12-31', players: [representative] };
     jest.mocked(fetch).mockImplementation((url, options) => response(url === '/api/team/data' ? { teamEntry: entry, isAdmin: false } : url === '/api/player/history' ? options?.method === 'POST' ? { players: [representative, copied], added: 1, skipped: 0 } : { teams } : {}));
-    render(<TeamDashboard />);
+    await act(async () => { render(<TeamDashboard />); });
     await user.click(await screen.findByRole('button', { name: '過去のメンバーから追加' }));
     await user.click(await screen.findByRole('checkbox', { name: '山田 太郎を選択' }));
     await user.click(screen.getByRole('button', { name: '1人をまとめて追加' }));

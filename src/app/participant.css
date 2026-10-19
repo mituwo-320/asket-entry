@@ -665,6 +665,8 @@ body:has([data-participant-dialog]) { overflow: hidden; }
 }
 
 /* Previous rosters: compact selection cards within the existing paper-and-court dialog. */
+.participant-history-importer :is(button, input, select):focus-visible { outline: 3px solid #ffb9c3; outline-offset: 3px; }
+.participant-history-search :is(input, button):focus-visible, .participant-history-team-label select:focus-visible { outline-color: #af2439; }
 .participant-member-add-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .participant-member-add-actions button { white-space: normal; }
 .participant-history-note { display: flex; align-items: flex-start; gap: 10px; padding: 14px; margin-bottom: 20px; border-left: 3px solid #d14052; background: #333943; color: #e5e6e3; font-size: 12px; line-height: 1.9; }
@@ -678,20 +680,52 @@ body:has([data-participant-dialog]) { overflow: hidden; }
 .participant-history-list { display: grid; gap: 9px; }
 .participant-history-player { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #7e8795; border-radius: 6px; background: #1b2028; box-shadow: 0 3px 0 #12151b; }
 .participant-history-player[data-selected="true"] { border-color: #ed8798; background: #34313a; box-shadow: 3px 0 0 #c52d40 inset, 0 3px 0 #12151b; }
-.participant-history-player-choice { display: flex; align-items: flex-start; flex: 1; min-width: 0; gap: 11px; cursor: pointer; }
+.participant-history-player-choice { display: flex; align-items: flex-start; flex: 1; min-width: 0; min-height: 44px; gap: 11px; cursor: pointer; }
 .participant-history-player-choice > input { flex: 0 0 auto; width: 19px; height: 19px; margin-top: 4px; accent-color: #c52d40; }
 .participant-history-player-choice > span { display: grid; gap: 3px; overflow-wrap: anywhere; }
 .participant-history-player-choice strong { font-size: 14px; color: #faf8f3; }
 .participant-history-player-choice small { font-size: 11px; line-height: 1.8; color: #c9d0d9; }
-.participant-history-player > button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #faf8f3; background: #343a45; font-size: 12px; }
+.participant-history-player > button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; min-height: 44px; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #faf8f3; background: #343a45; font-size: 12px; }
 .participant-history-added { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: #b8d9c4; font-size: 11px; }
 .participant-history-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 12px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #7c8797; }
 .participant-history-selection strong { font-size: 16px; color: #f8f3ed; }
 .participant-history-selection > span { flex-basis: 100%; font-size: 11px; line-height: 1.8; color: #c8d0da; }
-.participant-history-selection > button { font-size: 12px; color: #ffb9c3; text-decoration: underline; text-underline-offset: 4px; }
+.participant-history-selection > button { min-height: 44px; font-size: 12px; color: #ffb9c3; text-decoration: underline; text-underline-offset: 4px; }
 .participant-history-selected-names { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px 16px; }
-.participant-history-selected-names button { display: inline-flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #f8f3ed; background: #343a45; font-size: 12px; overflow-wrap: anywhere; }
-.participant-history-actions { position: sticky; bottom: -27px; z-index: 1; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-inline: -8px; margin-top: 18px; padding: 14px 8px; border-top: 1px solid #707b8b; background: #252932; box-shadow: 0 -8px 16px #161b2366; }
+.participant-history-selected-names button { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; max-width: 100%; padding: 6px 10px; border: 1px solid #7e8795; border-radius: 5px; color: #f8f3ed; background: #343a45; font-size: 12px; overflow-wrap: anywhere; }
+.participant-history-actions { position: sticky; bottom: -27px; z-index: 1; display: grid; gap: 10px; margin-inline: -8px; margin-top: 18px; padding: 14px 8px max(14px, env(safe-area-inset-bottom)); border-top: 1px solid #707b8b; background: #252932; box-shadow: 0 -8px 16px #161b2366; }
+.participant-history-action-summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.participant-history-action-summary strong { color: #faf8f3; font-size: 13px; }
+.participant-history-action-summary span { color: #c8d0da; font-size: 11px; }
+.participant-history-action-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+.participant-history-action-buttons button { min-width: 0; white-space: normal; }
+.participant-history-views { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-bottom: 20px; padding: 5px; border: 1px solid #7e8795; border-radius: 7px; background: #171c23; }
+.participant-history-views button { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; min-height: 46px; padding: 7px; color: #d1d7df; font-size: 13px; border: 1px solid transparent; border-radius: 4px; }
+.participant-history-views button[aria-pressed="true"] { color: #fff8f2; background: #5b2633; border-color: #ed8798; box-shadow: 0 2px 4px #0004; }
+.participant-history-views button > span { padding: 1px 6px; border-radius: 4px; background: #faf8f3; color: #3c2028; font-size: 11px; font-weight: 700; }
+.participant-history-search { position: relative; }
+.participant-history-search input { padding-right: 48px; }
+.participant-history-search > button { position: absolute; right: 2px; bottom: 0; display: grid; place-items: center; width: 44px; height: 44px; color: #313945; }
+.participant-history-list-heading > button { min-height: 44px; }
+.participant-history-edited { display: inline-block; margin-left: 8px; padding: 1px 5px; border: 1px solid #c9a66a; border-radius: 3px; color: #f9dfac; font-size: 10px; font-style: normal; font-weight: 500; vertical-align: middle; white-space: nowrap; }
+.participant-history-review-heading { color: #faf8f3; font-size: 17px; font-weight: 600; }
+.participant-history-review-help { margin-block: 8px 16px; color: #c8d0da; font-size: 12px; line-height: 1.9; }
+.participant-history-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+.participant-history-totals > div { padding: 12px; border: 1px solid #7e8795; border-radius: 5px; background: #1b2028; }
+.participant-history-totals dt { color: #c8d0da; font-size: 11px; }
+.participant-history-totals dd { margin-top: 3px; color: #faf8f3; font-size: 23px; font-weight: 600; }
+.participant-history-totals small { margin-left: 4px; font-size: 11px; }
+.participant-history-review-list { display: grid; gap: 12px; }
+.participant-history-review-card { min-width: 0; padding: 14px; border: 1px solid #7e8795; border-left: 3px solid #d14052; border-radius: 5px; background: #1b2028; box-shadow: 0 3px 0 #12151b; }
+.participant-history-review-person { display: grid; gap: 5px; overflow-wrap: anywhere; }
+.participant-history-review-person strong { color: #faf8f3; font-size: 15px; }
+.participant-history-review-person span, .participant-history-review-person small { color: #c8d0da; font-size: 11px; line-height: 1.8; }
+.participant-history-review-details { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-block: 12px; color: #ece8df; font-size: 12px; }
+.participant-history-review-controls { display: flex; gap: 8px; }
+.participant-history-review-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 80px; min-height: 44px; padding: 6px 12px; border: 1px solid #7e8795; border-radius: 4px; color: #faf8f3; background: #343a45; font-size: 12px; }
+.participant-history-review-controls button:last-child { color: #d1d7df; background: transparent; }
+.participant-history-views button:disabled, .participant-history-list-heading button:disabled, .participant-history-review-controls button:disabled { opacity: .5; cursor: not-allowed; }
+.participant-history-discard > p { margin-bottom: 24px; color: #e6e8ec; font-size: 14px; line-height: 1.9; }
 .participant-history-state { display: grid; justify-items: center; gap: 15px; padding-block: 28px; text-align: center; font-size: 13px; line-height: 1.9; color: #d5dbe3; }
 .participant-history-state h3 { color: #faf8f3; font-size: 17px; font-weight: 600; }
 .participant-history-empty, .participant-history-footnote { color: #c8d0da; font-size: 11px; line-height: 1.9; padding-top: 12px; }
@@ -701,5 +735,7 @@ body:has([data-participant-dialog]) { overflow: hidden; }
   .participant-history-player { gap: 7px; padding: 10px; }
   .participant-history-player > button { padding-inline: 7px; }
   .participant-history-added { max-width: 4.2em; line-height: 1.7; }
-  .participant-history-actions button { flex: 1; }
+  .participant-history-action-buttons button { flex: 1; padding-inline: 10px; }
+  .participant-history-action-summary > span { flex-basis: 100%; }
+  .participant-history-totals > div { padding: 10px; }
 }

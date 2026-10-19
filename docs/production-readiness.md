@@ -47,7 +47,7 @@
 | 検証 | 結果と範囲 |
 | --- | --- |
 | `npm ci` | クリーンインストールとPrisma Client生成が成功。 |
-| `npm run check` | TypeScript、23スイート229テスト、リポジトリ全体のLint（`--max-warnings=0`）が成功。CIのcheckも全体Lintを必須とする。 |
+| `npm run check` | TypeScript、23スイート234テスト、リポジトリ全体のLint（`--max-warnings=0`）が成功。CIのcheckも全体Lintを必須とする。 |
 | `npm run build` | Next.js 16.4.2の最適化ビルド成功。型検査を無効化していない。58ページを生成。実DBへの接続確認を意味しない。 |
 | `prisma validate` | ダミーの接続URLでスキーマ整合性検査に成功。接続やmigration適用は実施していない。 |
 | `npm audit --omit=dev` | 本番依存の指摘0件。開発依存を含む全パッケージや独自コードの完全な安全性を保証する検査ではない。 |
