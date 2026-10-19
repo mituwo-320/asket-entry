@@ -6,7 +6,7 @@ import { Match, ScheduleEvent, TeamEntry } from '@/lib/types';
 import { Loader2, Save, Plus, Edit2, Trash2, X } from 'lucide-react';
 
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
-import ScheduleGeneratorModal from './ScheduleGeneratorModal';
+import ScheduleGeneratorModal, { type ScheduleGenerationConfig } from './ScheduleGeneratorModal';
 
 interface TimeScheduleEditorProps {
     tournamentId: string;
@@ -24,8 +24,7 @@ interface TimeSlot {
 
 export default function TimeScheduleEditor({ tournamentId, entries, matches, refreshData }: TimeScheduleEditorProps) {
     const [events, setEvents] = useState<ScheduleEvent[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+    const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isGeneratorModalOpen, setIsGeneratorModalOpen] = useState(false);
     const [showTeamSidebar, setShowTeamSidebar] = useState(false);
@@ -43,24 +42,24 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         return counts;
     }, [matches, entries]);
 
-    const fetchEvents = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await staffFetch(`/api/schedule/events?tournamentId=${encodeURIComponent(tournamentId)}`);
+    const loadEvents = useCallback(() => {
+        return staffFetch(`/api/schedule/events?tournamentId=${encodeURIComponent(tournamentId)}`).then(async (res) => {
             if (res.ok) {
                 const data = await res.json();
                 setEvents(data.events || []);
             }
-        } catch (error) {
+        }).catch((error) => {
             console.error("Failed to fetch events", error);
-        } finally {
+        }).finally(() => {
             setLoading(false);
-        }
+        });
     }, [tournamentId]);
 
+    const fetchEvents = () => { setLoading(true); return loadEvents(); };
+
     useEffect(() => {
-        fetchEvents();
-    }, [fetchEvents]);
+        loadEvents();
+    }, [loadEvents]);
 
     // Helper to get Team Name
     const getTeamName = (id: string) => {
@@ -76,7 +75,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         // 1. Add Matches
         matches.forEach(match => {
             const time = match.time || '00:00';
-            let slot = slots.get(time) || { time };
+            const slot = slots.get(time) || { time };
 
             if (match.court === 'B') {
                 slot.courtB = match;
@@ -89,7 +88,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         // 2. Add Events
         events.forEach(event => {
             const time = event.startTime;
-            let slot = slots.get(time) || { time };
+            const slot = slots.get(time) || { time };
 
             if (event.court === 'ALL') {
                 slot.fullEvent = event;
@@ -126,6 +125,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ events: [updatedItem] })
                 });
+                if (!res.ok) throw new Error("Save failed");
             } else {
                 // It's a Match
                 const res = await staffFetch('/api/admin/match/update', {
@@ -133,6 +133,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ match: updatedItem })
                 });
+                if (!res.ok) throw new Error("Save failed");
             }
             // Refresh
             await Promise.all([refreshData(), fetchEvents()]);
@@ -140,7 +141,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
             setEditingItem(null);
         } catch (e) {
             console.error(e);
-            alert('Updated failed');
+            alert('保存できませんでした。入力内容を確認し、もう一度お試しください。');
         } finally {
             setLoading(false);
         }
@@ -181,7 +182,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         }
     };
 
-    const handleGenerateSchedule = async (config: any) => {
+    const handleGenerateSchedule = async (config: ScheduleGenerationConfig) => {
         setLoading(true);
         try {
             const res = await staffFetch('/api/admin/schedule/generate', {
@@ -210,7 +211,7 @@ export default function TimeScheduleEditor({ tournamentId, entries, matches, ref
         const match = matches.find(m => m.id === matchId);
         if (!match) return;
 
-        let updatedMatch = { ...match };
+        const updatedMatch = { ...match };
         if (role === 'A') updatedMatch.teamIdA = droppedTeamId;
         if (role === 'B') updatedMatch.teamIdB = droppedTeamId;
         if (role === 'referee') updatedMatch.refereeTeamId = droppedTeamId;
@@ -551,11 +552,13 @@ function CellContent({ item, previousMatch, getTeamName, entries, onEdit, onDele
     );
 }
 
-function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match | ScheduleEvent, entries: TeamEntry[], onSave: (item: any) => void, onCancel: () => void, onDelete?: () => void }) {
-    const [formData, setFormData] = useState<any>({ ...item });
+type ScheduleFormData = (Match & Partial<Omit<ScheduleEvent, 'court'>>) | (ScheduleEvent & Partial<Omit<Match, 'court'>>);
 
-    const handleChange = (field: string, value: any) => {
-        setFormData((prev: any) => ({ ...prev, [field]: value }));
+function EditForm({ item, entries, onSave, onCancel, onDelete }: { item: Match | ScheduleEvent, entries: TeamEntry[], onSave: (item: Match | ScheduleEvent) => void, onCancel: () => void, onDelete?: () => void }) {
+    const [formData, setFormData] = useState<ScheduleFormData>({ ...item });
+
+    const handleChange = (field: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
     const isEvent = 'type' in formData;

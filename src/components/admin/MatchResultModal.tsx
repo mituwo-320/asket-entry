@@ -1,12 +1,12 @@
 import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+
 import { Input } from "@/components/ui/Input";
 import { X, Trophy, Save } from "lucide-react";
-import { Match, TeamEntry } from "@/lib/types";
+import { Match } from "@/lib/types";
 
 interface MatchResultModalProps {
     isOpen: boolean;
@@ -18,18 +18,20 @@ interface MatchResultModalProps {
 
 export default function MatchResultModal({ isOpen, onClose, match, getTeamName, onUpdate }: MatchResultModalProps) {
     const dialogRef = useAdminDialogFocus(isOpen && !!match, onClose);
-    const [scoreA, setScoreA] = useState<string>("");
-    const [scoreB, setScoreB] = useState<string>("");
-    const [status, setStatus] = useState<'scheduled' | 'playing' | 'finished'>('scheduled');
+    const [scoreA, setScoreA] = useState<string>(match?.scoreA?.toString() ?? "");
+    const [scoreB, setScoreB] = useState<string>(match?.scoreB?.toString() ?? "");
+    const [status, setStatus] = useState<'scheduled' | 'playing' | 'finished'>(match?.status ?? 'scheduled');
     const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
+    const [previousMatch, setPreviousMatch] = useState(match);
+    if (previousMatch !== match) {
+        setPreviousMatch(match);
         if (match) {
             setScoreA(match.scoreA !== undefined ? match.scoreA.toString() : "");
             setScoreB(match.scoreB !== undefined ? match.scoreB.toString() : "");
             setStatus(match.status);
         }
-    }, [match]);
+    }
 
     if (!isOpen || !match) return null;
 

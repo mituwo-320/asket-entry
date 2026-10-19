@@ -36,7 +36,7 @@ async function handlePOST(request: Request) {
         const { user: internalUser, ...entry } = updatedEntry;
         void internalUser;
         return NextResponse.json({ success: true, entry });
-    } catch (e: any) {
+    } catch (e) {
         console.error("Submit entry error:", e);
         return NextResponse.json({ error: "エラーが発生しました。" }, { status: 500 });
     }

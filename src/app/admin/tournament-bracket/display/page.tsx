@@ -1,7 +1,9 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useBrowserPreference } from "@/lib/browser-preference";
 import { AdminState } from "@/components/admin/AdminFrame";
 import { TournamentBracketData, TeamEntry } from "@/lib/types";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
@@ -20,42 +22,19 @@ interface DisplayData {
  * Polls the server every 5 seconds to reflect admin changes in real time.
  * No win buttons are shown (readOnly=true).
  */
-export default function BracketDisplayPage() {
+function BracketDisplayContent() {
+    const searchParams = useSearchParams();
     const [data, setData] = useState<DisplayData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isConnected, setIsConnected] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-    const [tournamentId, setTournamentId] = useState<string>('');
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const tournamentId = searchParams.get('id') || '2024-Spring';
+    const [savedTheme] = useBrowserPreference('tournament-bracket-theme', 'light');
+    const theme = savedTheme === 'dark' ? 'dark' : 'light';
 
-    // Determine tournamentId from URL param
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        setTournamentId(params.get('id') || '2024-Spring');
-
-        // Load theme preference from localStorage so the loading screens match
-        const savedTheme = localStorage.getItem('tournament-bracket-theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            setTheme(savedTheme);
-        }
-    }, []);
-
-    // Listen for storage changes in case the admin changes theme in another tab
-    useEffect(() => {
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'tournament-bracket-theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
-                setTheme(e.newValue);
-            }
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
-
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(() => {
         if (!tournamentId) return;
-        try {
-            // Fetch bracket
-            const bracketRes = await staffFetch(`/api/admin/bracket?tournamentId=${tournamentId}`);
+        return staffFetch(`/api/admin/bracket?tournamentId=${tournamentId}`).then(async (bracketRes) => {
             if (!bracketRes.ok) throw new Error('Failed to fetch bracket');
             const bracketJson = await bracketRes.json();
 
@@ -77,11 +56,11 @@ export default function BracketDisplayPage() {
             });
             setIsConnected(true);
             setLastUpdated(new Date());
-        } catch (e) {
+        }).catch(() => {
             setIsConnected(false);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
+        });
     }, [tournamentId]);
 
     // Initial + polling
@@ -140,4 +119,8 @@ export default function BracketDisplayPage() {
             />
         </div>
     );
+}
+
+export default function BracketDisplayPage() {
+    return <Suspense fallback={<AdminState loading title="表示用の対戦表に接続しています" />}><BracketDisplayContent /></Suspense>;
 }

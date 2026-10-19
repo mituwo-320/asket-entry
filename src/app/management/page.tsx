@@ -1,7 +1,7 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Calendar, ChevronRight, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
@@ -19,14 +19,12 @@ export default function ManagementProjectList() {
     const [showTestProjects, setShowTestProjects] = useState(false);
     const router = useRouter();
 
-    const loadData = async () => {
-        try {
-            // We just need basic data to show counts. In a massive app, we'd have a specific list endpoint.
-            const [projectsRes, dataRes, settingsRes] = await Promise.all([
+    const loadData = useCallback(() => {
+        return Promise.all([
                 staffFetch('/api/admin/projects'),
                 staffFetch('/api/admin/data'),
                 staffFetch('/api/settings')
-            ]);
+            ]).then(async ([projectsRes, dataRes, settingsRes]) => {
             
             if (projectsRes.ok) {
                 const projectsData = await projectsRes.json();
@@ -43,16 +41,16 @@ export default function ManagementProjectList() {
                 const s = await settingsRes.json();
                 setSettings({ participationFee: Number(s.participationFee || 0), insuranceFee: Number(s.insuranceFee || 0) });
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to fetch data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
     const containerVariants = {
         hidden: { opacity: 0 },

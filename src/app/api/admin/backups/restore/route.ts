@@ -96,7 +96,7 @@ async function handlePOST(req: Request) {
     let playerCount = 0;
 
     for (const e of entries) {
-      let resolvedUserId = userIdMap.get(e.userId) || e.userId;
+      const resolvedUserId = userIdMap.get(e.userId) || e.userId;
 
       // Verify user exists in database
       const userExists = await tx.user.findUnique({
@@ -159,7 +159,7 @@ async function handlePOST(req: Request) {
 
     }, { timeout: 30000 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to restore backup:', error);
     return NextResponse.json({ error: '復元に失敗したため、変更を取り消しました。バックアップの内容を確認してください。' }, { status: 500 });
   }

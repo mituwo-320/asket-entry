@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
@@ -50,7 +51,7 @@ async function handlePOST(req: Request) {
                 where: { id: existing.id },
                 data: {
                     teamCount,
-                    brackets: bracketData as any,
+                    brackets: bracketData as unknown as Prisma.InputJsonValue,
                     status: 'setup',
                 },
             });
@@ -59,7 +60,7 @@ async function handlePOST(req: Request) {
                 data: {
                     tournamentId,
                     teamCount,
-                    brackets: bracketData as any,
+                    brackets: bracketData as unknown as Prisma.InputJsonValue,
                     status: 'setup',
                 },
             });

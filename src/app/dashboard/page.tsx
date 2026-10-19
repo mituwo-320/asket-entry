@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Card } from "@/components/ui/Card";
-import { User, TeamEntry, Project, Setting } from "@/lib/types";
+import { User, TeamEntryDetails, Project, Setting } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Trophy, Plus, History, Calendar, LogOut, User as UserIcon, Settings, ArrowRight, AlertCircle, Printer, FileText } from "lucide-react";
 import Link from "next/link";
@@ -16,9 +16,9 @@ import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, Participa
 export default function UserDashboard() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [entries, setEntries] = useState<TeamEntry[]>([]);
+    const [entries, setEntries] = useState<TeamEntryDetails[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [settings, setSettings] = useState<Setting | any>({});
+    const [settings, setSettings] = useState<Partial<Setting>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function UserDashboard() {
             } else {
                 alert(data.error || "領収書の発行に失敗しました。");
             }
-        } catch (e) {
+        } catch {
             alert("通信エラーが発生しました。");
         } finally {
             setIsIssuingReceipt(false);
@@ -69,8 +69,7 @@ export default function UserDashboard() {
         let parsedUser;
         try {
             parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-        } catch (e) {
+        } catch {
             localStorage.removeItem('currentUser');
             router.push('/login');
             return;
@@ -96,6 +95,7 @@ export default function UserDashboard() {
                 console.error("Failed to fetch data", e);
                 setLoadError(true);
             } finally {
+                setUser(parsedUser);
                 setIsLoading(false);
             }
         };
@@ -207,21 +207,21 @@ export default function UserDashboard() {
                                                             <div className="participant-entry-main">
                                                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                                                     <div className="participant-entry-event">
-                                                                        {(entry as any).projectName || entry.tournamentId}
+                                                                        {entry.projectName || entry.tournamentId}
                                                                     </div>
-                                                                    <div data-entry-state={(entry as any).isWaitlist ? "waitlist" : entry.status} className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !(entry as any).isWaitlist
+                                                                    <div data-entry-state={entry.isWaitlist ? "waitlist" : entry.status} className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${entry.status === 'submitted' && !entry.isWaitlist
                                                                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                                            : (entry as any).isWaitlist
+                                                                            : entry.isWaitlist
                                                                                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                                                                 : 'bg-slate-500/10 text-[#c6cdd8] border border-[#a6afbe]/20'
                                                                         }`}>
-                                                                        {entry.status === 'submitted' && !(entry as any).isWaitlist ? (
+                                                                        {entry.status === 'submitted' && !entry.isWaitlist ? (
                                                                             <span className="relative flex h-2 w-2">
 
                                                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                                                             </span>
                                                                         ) : null}
-                                                                        {(entry as any).isWaitlist ? 'キャンセル待ち' : (entry.status === 'submitted' ? '登録完了' : '下書き')}
+                                                                        {entry.isWaitlist ? 'キャンセル待ち' : (entry.status === 'submitted' ? '登録完了' : '下書き')}
                                                                     </div>
                                                                 </div>
 
@@ -240,8 +240,8 @@ export default function UserDashboard() {
                                                             </div>
 
                                                             <div className="participant-entry-stub">
-                                                                {(entry as any).projectEndDate && (() => {
-                                                                    const deadline = new Date((entry as any).projectEndDate);
+                                                                {entry.projectEndDate && (() => {
+                                                                    const deadline = new Date(entry.projectEndDate);
                                                                     const diffTime = deadline.getTime() - new Date().getTime();
                                                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                                                     return (
@@ -255,7 +255,7 @@ export default function UserDashboard() {
                                                                     );
                                                                 })()}
                                                                 <div className="participant-entry-cta">
-                                                                    {entry.status === "submitted" || ((entry as any).projectEndDate && new Date((entry as any).projectEndDate) <= new Date()) ? "チーム・登録内容を確認" : "チーム編集・メンバー追加"} <ArrowRight aria-hidden="true" />
+                                                                    {entry.status === "submitted" || (entry.projectEndDate && new Date(entry.projectEndDate) <= new Date()) ? "チーム・登録内容を確認" : "チーム編集・メンバー追加"} <ArrowRight aria-hidden="true" />
                                                                 </div>
                                                                 <span className="participant-print-bars" aria-hidden="true" />
                                                             </div>
@@ -270,7 +270,7 @@ export default function UserDashboard() {
                                                         {entry.isPaid && (
                                                             <button
                                                                 onClick={() => {
-                                                                    if ((entry as any).receiptViewedAt) {
+                                                                    if (entry.receiptViewedAt) {
                                                                         alert("すでに領収書は発行・確認済みです。二度目の発行はできません。");
                                                                     } else {
                                                                         setReceiptNameInput(entry.teamName);
@@ -278,9 +278,9 @@ export default function UserDashboard() {
                                                                         setReceiptModalEntryId(entry.id);
                                                                     }
                                                                 }}
-                                                                disabled={!!(entry as any).receiptViewedAt}
+                                                                disabled={!!entry.receiptViewedAt}
                                                                 className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${
-                                                                    (entry as any).receiptViewedAt
+                                                                    entry.receiptViewedAt
                                                                         ? 'bg-[#343b47] text-[#bdc5d1] border border-[#8791a1] cursor-not-allowed'
                                                                         : 'bg-[#a62034] border border-[#c47c89] hover:bg-[#cb3146] text-white'
                                                                 }`}
@@ -319,7 +319,7 @@ export default function UserDashboard() {
                                                             <div className="p-6 pl-8 flex-1">
                                                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                                                     <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-[#c6cdd8] border border-white/10">
-                                                                        {(entry as any).projectName || entry.tournamentId}
+                                                                        {entry.projectName || entry.tournamentId}
                                                                     </div>
                                                                     <div className="text-xs font-bold px-3 py-1 rounded-full bg-[#343b47] text-[#c6cdd8] border border-[#8791a1]">
                                                                         大会終了

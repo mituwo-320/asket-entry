@@ -215,3 +215,21 @@ test("collapsing contact guidance keeps tournament chat links accessible and can
   await user.click(expand);
   expect(screen.getByRole("button", { name: "LINEのお知らせを閉じる" })).toHaveAttribute("aria-expanded", "true");
 });
+
+test("a concurrent receipt view rejected by the API cannot reveal another printable receipt", async () => {
+  jest.mocked(fetch).mockImplementation(url => response(url === "/api/team/data" ? { teamEntry: { ...baseEntry, isPaid: true, receiptIssuedAt: "2026-01-01" }, user: account } : url === "/api/team/receipt/viewed" ? { alreadyViewed: true } : {}) as ReturnType<typeof fetch>);
+  render(<ReceiptPage />);
+  expect(await screen.findByRole("heading", { name: "領収書を表示できません" })).toBeInTheDocument();
+  expect(screen.getByText(/この領収書は既に確認済みです。再表示はできません。/)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "PDF保存・印刷" })).not.toBeInTheDocument();
+});
+
+
+test("a network failure on the dashboard shows the retry guidance rather than a blank page", async () => {
+  localStorage.setItem("currentUser", JSON.stringify(account));
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.mocked(fetch).mockRejectedValue(new Error("network unavailable"));
+  render(<UserDashboard />);
+  expect(await screen.findByRole("heading", { name: "参加状況を読み込めませんでした" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "マイページへ戻る" })).toHaveAttribute("href", "/dashboard");
+});

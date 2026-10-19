@@ -1,12 +1,5 @@
 import { Match, ScheduleEvent } from './types';
 
-interface ScheduleItem {
-    type: 'match' | 'event';
-    data: Match | ScheduleEvent;
-    startTime: string; // HH:MM
-    durationMinutes: number;
-}
-
 export function calculateSchedule(
     items: (Match | ScheduleEvent)[],
     startTimeStr: string,

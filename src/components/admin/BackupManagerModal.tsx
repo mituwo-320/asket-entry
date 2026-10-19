@@ -1,6 +1,6 @@
 import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,36 +23,39 @@ interface BackupManagerModalProps {
 export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, projects }: BackupManagerModalProps) {
     const [backups, setBackups] = useState<BackupItem[]>([]);
     const dialogRef = useAdminDialogFocus(isOpen, onClose);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(isOpen);
     const [isRestoring, setIsRestoring] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-    const [backupProjectId, setBackupProjectId] = useState<string>('');
+    const [backupProjectIdOverride, setBackupProjectId] = useState<string>('');
+    const backupProjectId = backupProjectIdOverride || projects[0]?.id || '';
     const [isCreating, setIsCreating] = useState(false);
 
-    const loadBackups = async () => {
-        setIsLoading(true);
-        try {
-            const res = await staffFetch('/api/admin/backups');
+    const fetchBackups = useCallback(() => {
+        return staffFetch('/api/admin/backups').then(async (res) => {
             if (res.ok) {
                 const data = await res.json();
                 setBackups(data.backups || []);
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error('Failed to load backups', e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
+
+    const loadBackups = () => { setIsLoading(true); return fetchBackups(); };
+
+    const [previousOpen, setPreviousOpen] = useState(isOpen);
+    if (previousOpen !== isOpen) {
+        setPreviousOpen(isOpen);
+        if (isOpen) { setMessage(null); setIsLoading(true); }
+    }
 
     useEffect(() => {
         if (isOpen) {
-            loadBackups();
-            setMessage(null);
-            if (projects.length > 0 && !backupProjectId) {
-                setBackupProjectId(projects[0].id);
-            }
+            fetchBackups();
         }
-    }, [isOpen, projects]);
+    }, [isOpen, projects, fetchBackups]);
 
     const handleCreateBackup = async () => {
         if (!backupProjectId) return;
@@ -71,7 +74,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
             } else {
                 setMessage({ type: 'error', text: data.error || 'バックアップ作成に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsCreating(false);
@@ -103,7 +106,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
             } else {
                 setMessage({ type: 'error', text: data.error || '復元に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsRestoring(null);

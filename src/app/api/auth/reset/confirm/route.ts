@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, message: 'パスワードを再設定しました' });
 
-    } catch (e: any) {
+    } catch (e) {
         console.error('Password reset confirm error:', e);
         return NextResponse.json(
             { error: 'サーバーエラーが発生しました。しばらく経ってからお試しください' },

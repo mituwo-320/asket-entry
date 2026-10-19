@@ -1,6 +1,6 @@
 import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
-import { saveMatches, getMatches } from '@/lib/sheets';
+import { saveMatches } from '@/lib/sheets';
 
 async function handlePOST(request: Request) {
     try {

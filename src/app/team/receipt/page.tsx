@@ -1,4 +1,5 @@
 "use client";
+import { DocumentTitle } from "@/components/ui/DocumentTitle";
 import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
@@ -15,7 +16,7 @@ function ReceiptContent() {
 
     const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string } | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [settings, setSettings] = useState<Setting | any>(null);
+    const [settings, setSettings] = useState<Partial<Setting> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     // 閲覧状態管理
     const [viewState, setViewState] = useState<'loading' | 'already_viewed' | 'viewing' | 'not_issued'>('loading');
@@ -58,7 +59,8 @@ function ReceiptContent() {
                         headers: { 'x-team-id': entryId }
                     });
                     if (viewRes.ok) {
-                        setViewState('viewing');
+                        const result = await viewRes.json();
+                        setViewState(result.alreadyViewed ? 'already_viewed' : 'viewing');
                     } else {
                         setViewState('not_issued');
                     }
@@ -84,12 +86,12 @@ function ReceiptContent() {
     const participationFee = settings?.participationFee || 2500;
     const insuranceFee = settings?.insuranceFee || 150;
     const playerCount = teamEntry.players?.length || 0;
-    const insuranceCount = teamEntry.players?.filter((p: any) => p.insurance).length || 0;
+    const insuranceCount = teamEntry.players?.filter((p) => p.insurance).length || 0;
     const teamTotalFee = participationFee * playerCount;
     const insuranceTotalFee = insuranceFee * insuranceCount;
     const grandTotal = teamTotalFee + insuranceTotalFee;
 
-    const representativeName = teamEntry.players?.find((p: any) => p.isRepresentative)?.name || user.name;
+    const representativeName = teamEntry.players?.find((p) => p.isRepresentative)?.name || user.name;
     const addressee = teamEntry.receiptName || `${teamEntry.teamName} ${representativeName}`;
 
     const issueDate = new Date(teamEntry.receiptIssuedAt!);
@@ -101,12 +103,11 @@ function ReceiptContent() {
     const dateForFileName = `${issueDate.getFullYear()}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
     const pdfFileName = `ヴァンキーカップ領収書_${addressee}_${dateForFileName}`.replace(/[\s　]+/g, '_');
 
-    if (typeof document !== 'undefined') document.title = pdfFileName;
-
     const amountStr = grandTotal.toLocaleString('ja-JP');
 
     return (
         <div className="participant-document-screen">
+            <DocumentTitle title={pdfFileName} />
             <ParticipantHeader actions={<button onClick={() => router.back()} className="participant-back"><ArrowLeft size={16} />前の画面へ戻る</button>} />
             <main id="participant-main" tabIndex={-1}>
             <ParticipantHeading className="participant-document-intro print:hidden" eyebrow="TEAM DOCUMENTS" title="領収書" description="この画面を閉じる前に、必ずPDF保存または印刷を行ってください。" />
@@ -158,6 +159,7 @@ function ReceiptContent() {
                             <p>TEL：070-8369-8316</p>
                             <p>MAIL：tatsuo0301@gmail.com</p>
                         </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- Keep the static print stamp independent of image optimization. */}
                         <img src="/hanko.png" alt="印鑑" width={80} height={80}
                             style={{ position: 'absolute', top: '0px', right: '-50px', display: 'block', opacity: 0.92 }} />
                     </div>

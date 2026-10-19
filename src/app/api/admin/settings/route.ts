@@ -2,7 +2,7 @@ import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-async function handleGET(request: Request) {
+async function handleGET() {
     try {
         let setting = await db.setting.findUnique({
             where: { id: "default" }
@@ -21,7 +21,7 @@ async function handleGET(request: Request) {
 
         return NextResponse.json({ success: true, setting });
 
-    } catch (e: any) {
+    } catch (e) {
         console.error('Settings fetch error:', e);
         return NextResponse.json({ error: '設定データの取得に失敗しました' }, { status: 500 });
     }
@@ -32,7 +32,7 @@ async function handlePOST(request: Request) {
         const body = await request.json();
         const { participationFee, insuranceFee } = body;
 
-        const updateData: any = {};
+        const updateData: { participationFee?: number; insuranceFee?: number } = {};
         if (typeof participationFee === 'number') updateData.participationFee = participationFee;
         if (typeof insuranceFee === 'number') updateData.insuranceFee = insuranceFee;
 
@@ -48,7 +48,7 @@ async function handlePOST(request: Request) {
 
         return NextResponse.json({ success: true, setting });
 
-    } catch (e: any) {
+    } catch (e) {
         console.error('Settings update error:', e);
         return NextResponse.json({ error: '設定データの保存に失敗しました' }, { status: 500 });
     }

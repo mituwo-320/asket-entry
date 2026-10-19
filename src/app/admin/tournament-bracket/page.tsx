@@ -1,7 +1,7 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AdminHeading, AdminState } from "@/components/admin/AdminFrame";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -30,17 +30,8 @@ export default function TournamentBracketPage() {
     const [isSeedingTeams, setIsSeedingTeams] = useState(false);
     const [seedMessage, setSeedMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    useEffect(() => {
-        loadBracket();
-    }, [selectedProjectId]);
-
-    const loadData = async () => {
-        try {
-            const res = await staffFetch('/api/admin/data');
+    const loadData = useCallback(() => {
+        return staffFetch('/api/admin/data').then(async (res) => {
             const data = await res.json();
             if (data.entries) setEntries(data.entries);
 
@@ -54,17 +45,20 @@ export default function TournamentBracketPage() {
                     }
                 }
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to load data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
 
-    const loadBracket = async () => {
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    const loadBracket = useCallback(() => {
         if (!selectedProjectId) return;
-        try {
-            const res = await staffFetch(`/api/admin/bracket?tournamentId=${selectedProjectId}`);
+        return staffFetch(`/api/admin/bracket?tournamentId=${selectedProjectId}`).then(async (res) => {
             const data = await res.json();
             if (data.bracket) {
                 setBracketId(data.bracket.id);
@@ -73,10 +67,14 @@ export default function TournamentBracketPage() {
                 setBracketId(null);
                 setBracketData(null);
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to load bracket", e);
-        }
-    };
+        });
+    }, [selectedProjectId]);
+
+    useEffect(() => {
+        loadBracket();
+    }, [loadBracket]);
 
     const seedTestTeams = async () => {
         const input = prompt("検証したいテストチーム数を指定してください (8〜16):", "16");
@@ -116,7 +114,7 @@ export default function TournamentBracketPage() {
             } else {
                 setSeedMessage({ type: 'error', text: data.error || '失敗しました' });
             }
-        } catch (e) {
+        } catch {
             setSeedMessage({ type: 'error', text: 'エラーが発生しました' });
         } finally {
             setIsSeedingTeams(false);
@@ -145,7 +143,7 @@ export default function TournamentBracketPage() {
             } else {
                 alert(data.error || "生成に失敗しました");
             }
-        } catch (e) {
+        } catch {
             alert("エラーが発生しました");
         } finally {
             setIsGenerating(false);

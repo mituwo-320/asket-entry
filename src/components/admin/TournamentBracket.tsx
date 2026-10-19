@@ -3,15 +3,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { 
     TeamEntry, BracketMatch, TournamentBracketData, 
-    TournamentBlock, BlockMatch, PlacementGroup, BlockStandingRow 
+    TournamentBlock, BlockMatch, BlockStandingRow
 } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
-    Trophy, ChevronRight, ChevronLeft, Crown, Skull,
+    Trophy, Crown, Skull,
     GripVertical, Users, Zap, RotateCcw, Save, Loader2, Settings, X, RefreshCcw
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
     recordMatchResult, undoMatchResult, randomizeFirstRound, 
     updateMatchInfo, updateMatchScore, placeTeamInSlot, removeTeamFromSlots,
@@ -113,67 +113,6 @@ function BlockCrosstable({ block }: { block: TournamentBlock }) {
 
                                 return (
                                     <td key={colTeam.slotId} className="text-center py-1.5 border-r border-slate-100 font-medium">
-                                        <span className={`inline-block mr-1 text-[10px] ${isWinner ? 'text-emerald-600 font-bold' : 'text-rose-500'}`}>
-                                            {isWinner ? '○' : '●'}
-                                        </span>
-                                        <span className="font-mono">{rowScore}-{colScore}</span>
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
-
-function PlacementCrosstable({ group }: { group: PlacementGroup }) {
-    const teams = group.teams;
-    if (teams.length === 0) {
-        return <p className="text-[10px] text-slate-400 italic text-center py-4 bg-slate-50/50 rounded-lg border border-dashed border-slate-200 mt-2">ブロック予選集計待ち</p>;
-    }
-
-    return (
-        <div className="overflow-x-auto mt-2 border border-slate-200 rounded-lg shadow-sm bg-white">
-            <table className="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr className="bg-slate-100 border-b border-slate-200">
-                        <th className="px-2 py-1.5 font-bold text-slate-700">チーム</th>
-                        {teams.map(t => (
-                            <th key={t.id} className="px-2 py-1.5 font-bold text-slate-700 text-center truncate max-w-[80px]" title={t.name}>
-                                {t.name}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-150">
-                    {teams.map(rowTeam => (
-                        <tr key={rowTeam.id} className="hover:bg-slate-50">
-                            <td className="px-2 py-1.5 font-bold text-slate-800 truncate max-w-[100px]" title={rowTeam.name}>
-                                {rowTeam.name}
-                            </td>
-                            {teams.map(colTeam => {
-                                if (rowTeam.id === colTeam.id) {
-                                    return <td key={colTeam.id} className="bg-slate-50 border-r border-slate-100" />;
-                                }
-
-                                const match = group.matches.find(m => 
-                                    (m.slotA.teamId === rowTeam.id && m.slotB.teamId === colTeam.id) ||
-                                    (m.slotA.teamId === colTeam.id && m.slotB.teamId === rowTeam.id)
-                                );
-
-                                if (!match || match.status !== 'completed') {
-                                    return <td key={colTeam.id} className="text-center text-slate-400 py-1.5 border-r border-slate-100 font-mono">-</td>;
-                                }
-
-                                const isSlotA = match.slotA.teamId === rowTeam.id;
-                                const rowScore = isSlotA ? match.scoreA : match.scoreB;
-                                const colScore = isSlotA ? match.scoreB : match.scoreA;
-                                const isWinner = match.winnerId === rowTeam.id;
-
-                                return (
-                                    <td key={colTeam.id} className="text-center py-1.5 border-r border-slate-100 font-medium">
                                         <span className={`inline-block mr-1 text-[10px] ${isWinner ? 'text-emerald-600 font-bold' : 'text-rose-500'}`}>
                                             {isWinner ? '○' : '●'}
                                         </span>
@@ -342,7 +281,7 @@ function MatchCard({
     side,
     showScores,
     onScoreChange,
-    matchRefs,
+    registerMatchRef,
 }: {
     match: BracketMatch;
     onWin: (matchId: string, winnerId: string) => void;
@@ -352,7 +291,7 @@ function MatchCard({
     side: 'left' | 'center' | 'right';
     showScores: boolean;
     onScoreChange: (matchId: string, isSlotA: boolean, val: string) => void;
-    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    registerMatchRef: (id: string, element: HTMLDivElement | null) => void;
 }) {
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
@@ -395,7 +334,7 @@ function MatchCard({
 
     return (
         <motion.div
-            ref={el => { matchRefs.current[match.matchId] = el; }}
+            ref={el => registerMatchRef(match.matchId, el)}
             layout
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -612,7 +551,7 @@ function RoundColumn({
     onUndo,
     onEdit,
     onDrop,
-    matchRefs,
+    registerMatchRef,
 }: {
     title: string;
     matches: BracketMatch[];
@@ -623,7 +562,7 @@ function RoundColumn({
     onUndo?: (matchId: string) => void;
     onEdit?: (m: BracketMatch) => void;
     onDrop: (slotId: string, teamId: string, teamName: string) => void;
-    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    registerMatchRef: (id: string, element: HTMLDivElement | null) => void;
 }) {
     const rounds = new Map<number, BracketMatch[]>();
     matches.forEach(m => {
@@ -657,7 +596,7 @@ function RoundColumn({
                                 side={side}
                                 showScores={showScores}
                                 onScoreChange={onScoreChange}
-                                matchRefs={matchRefs}
+                                registerMatchRef={registerMatchRef}
                             />
                         ))}
                     </div>
@@ -731,110 +670,12 @@ function MatchEditDialog({
 }
 
 // ===== Bracket Lines (SVG Connectors, DE ONLY) =====
-function BracketLines({ bracketData, matchRefs, contentRef, scale }: { bracketData: TournamentBracketData, matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>, contentRef: React.RefObject<HTMLDivElement | null>, scale: number }) {
-    const [paths, setPaths] = useState<{ id: string, d: string, color: string, isLose: boolean }[]>([]);
-
-    useEffect(() => {
-        const updatePaths = () => {
-            if (!contentRef.current) return;
-            const newPaths: { id: string, d: string, color: string, isLose: boolean }[] = [];
-            const allMatches = [...bracketData.initialMatches, ...bracketData.winnersMatches, ...bracketData.losersMatches];
-
-            const getPos = (id: string, side: 'left' | 'right') => {
-                const el = matchRefs.current[id];
-                if (!el || !contentRef.current) return null;
-                
-                let node: HTMLElement | null = el;
-                let x = 0;
-                let y = 0;
-                while (node && node !== contentRef.current) {
-                    x += node.offsetLeft;
-                    y += node.offsetTop;
-                    node = node.offsetParent as HTMLElement;
-                }
-                
-                if (side === 'right') x += el.offsetWidth;
-                y += el.offsetHeight / 2;
-                return { x, y };
-            };
-
-            allMatches.forEach(m => {
-                // Winners connects LEFT (right-to-left)
-                // Losers connects RIGHT (left-to-right)
-                const outWin = m.bracket === 'initial' || m.bracket === 'winners' ? 'left' : 'right';
-                const outLose = 'right';
-
-                // Win connection
-                if (m.nextWinMatchId) {
-                    const destM = allMatches.find(x => x.matchId === m.nextWinMatchId);
-                    if (destM) {
-                        const inSide = destM.bracket === 'winners' ? 'right' : 'left';
-                        const p1 = getPos(m.matchId, outWin);
-                        const p2 = getPos(destM.matchId, inSide);
-                        if (p1 && p2) {
-                            const midX = (p1.x + p2.x) / 2;
-                            newPaths.push({
-                                id: `${m.matchId}-win`,
-                                d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
-                                color: '#10b981', // green
-                                isLose: false
-                            });
-                        }
-                    }
-                }
-
-                // Lose connection
-                if (m.nextLoseMatchId) {
-                    const destM = allMatches.find(x => x.matchId === m.nextLoseMatchId);
-                    if (destM) {
-                        const inSide = destM.bracket === 'losers' ? 'left' : 'right';
-                        const p1 = getPos(m.matchId, outLose);
-                        const p2 = getPos(destM.matchId, inSide);
-                        
-                        if (p1 && p2) {
-                            const midX = p1.x + Math.abs(p2.x - p1.x) * 0.3;
-                            newPaths.push({
-                                id: `${m.matchId}-lose`,
-                                d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
-                                color: '#f43f5e', // red/rose
-                                isLose: true
-                            });
-                        }
-                    }
-                }
-            });
-
-            setPaths(newPaths);
-        };
-
-        const t = setTimeout(updatePaths, 150);
-        return () => clearTimeout(t);
-    }, [bracketData, matchRefs, contentRef, scale]);
-
-    return (
-        <svg className="absolute inset-0 pointer-events-none z-0 overflow-visible" style={{ width: '100%', height: '100%' }}>
-            {paths.map(p => (
-                <path
-                    key={p.id}
-                    d={p.d}
-                    fill="none"
-                    stroke={p.color}
-                    strokeWidth={p.isLose ? "4" : "5"}
-                    strokeLinecap="round"
-                    strokeDasharray={p.isLose ? "8 6" : "none"}
-                    className="opacity-70"
-                />
-            ))}
-        </svg>
-    );
-}
 
 // ===== Main Component =====
 export default function TournamentBracket({
     appearance = "default",
     bracketData,
     entries,
-    bracketId,
     onBracketUpdate,
     onSave,
 }: TournamentBracketProps) {
@@ -843,6 +684,9 @@ export default function TournamentBracket({
     const realContainerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const matchRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const registerMatchRef = useCallback((id: string, element: HTMLDivElement | null) => {
+        matchRefs.current[id] = element;
+    }, []);
     const [scale, setScale] = useState(1);
     const [editingMatch, setEditingMatch] = useState<BracketMatch | null>(null);
     const [showScores, setShowScores] = useState(false);
@@ -1251,7 +1095,7 @@ export default function TournamentBracket({
                                 onDrop={handleDrop}
                                 showScores={showScores}
                                 onScoreChange={handleScoreChange}
-                                matchRefs={matchRefs}
+                                registerMatchRef={registerMatchRef}
                             />
                         )}
 
@@ -1273,7 +1117,7 @@ export default function TournamentBracket({
                             onDrop={handleDrop}
                             showScores={showScores}
                             onScoreChange={handleScoreChange}
-                            matchRefs={matchRefs}
+                            registerMatchRef={registerMatchRef}
                         />
 
                         {/* LOSE Connector indicator */}
@@ -1295,7 +1139,7 @@ export default function TournamentBracket({
                                 onDrop={handleDrop}
                                 showScores={showScores}
                                 onScoreChange={handleScoreChange}
-                                matchRefs={matchRefs}
+                                registerMatchRef={registerMatchRef}
                             />
                         )}
                     </div>

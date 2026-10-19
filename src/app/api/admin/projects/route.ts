@@ -11,7 +11,7 @@ async function handleGET() {
         const projects = await getProjects();
 
         return NextResponse.json({ projects });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
     }
 }

@@ -15,11 +15,10 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
     const [entries, setEntries] = useState<TeamEntry[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(!!(teamId || projectId));
 
     useEffect(() => {
         if (!teamId && !projectId) {
-            setIsLoading(false);
             return;
         }
 
@@ -71,13 +70,10 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
         }
     }
 
+    const printTitle = projectContext ? `確定エントリー一覧_${projectContext.name}` : targetEntries[0] ? `チーム情報_${targetEntries[0].teamName}` : null;
     useEffect(() => {
-        if (projectContext) {
-            document.title = `確定エントリー一覧_${projectContext.name}`;
-        } else if (targetEntries.length > 0) {
-            document.title = `チーム情報_${targetEntries[0].teamName}`;
-        }
-    }, [projectContext, targetEntries]);
+        if (printTitle) document.title = printTitle;
+    }, [printTitle]);
 
     if (!teamId && !projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;
     if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
@@ -113,7 +109,7 @@ export default function TeamPrintView({ backUrl }: { backUrl: string }) {
             </div>
 
             <div className="print-container">
-                {targetEntries.map((entry, index) => {
+                {targetEntries.map((entry) => {
                     // Find representative info
                     const repPlayer = entry.players?.find(p => p.isRepresentative) || entry.players?.[0];
                     const user = users.find(u => u.id === entry.userId);

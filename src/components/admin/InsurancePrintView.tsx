@@ -21,7 +21,6 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
@@ -41,7 +40,20 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
                     const data = await projectsRes.json();
                     if (data.projects) {
                         const p = data.projects.find((p: Project) => p.id === projectId);
-                        if (p) setProject(p);
+                        if (p) {
+                            setProject(p);
+                            setEditableProjectName(p.name);
+                            let defaultFormattedDate = "";
+                            const targetDate = p.eventDate || p.entryStartDate;
+                            if (targetDate) {
+                                const d = new Date(targetDate);
+                                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                                defaultFormattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+                            } else {
+                                defaultFormattedDate = "＿＿年＿＿月＿＿日（＿＿）";
+                            }
+                            setEditableDate(defaultFormattedDate);
+                        }
                     }
                 }
             } catch (e) {
@@ -55,20 +67,7 @@ export default function InsurancePrintView({ backUrl }: { backUrl: string }) {
     }, [projectId]);
 
     useEffect(() => {
-        if (project) {
-            setEditableProjectName(project.name);
-            let defaultFormattedDate = "";
-            const targetDate = project.eventDate || project.entryStartDate;
-            if (targetDate) {
-                const d = new Date(targetDate);
-                const days = ['日', '月', '火', '水', '木', '金', '土'];
-                defaultFormattedDate = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
-            } else {
-                defaultFormattedDate = "＿＿年＿＿月＿＿日（＿＿）";
-            }
-            setEditableDate(defaultFormattedDate);
-            document.title = `保険加入者リスト_${project.name}`;
-        }
+        if (project) document.title = `保険加入者リスト_${project.name}`;
     }, [project]);
 
     if (!projectId) return <div className="min-h-screen bg-white flex items-center justify-center">Invalid parameters</div>;

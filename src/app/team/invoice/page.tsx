@@ -15,7 +15,7 @@ function InvoiceContent() {
 
     const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string, projectEndDate?: string } | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [settings, setSettings] = useState<Setting | any>(null);
+    const [settings, setSettings] = useState<Partial<Setting> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {

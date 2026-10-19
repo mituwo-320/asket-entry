@@ -18,7 +18,6 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
@@ -153,7 +152,7 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                 </div>
 
                 {/* PAGE 2+: Team Specific Pages */}
-                {targetEntries.map((entry, index) => {
+                {targetEntries.map((entry) => {
                     const teamColorCounts = teamWristbands[entry.id] || {};
                     const playerCount = entry.players?.length || 0;
                     const insCount = entry.players?.filter(p => p.insurance).length || 0;

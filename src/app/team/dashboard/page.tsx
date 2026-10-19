@@ -1,4 +1,5 @@
 "use client";
+import type { Setting } from "@/lib/types";
 import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Users, ShieldCheck, Plus, AlertCircle, Edit2, Trash2, UserCheck, Printer, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { Player, TeamEntry } from "@/lib/types";
+import { Player, TeamEntryDetails } from "@/lib/types";
 import { PlayerForm } from "@/components/ui/PlayerForm";
 import { ParticipantDialog, ParticipantConfirmDialog as ConfirmDialog, ParticipantAlertDialog as AlertDialog } from "@/components/participant/ParticipantDialog";
 import { ParticipantPreparation } from "@/components/participant/ParticipantPreparation";
@@ -17,7 +18,7 @@ function DashboardContent() {
     const searchParams = useSearchParams();
     const entryId = searchParams.get('id');
 
-    const [teamEntry, setTeamEntry] = useState<TeamEntry | null>(null);
+    const [teamEntry, setTeamEntry] = useState<TeamEntryDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -25,7 +26,7 @@ function DashboardContent() {
     const [playerSaveError, setPlayerSaveError] = useState<string | null>(null);
     const [playerSaveMessage, setPlayerSaveMessage] = useState("");
     const [isUpdatingClinic, setIsUpdatingClinic] = useState(false);
-    const [settings, setSettings] = useState<any>(null);
+    const [, setSettings] = useState<Partial<Setting> | null>(null);
     // Custom dialog state (replaces browser alert/confirm)
     const [alertDialog, setAlertDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; danger?: boolean; confirmLabel?: string }>({ open: false, title: "", message: "", onConfirm: () => { }, danger: false, confirmLabel: "削除する" });
@@ -140,7 +141,7 @@ function DashboardContent() {
                     if (!res.ok) {
                         throw new Error('Delete failed');
                     }
-                } catch (e) {
+                } catch {
                     showAlert("削除エラー", "削除に失敗しました。もう一度お試しください。");
                     setTeamEntry(previousEntry); // Rollback
                 }
@@ -149,7 +150,7 @@ function DashboardContent() {
         );
     };
 
-    const handleFinalizeEntry = async (updatedEntry?: TeamEntry) => {
+    const handleFinalizeEntry = async (updatedEntry?: TeamEntryDetails) => {
         const targetEntry = updatedEntry || teamEntry;
         if (!targetEntry) return;
         try {
@@ -164,7 +165,7 @@ function DashboardContent() {
             } else {
                 showAlert("エラー", "本エントリーの処理に失敗しました。");
             }
-        } catch (e) {
+        } catch {
             showAlert("エラー", "通信エラーが発生しました。");
         }
     };
@@ -173,7 +174,7 @@ function DashboardContent() {
         if (!teamEntry) return;
         
         // If clinic is active for this project, and the selection is still null, open the selector modal
-        if ((teamEntry as any).hasClinic && teamEntry.clinicParticipation === null) {
+        if (teamEntry.hasClinic && teamEntry.clinicParticipation === null) {
             setTempClinicParticipation(null);
             setTempClinicCount(1);
             setClinicModalOpen(true);
@@ -213,7 +214,7 @@ function DashboardContent() {
             } else {
                 showAlert("エラー", "クリニック情報の保存に失敗しました。");
             }
-        } catch (e) {
+        } catch {
             showAlert("エラー", "通信エラーが発生しました。");
         } finally {
             setIsUpdatingClinic(false);
@@ -244,7 +245,7 @@ function DashboardContent() {
             } else {
                 showAlert("エラー", "クリニック情報の保存に失敗しました。");
             }
-        } catch (e) {
+        } catch {
             showAlert("エラー", "通信エラーが発生しました。");
         } finally {
             setIsUpdatingClinic(false);
@@ -269,7 +270,7 @@ function DashboardContent() {
             } else {
                 showAlert("エラー", data.error || "領収書の発行に失敗しました。");
             }
-        } catch (e) {
+        } catch {
             showAlert("エラー", "通信エラーが発生しました。");
         } finally {
             setIsIssuingReceipt(false);
@@ -282,7 +283,7 @@ function DashboardContent() {
 
     const totalPlayers = teamEntry.players.length;
     const insuranceCount = teamEntry.players.filter(p => p.insurance).length;
-    const isDeadlinePassed = (teamEntry as any).projectEndDate ? new Date() > new Date((teamEntry as any).projectEndDate) : false;
+    const isDeadlinePassed = teamEntry.projectEndDate ? new Date() > new Date(teamEntry.projectEndDate) : false;
 
     const canEditPlayers = isAdmin || (!isDeadlinePassed && teamEntry.status !== 'submitted');
 
@@ -291,8 +292,8 @@ function DashboardContent() {
             <ParticipantHeader backHref="/dashboard" actions={canEditPlayers ? <Link href={`/team/edit?id=${entryId}`} className="participant-back">チーム設定</Link> : null} />
             <main id="participant-main" tabIndex={-1} className="participant-main">
                 <div className="max-w-5xl mx-auto space-y-8">
-                    <ParticipantHeading eyebrow="TEAM ROSTER" title={teamEntry.teamName} description={(teamEntry as any).projectName || teamEntry.tournamentId}>
-                        <span className="participant-status-tag">{(teamEntry as any).isWaitlist ? 'キャンセル待ち' : teamEntry.status === 'submitted' ? '本エントリー完了' : '仮エントリー・メンバー登録中'}</span>
+                    <ParticipantHeading eyebrow="TEAM ROSTER" title={teamEntry.teamName} description={teamEntry.projectName || teamEntry.tournamentId}>
+                        <span className="participant-status-tag">{teamEntry.isWaitlist ? 'キャンセル待ち' : teamEntry.status === 'submitted' ? '本エントリー完了' : '仮エントリー・メンバー登録中'}</span>
                     </ParticipantHeading>
                     <ParticipantPreparation submitted={teamEntry.status === 'submitted'} playerCount={totalPlayers} closed={!canEditPlayers} waitlist={"isWaitlist" in teamEntry && teamEntry.isWaitlist === true} />
 
@@ -312,8 +313,8 @@ function DashboardContent() {
                                 </div>
                             </div>
                         </div>
-                    ) : (teamEntry as any).projectEndDate && (() => {
-                        const deadline = new Date((teamEntry as any).projectEndDate);
+                    ) : teamEntry.projectEndDate && (() => {
+                        const deadline = new Date(teamEntry.projectEndDate);
                         const now = new Date();
                         const diffTime = deadline.getTime() - now.getTime();
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -359,10 +360,10 @@ function DashboardContent() {
                             </div>
                             <p className="text-2xl font-bold text-emerald-400">{insuranceCount}<span className="text-sm font-normal text-[#bdc5d1] ml-1">名</span></p>
                         </Card>
-                        {(teamEntry as any).hasClinic && (
+                        {teamEntry.hasClinic && (
                             <Card className="participant-clinic-card p-4 bg-[#34313a]/20 border-[#c47c89]/20 col-span-2 md:col-span-2 flex flex-col justify-between">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs text-[#ffc7d0] font-bold">{(teamEntry as any).clinicTitle || "🏀 バスケクリニック参加希望"}</span>
+                                    <span className="text-xs text-[#ffc7d0] font-bold">{teamEntry.clinicTitle || "🏀 バスケクリニック参加希望"}</span>
                                 </div>
                                 <p className={`text-xl font-black leading-tight ${teamEntry.clinicParticipation === null ? 'text-amber-400' : 'text-[#ffb2be]'}`}>
                                     {teamEntry.clinicParticipation === null
@@ -676,8 +677,8 @@ function DashboardContent() {
                         <div className="text-center">
                             <p className="text-xs text-[#c6cdd8] mt-2 leading-relaxed">
                                 {teamEntry.status === 'submitted'
-                                    ? `${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を変更してください。`
-                                    : `本エントリーを完了する前に、${(teamEntry as any).clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。`}
+                                    ? `${teamEntry.clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を変更してください。`
+                                    : `本エントリーを完了する前に、${teamEntry.clinicTitle || '山下泰弘さんによるバスケクリニック'}への参加希望を入力してください。`}
                             </p>
                         </div>
 
@@ -713,13 +714,13 @@ function DashboardContent() {
 
                             {tempClinicParticipation === true && (
                                 <div className="space-y-2 pt-2 border-t border-[#697383] animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <label htmlFor="team-clinic-count" className="text-sm font-medium text-[#c6cdd8] block mb-1">参加予定人数 (1〜{(teamEntry as any).clinicLimit || 20}名)</label>
+                                    <label htmlFor="team-clinic-count" className="text-sm font-medium text-[#c6cdd8] block mb-1">参加予定人数 (1〜{teamEntry.clinicLimit || 20}名)</label>
                                     <select id="team-clinic-count"
                                         value={tempClinicCount}
                                         onChange={(e) => setTempClinicCount(parseInt(e.target.value, 10))}
                                         className="bg-[#15171d] border border-[#697383] text-[#edf0f5] text-sm rounded-md focus:ring-1 focus:ring-orange-300 focus:border-[#c47c89] block w-full p-2.5 outline-none font-sans"
                                     >
-                                        {Array.from({ length: (teamEntry as any).clinicLimit || 20 }, (_, i) => i + 1).map((n) => (
+                                        {Array.from({ length: teamEntry.clinicLimit || 20 }, (_, i) => i + 1).map((n) => (
                                             <option key={n} value={n}>
                                                 {n} 名
                                             </option>

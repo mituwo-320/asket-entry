@@ -16,7 +16,7 @@ export async function GET(request: Request) {
             message: 'Database keep-alive ping successful.',
             timestamp: new Date().toISOString()
         });
-    } catch (e: any) {
+    } catch (e) {
         console.error('Keep-alive ping failed:', e);
         return NextResponse.json({ error: 'Database keep-alive ping failed' }, { status: 500 });
     }

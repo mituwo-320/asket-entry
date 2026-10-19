@@ -1,4 +1,5 @@
 "use client";
+import { DocumentTitle } from "@/components/ui/DocumentTitle";
 import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState, Suspense } from "react";
@@ -7,8 +8,6 @@ import { OperationsPrintGuide, OperationsState } from "@/components/operations/O
 import { Loader2, Printer, ArrowLeft } from "lucide-react";
 import { TeamEntry, User, Setting } from "@/lib/types";
 
-
-
 function ReceiptContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -16,7 +15,7 @@ function ReceiptContent() {
 
     const [teamEntry, setTeamEntry] = useState<TeamEntry & { projectName?: string } | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [settings, setSettings] = useState<Setting | any>(null);
+    const [settings, setSettings] = useState<Partial<Setting> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -55,13 +54,13 @@ function ReceiptContent() {
     const participationFee = settings?.participationFee || 2500;
     const insuranceFee = settings?.insuranceFee || 150;
     const playerCount = teamEntry.players?.length || 0;
-    const insuranceCount = teamEntry.players?.filter((p: any) => p.insurance).length || 0;
+    const insuranceCount = teamEntry.players?.filter((p) => p.insurance).length || 0;
     const teamTotalFee = participationFee * playerCount;
     const insuranceTotalFee = insuranceFee * insuranceCount;
     const grandTotal = teamTotalFee + insuranceTotalFee;
 
     // 宛名
-    const representativeName = teamEntry.players?.find((p: any) => p.isRepresentative)?.name || user.name;
+    const representativeName = teamEntry.players?.find((p) => p.isRepresentative)?.name || user.name;
     const addressee = teamEntry.receiptName || `${teamEntry.teamName} ${representativeName}`;
 
     // 発行日（令和表記）：ユーザーの発行日があればそれを使用、なければ今日
@@ -76,15 +75,13 @@ function ReceiptContent() {
     const pdfFileName = `ヴァンキーカップ領収書_${addressee}_${dateForFileName}`.replace(/[\s　]+/g, '_');
 
     // ページタイトルをPDFファイル名として設定
-    if (typeof document !== 'undefined') {
-        document.title = pdfFileName;
-    }
 
     // 金額（漢数字ではなく大字風表記）
     const amountStr = grandTotal.toLocaleString('ja-JP');
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900" style={{ fontFamily: "'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif" }}>
+            <DocumentTitle title={pdfFileName} />
             <OperationsPrintGuide title="領収書の控えを確認" description="宛名・金額・発行日を確認し、PDF保存または印刷を行ってください。" />
             {/* 非印刷 操作バー */}
             <div className="operations-document-toolbar print:hidden bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
@@ -146,7 +143,6 @@ function ReceiptContent() {
                     <p className="text-base">但し、ヴァンキーカップ参加費として</p>
                 </div>
 
-
                 <p className="text-sm mt-4 mb-16 print:mb-12">上記正に領収いたしました。</p>
 
                 {/* 発行者情報 + 印鑑 */}
@@ -163,6 +159,7 @@ function ReceiptContent() {
                             <p>MAIL：tatsuo0301@gmail.com</p>
                         </div>
                         {/* 電子印鑑：右端に絶対配置し、テキストに重なるように */}
+                        {/* eslint-disable-next-line @next/next/no-img-element -- Keep the static print stamp independent of image optimization. */}
                         <img
                             src="/hanko.png"
                             alt="印鑑"

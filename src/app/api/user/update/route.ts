@@ -38,7 +38,7 @@ async function handlePUT(request: Request) {
             message: 'プロフィールを更新しました',
             user: updatedUser
         });
-    } catch (e: any) {
+    } catch (e) {
         console.error('Update user error:', e);
         return NextResponse.json({ error: 'サーバー内部エラーが発生しました' }, { status: 500 });
     }

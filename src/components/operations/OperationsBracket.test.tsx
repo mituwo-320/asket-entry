@@ -35,3 +35,10 @@ test.each(["default", "operations", "admin"] as const)("%s editor keeps the same
   fireEvent.click(screen.getByRole("button", { name: "保存" }));
   await waitFor(() => expect(onSave).toHaveBeenCalledWith(updated, "in_progress"));
 });
+
+test("fullscreen follows a preference changed by another browser tab", () => {
+  const { container } = render(<BracketFullscreen isOpen onClose={jest.fn()} bracketData={generateBracket(8)} entries={[]} onWin={jest.fn()} />);
+  localStorage.setItem("tournament-bracket-theme", "dark");
+  fireEvent(window, new StorageEvent("storage", { key: "tournament-bracket-theme", newValue: "dark" }));
+  expect(container.firstChild).toHaveAttribute("data-theme", "dark");
+});

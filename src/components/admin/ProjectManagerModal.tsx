@@ -1,12 +1,12 @@
 import { staffFetch } from "@/lib/staff-fetch";
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Project } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Calendar, Save, Trash2, CheckCircle, Edit2 } from 'lucide-react';
+import { X, Plus, Calendar, Save, Trash2, Edit2 } from 'lucide-react';
 
 interface ProjectManagerModalProps {
     isOpen: boolean;
@@ -16,15 +16,17 @@ interface ProjectManagerModalProps {
 }
 
 export default function ProjectManagerModal({ isOpen, onClose, projects, onProjectsUpdate }: ProjectManagerModalProps) {
-    const [localProjects, setLocalProjects] = useState<Project[]>([]);
+    const [localProjects, setLocalProjects] = useState<Project[]>(projects);
     const [editingId, setEditingId] = useState<string | null>(null);
     const dialogRef = useAdminDialogFocus(isOpen, onClose);
     const [isLoading, setIsLoading] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    useEffect(() => {
+    const [previousProjects, setPreviousProjects] = useState(projects);
+    if (previousProjects !== projects) {
+        setPreviousProjects(projects);
         setLocalProjects(projects);
-    }, [projects]);
+    }
 
     const handleAddProject = () => {
         const newProj: Project = {
@@ -60,7 +62,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
             } else {
                 setSaveMessage({ type: 'error', text: data.error || '保存に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setSaveMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsLoading(false);
@@ -85,7 +87,7 @@ export default function ProjectManagerModal({ isOpen, onClose, projects, onProje
             } else {
                 setSaveMessage({ type: 'error', text: data.error || '削除に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setSaveMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsLoading(false);

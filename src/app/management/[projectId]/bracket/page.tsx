@@ -1,7 +1,7 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -28,23 +28,18 @@ export default function ManagementTournamentBracketPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [bracketData, setBracketData] = useState<TournamentBracketData | null>(null);
     const [bracketId, setBracketId] = useState<string | null>(null);
-    const [teamCount, setTeamCount] = useState<number>(16);
+    const [teamCountOverride, setTeamCount] = useState<number | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isSeedingTeams, setIsSeedingTeams] = useState(false);
     const [seedMessage, setSeedMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, [projectId]);
-
-    const loadData = async () => {
-        try {
-            const [dataRes, projectsRes, bracketRes] = await Promise.all([
+    const loadData = useCallback(() => {
+        return Promise.all([
                 staffFetch('/api/admin/data'),
                 staffFetch('/api/admin/projects'),
                 staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
-            ]);
+            ]).then(async ([dataRes, projectsRes, bracketRes]) => {
 
             if (dataRes.ok) {
                 const data = await dataRes.json();
@@ -69,12 +64,16 @@ export default function ManagementTournamentBracketPage() {
                     setBracketData(null);
                 }
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to load tournament bracket data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const seedTestTeams = async () => {
         const input = prompt("検証したいテストチーム数を指定してください (8〜16):", "16");
@@ -99,7 +98,7 @@ export default function ManagementTournamentBracketPage() {
                 setSeedMessage({ type: 'success', text: data.message });
                 
                 // Refresh data
-                const [dataRes, bracketRes] = await Promise.all([
+                const [dataRes] = await Promise.all([
                     staffFetch('/api/admin/data'),
                     staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
                 ]);
@@ -123,7 +122,7 @@ export default function ManagementTournamentBracketPage() {
             } else {
                 setSeedMessage({ type: 'error', text: data.error || '失敗しました' });
             }
-        } catch (e) {
+        } catch {
             setSeedMessage({ type: 'error', text: 'エラーが発生しました' });
         } finally {
             setIsSeedingTeams(false);
@@ -152,7 +151,7 @@ export default function ManagementTournamentBracketPage() {
             } else {
                 alert(data.error || "生成に失敗しました");
             }
-        } catch (e) {
+        } catch {
             alert("エラーが発生しました");
         } finally {
             setIsGenerating(false);
@@ -240,12 +239,7 @@ export default function ManagementTournamentBracketPage() {
     const displayUrl = `/admin/tournament-bracket/display?id=${projectId}`;
     const activeEntries = entries.filter(e => e.status !== 'cancelled');
 
-    // Automatically suggest active entries count as default teamCount
-    useEffect(() => {
-        if (!isLoading && !bracketData && activeEntries.length >= 2) {
-            setTeamCount(activeEntries.length);
-        }
-    }, [isLoading, bracketData, activeEntries.length]);
+    const teamCount = teamCountOverride ?? (!bracketData && activeEntries.length >= 2 ? activeEntries.length : 16);
 
     if (isLoading) return <OperationsState title="対戦表を読み込んでいます" loading />;
     if (!project) return <OperationsState title="大会情報を確認できませんでした" message="大会一覧から対象の大会を選び直してください。" />;

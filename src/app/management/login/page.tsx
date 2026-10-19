@@ -27,6 +27,8 @@ export default function ManagementLoginPage() {
             });
 
             if (res.ok) {
+                // A new/cleared HttpOnly staff session must be checked on a fresh document.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 window.location.href = "/management";
             } else {
                 const data = await res.json();

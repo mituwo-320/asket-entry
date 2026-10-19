@@ -28,6 +28,8 @@ export default function AdminLoginPage() {
 
             if (res.ok) {
                 // To replace history and redirect to admin safely
+                // A new/cleared HttpOnly staff session must be checked on a fresh document.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 window.location.href = "/admin";
             } else {
                 const data = await res.json();

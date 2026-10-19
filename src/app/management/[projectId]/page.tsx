@@ -1,12 +1,12 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Users, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy, Trash2 } from "lucide-react";
+import { Search, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy, Trash2 } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { OperationsHeader, OperationsHeading, OperationsOverview, OperationsState } from "@/components/operations/OperationsFrame";
@@ -26,13 +26,12 @@ export default function ManagementProjectDetail() {
     const [selectedEntry, setSelectedEntry] = useState<TeamEntry | null>(null);
     const [isChecklistOpen, setIsChecklistOpen] = useState(false); // NEW: Checklist Collapsible state
 
-    const loadData = async () => {
-        try {
-            const [dataRes, projectsRes, settingsRes] = await Promise.all([
+    const loadData = useCallback(() => {
+        return Promise.all([
                 staffFetch('/api/admin/data'),
                 staffFetch('/api/admin/projects'),
                 staffFetch('/api/settings')
-            ]);
+            ]).then(async ([dataRes, projectsRes, settingsRes]) => {
             
             if (dataRes.ok) {
                 const data = await dataRes.json();
@@ -50,16 +49,16 @@ export default function ManagementProjectDetail() {
                 const s = await settingsRes.json();
                 setSettings({ participationFee: Number(s.participationFee || 0), insuranceFee: Number(s.insuranceFee || 0) });
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to fetch data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
 
     useEffect(() => {
         loadData();
-    }, [projectId]);
+    }, [loadData]);
 
     const getRepName = (userId: string) => {
         const user = users.find(u => u.id === userId);
@@ -121,7 +120,7 @@ export default function ManagementProjectDetail() {
         const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
 
         for (const entry of sorted) {
-            let req = entry.preliminaryNumber;
+            const req = entry.preliminaryNumber;
             let finalNum: number | undefined = undefined;
             let bumped = false;
 
@@ -148,8 +147,8 @@ export default function ManagementProjectDetail() {
     const confirmedEntries = filteredEntries.filter(e => !isWaitlisted(e) && e.status !== 'cancelled');
     const otherEntries = filteredEntries.filter(e => isWaitlisted(e) || e.status === 'cancelled');
 
-    const clinicParticipatingTeams = entries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
-    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
+    const clinicParticipatingTeams = entries.filter(e => e.status !== 'cancelled' && e.clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + (e.clinicCount || 0), 0);
 
     const deskEntries = entries.filter(entry => entry.status !== "cancelled" && !isWaitlisted(entry));
 
@@ -234,7 +233,7 @@ export default function ManagementProjectDetail() {
                                         <span className="text-[10px] font-extrabold tracking-wider">
                                             🏀 クリニック希望：参加する
                                         </span>
-                                        <span className="text-xs font-black text-indigo-400">{(entry as any).clinicCount}名</span>
+                                        <span className="text-xs font-black text-indigo-400">{entry.clinicCount}名</span>
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-700 bg-slate-950/50 text-slate-400">
@@ -304,7 +303,7 @@ export default function ManagementProjectDetail() {
                                 </a>
                             )}
                             {/* ユーザー側の領収書発行状況 */}
-                            {(entry as any).receiptIssuedAt ? (
+                            {entry.receiptIssuedAt ? (
                                 <a href={`/management/receipt?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 rounded-xl text-emerald-400 transition-colors">
                                     <Printer className="w-5 h-5 mb-1 opacity-80" />
                                     <span className="text-[10px] font-bold">領収書(発行済)</span>
@@ -372,7 +371,7 @@ export default function ManagementProjectDetail() {
                                                 <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
                                                     <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
                                                     <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
-                                                    <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                    <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{e.clinicCount || 0}名</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -544,8 +543,8 @@ export default function ManagementProjectDetail() {
                                         <div className="operations-sheet-clinic bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
                                             <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">{project.clinicTitle || '🏀 バスケクリニック参加希望状況'}</p>
                                             <p className="text-slate-200 text-sm font-bold">
-                                                {(selectedEntry as any).clinicParticipation
-                                                    ? `✅ 参加する (${(selectedEntry as any).clinicCount}名)`
+                                                {selectedEntry.clinicParticipation
+                                                    ? `✅ 参加する (${selectedEntry.clinicCount}名)`
                                                     : "▫️ 参加しない"}
                                             </p>
                                         </div>
@@ -639,7 +638,7 @@ export default function ManagementProjectDetail() {
                                                             } else {
                                                                 alert("削除に失敗しました");
                                                             }
-                                                        } catch (e) {
+                                                        } catch {
                                                             alert("エラーが発生しました");
                                                         }
                                                     }}

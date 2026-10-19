@@ -34,7 +34,7 @@ async function handlePOST(request: Request) {
         } else {
             return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
         }
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }

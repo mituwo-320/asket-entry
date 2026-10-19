@@ -6,7 +6,7 @@ export async function GET() {
     try {
         const setting = await getSetting();
         return NextResponse.json(setting || {});
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: 'Failed to get settings' }, { status: 500 });
     }
 }
@@ -19,7 +19,7 @@ async function handlePOST(request: Request) {
             return NextResponse.json({ success: true });
         }
         return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 }

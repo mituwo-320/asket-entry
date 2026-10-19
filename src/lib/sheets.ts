@@ -9,7 +9,7 @@ export async function getProjects(): Promise<Project[]> {
         const projects = await db.project.findMany({
             orderBy: { createdAt: 'asc' }
         });
-        return projects.map((p: any) => ({
+        return projects.map((p) => ({
             id: p.id,
             name: p.name,
             isActive: p.isActive,
@@ -114,6 +114,8 @@ export async function saveUser(user: User): Promise<boolean> {
             update: {
                 name: user.name,
                 phone: user.phone,
+                postalCode: user.postalCode,
+                address: user.address,
                 wristbandColor: user.wristbandColor || '',
             },
             create: {
@@ -121,14 +123,16 @@ export async function saveUser(user: User): Promise<boolean> {
                 email: user.email,
                 name: user.name,
                 phone: user.phone,
+                postalCode: user.postalCode,
+                address: user.address,
                 password: hashedPassword,
                 wristbandColor: user.wristbandColor || '',
             }
         });
         return true;
-    } catch (e: any) {
+    } catch (e) {
         // P2002 is Prisma error for unique constraint violation (email duplicate)
-        if (e.code === 'P2002') {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
             return false;
         }
         throw e;
@@ -263,7 +267,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             include: { players: true }
         });
 
-        return entries.map((e: any) => ({
+        return entries.map((e) => ({
             id: e.id,
             userId: e.userId,
             tournamentId: e.tournamentId,
@@ -284,7 +288,7 @@ export async function getUserEntries(userId: string): Promise<TeamEntry[]> {
             clinicParticipation: e.clinicParticipation,
             clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map((p: any) => ({
+            players: e.players.map((p) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -328,7 +332,7 @@ export async function findTeamEntry(entryId: string): Promise<TeamEntry | null> 
             clinicParticipation: e.clinicParticipation,
             clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map((p: any) => ({
+            players: e.players.map((p) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -423,7 +427,7 @@ export async function getMatches(tournamentId?: string): Promise<Match[]> {
         const matches = await db.match.findMany({
             where: { tournamentId }
         });
-        return matches.map((m: any) => ({
+        return matches.map((m) => ({
             id: m.id,
             tournamentId: m.tournamentId,
             teamIdA: m.teamIdA || '',
@@ -482,7 +486,7 @@ export async function getScheduleEvents(tournamentId: string): Promise<ScheduleE
         const events = await db.event.findMany({
             where: { tournamentId }
         });
-        return events.map((e: any) => ({
+        return events.map((e) => ({
             id: e.id,
             tournamentId: e.tournamentId,
             type: e.type as 'match' | 'ceremony' | 'break' | 'other',
@@ -518,7 +522,7 @@ export async function getAllAdminData() {
             include: { players: true }
         });
 
-        const formattedEntries = entries.map((e: any) => ({
+        const formattedEntries = entries.map((e) => ({
             id: e.id,
             userId: e.userId,
             tournamentId: e.tournamentId,
@@ -539,7 +543,7 @@ export async function getAllAdminData() {
             clinicParticipation: e.clinicParticipation,
             clinicCount: e.clinicCount,
             createdAt: e.createdAt.toISOString(),
-            players: e.players.map((p: any) => ({
+            players: e.players.map((p) => ({
                 id: p.id,
                 name: p.name,
                 furigana: p.furigana,
@@ -549,7 +553,7 @@ export async function getAllAdminData() {
             }))
         }));
 
-        const formattedUsers = users.map((u: any) => ({
+        const formattedUsers = users.map((u) => ({
             id: u.id,
             email: u.email,
             name: u.name,

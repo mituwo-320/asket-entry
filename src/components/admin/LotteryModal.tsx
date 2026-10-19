@@ -1,9 +1,8 @@
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Trophy, Sparkles, X } from "lucide-react";
-import { Card } from "@/components/ui/Card";
 
 interface Participant {
     teamName: string;
@@ -26,14 +25,16 @@ export default function LotteryModal({ isOpen, onClose, participants }: LotteryM
     const [isSuspenseMode, setIsSuspenseMode] = useState(false);
     const [revealStep, setRevealStep] = useState(0); // 0: Hidden, 1: Team, 2: Name/Full
 
-    useEffect(() => {
+    const [previousOpen, setPreviousOpen] = useState(isOpen);
+    if (previousOpen !== isOpen) {
+        setPreviousOpen(isOpen);
         if (isOpen) {
             setWinner(null);
             setIsSpinning(false);
             setDisplayCandidate(null);
             setRevealStep(0);
         }
-    }, [isOpen]);
+    }
 
     const startLottery = () => {
         if (participants.length === 0) return;
@@ -52,7 +53,7 @@ export default function LotteryModal({ isOpen, onClose, participants }: LotteryM
 
         setIsSpinning(true);
 
-        let duration = 3000; // 3 seconds spin
+        const duration = 3000; // 3 seconds spin
         let interval = 50;
         let elapsed = 0;
 

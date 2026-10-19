@@ -144,7 +144,6 @@ test("admin dialogs contain keyboard focus, close with Escape and restore the op
   expect(trigger).toHaveFocus();
 });
 
-
 test("an admin payment save failure does not mark an unpaid entry as paid", async () => {
   const user = userEvent.setup();
   const alert = jest.spyOn(window, "alert").mockImplementation(() => {});
@@ -156,4 +155,22 @@ test("an admin payment save failure does not mark an unpaid entry as paid", asyn
   await user.click(payment);
   await waitFor(() => expect(alert).toHaveBeenCalledWith("更新に失敗しました"));
   expect(payment).toHaveAttribute("aria-pressed", "false");
+});
+
+test("a failed schedule save keeps the editor and entered event title available for retry", async () => {
+  const user = userEvent.setup();
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  const alert = jest.spyOn(window, "alert").mockImplementation(() => {});
+  mockData();
+  const read = jest.mocked(fetch).getMockImplementation()!;
+  jest.mocked(fetch).mockImplementation((url, options) => url === "/api/schedule/events" && options?.method === "POST" ? response({ error: "保存失敗" }, false) : read(url, options));
+  render(<TimeScheduleEditor tournamentId="winter" entries={[]} matches={[]} refreshData={jest.fn()} />);
+  await user.click(screen.getByRole("button", { name: "イベント追加" }));
+  const dialog = screen.getByRole("dialog", { name: "予定の編集" });
+  const title = within(dialog).getByLabelText("イベント名");
+  await user.clear(title); await user.type(title, "受付開始");
+  await user.click(within(dialog).getByRole("button", { name: "保存" }));
+  await waitFor(() => expect(alert).toHaveBeenCalled());
+  expect(screen.getByRole("dialog", { name: "予定の編集" })).toBeInTheDocument();
+  expect(title).toHaveValue("受付開始");
 });

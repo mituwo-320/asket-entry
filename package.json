@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "check:env": "node scripts/check-release-env.mjs",
     "lint:release": "eslint src/lib/auth src/lib/registration.ts src/lib/participant-fetch.ts src/lib/staff-fetch.ts src/lib/tokens.ts src/lib/mail.ts src/lib/mail.test.ts src/proxy.ts next.config.ts scripts/check-release-env.mjs scripts/guard-production-build.mjs src/app/api/team/register/route.ts src/app/api/team/update/route.ts src/app/api/team/receipt",
-    "check": "npm run typecheck && npm test -- --runInBand && npm run lint:release"
+    "check": "npm run typecheck && npm test -- --runInBand && npm run lint -- --max-warnings=0"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

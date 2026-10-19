@@ -1,5 +1,5 @@
 import { staffFetch } from "@/lib/staff-fetch";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,37 +11,36 @@ interface PrintChecklistProps {
     projectId: string;
 }
 
-export default function PrintChecklist({ projectId }: PrintChecklistProps) {
+function PrintChecklistContent({ projectId }: PrintChecklistProps) {
     const [items, setItems] = useState<PrintChecklistItem[]>([]);
     const [newItemName, setNewItemName] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const loadChecklist = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await staffFetch(`/api/admin/checklist?projectId=${projectId}`);
+    const fetchChecklist = useCallback(() => {
+        return staffFetch(`/api/admin/checklist?projectId=${projectId}`).then(async (res) => {
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.items || []);
             } else {
                 setError('印刷チェックリストの取得に失敗しました。');
             }
-        } catch (e) {
+        }).catch((e) => {
             setError('通信エラーが発生しました。');
             console.error(e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
+
+    const loadChecklist = () => { setIsLoading(true); setError(null); return fetchChecklist(); };
 
     useEffect(() => {
         if (projectId) {
-            loadChecklist();
+            fetchChecklist();
         }
-    }, [projectId]);
+    }, [projectId, fetchChecklist]);
 
     const handleToggle = async (item: PrintChecklistItem) => {
         const targetStatus = !item.isPrinted;
@@ -61,7 +60,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                 setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: !targetStatus } : i));
                 alert('ステータスの更新に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             // Revert
             setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: !targetStatus } : i));
             alert('通信エラーが発生しました。');
@@ -88,7 +87,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             } else {
                 alert(data.error || '項目の追加に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             alert('通信エラーが発生しました。');
         } finally {
             setIsAdding(false);
@@ -108,7 +107,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             } else {
                 alert('項目の削除に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             alert('通信エラーが発生しました。');
         }
     };
@@ -268,4 +267,8 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             </form>
         </Card>
     );
+}
+
+export default function PrintChecklist({ projectId }: PrintChecklistProps) {
+    return <PrintChecklistContent key={projectId} projectId={projectId} />;
 }

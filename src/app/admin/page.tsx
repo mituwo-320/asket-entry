@@ -1,13 +1,13 @@
 "use client";
 import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAdminDialogFocus } from "@/components/admin/useAdminDialogFocus";
 import { AdminHeading, AdminSectionNav, AdminState } from "@/components/admin/AdminFrame";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Settings, Save, AlertCircle, Plus, Copy, Trash2, Link as LinkIcon, RefreshCcw, Bell, ShieldCheck, Mail, LogOut, Loader2, LayoutDashboard, Target, Users, Megaphone, Smartphone, CheckCircle2, MessageSquare, Menu, Calendar, X, FileEdit, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft, HardDrive } from "lucide-react";
+import { Settings, AlertCircle, Trash2, Loader2, Users, CheckCircle2, MessageSquare, Calendar, X, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft, HardDrive } from "lucide-react";
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
@@ -17,13 +17,13 @@ import BackupManagerModal from '@/components/admin/BackupManagerModal'; // NEW
 import PrintChecklist from '@/components/admin/PrintChecklist'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
-import { TeamEntry, User, Match, Project } from "@/lib/types";
-import { getTournamentName } from "@/lib/tournament-constants";
+import { TeamEntryDetails, User, Match, Project } from "@/lib/types";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboard() {
     // State
-    const [entries, setEntries] = useState<TeamEntry[]>([]);
+    const [entries, setEntries] = useState<TeamEntryDetails[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]); // NEW: Projects State
     const [selectedProjectId, setSelectedProjectId] = useState<string>("2024-Spring"); // NEW: Project filter
@@ -32,10 +32,9 @@ export default function AdminDashboard() {
     const [searchResult, setSearchResult] = useState<{ playerName: string, teamName: string, insurance: boolean } | null>(null);
     const [teamSearchQuery, setTeamSearchQuery] = useState("");
     const [teamFilterStatus, setTeamFilterStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
-    const [selectedEntry, setSelectedEntry] = useState<TeamEntry | null>(null); // For Details Modal
+    const [selectedEntry, setSelectedEntry] = useState<TeamEntryDetails | null>(null); // For Details Modal
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); // NEW: For Match Result Modal
     const [matches, setMatches] = useState<Match[]>([]);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
     const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false); // NEW
     const [isBackupModalOpen, setIsBackupModalOpen] = useState(false); // NEW
@@ -57,10 +56,8 @@ export default function AdminDashboard() {
     };
 
     // Fetch Data
-    const loadData = async () => {
-        try {
-            // Fetch basic data
-            const res = await staffFetch('/api/admin/data');
+    const loadData = useCallback(() => {
+        return staffFetch('/api/admin/data').then(async (res) => {
             const data = await res.json();
             if (data.entries) setEntries(data.entries);
             if (data.users) setUsers(data.users);
@@ -89,17 +86,17 @@ export default function AdminDashboard() {
                 if (settingsData && settingsData.participationFee !== undefined) setSettings(settingsData);
             }
 
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to fetch admin data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
 
     useEffect(() => {
-        // middleware.ts handles admin route protection, no need for localStorage checks here.
+        // proxy.ts and API authorization enforce staff access.
         loadData();
-    }, []);
+    }, [loadData]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -114,79 +111,12 @@ export default function AdminDashboard() {
         show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
     };
 
-    const generateSchedule = async () => {
-        if (!confirm("現在のエントリー状況で対戦カードを生成しますか？（既存のスケジュールは上書きされる可能性があります）")) return;
-        setIsGenerating(true);
-        try {
-            const res = await staffFetch('/api/admin/schedule/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tournamentId: selectedProjectId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setMatches(data.matches);
-                alert("対戦カードを生成しました");
-            } else {
-                alert(data.error || "生成に失敗しました");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("エラーが発生しました");
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const updateScore = (match: Match, field: 'scoreA' | 'scoreB', value: string) => {
-        const numVal = value === '' ? undefined : parseInt(value);
-        const updatedMatches = matches.map(m => {
-            if (m.id === match.id) {
-                return { ...m, [field]: numVal, status: 'playing' as const };
-            }
-            return m;
-        });
-        setMatches(updatedMatches);
-
-        // Debounce save or save immediately? Let's save on blur or use a button.
-        // For simple UX, let's just update local state and use the 'Finalize' button to really 'commit' status.
-        // But we should probably save values too.
-        // Let's implement auto-save or individual save.
-        // Actually, let's trigger a background save.
-        const updatedMatch = updatedMatches.find(m => m.id === match.id);
-        if (updatedMatch) {
-            staffFetch('/api/admin/match/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ match: updatedMatch })
-            }).then(response => { if (!response.ok) throw new Error('Save failed'); }).catch(() => alert('得点を保存できませんでした。接続を確認して、再度入力してください。'));
-        }
-    };
-
-    const finalizeMatch = async (match: Match) => {
-        if (!confirm("試合を終了し、結果を確定しますか？")) return;
-        const updatedMatch = { ...match, status: 'finished' as const };
-        // Determine winner logic if needed, but for now just status
-
-        try {
-            const res = await staffFetch('/api/admin/match/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ match: updatedMatch })
-            });
-            if (!res.ok) throw new Error('Save failed');
-            setMatches(previous => previous.map(m => m.id === match.id ? updatedMatch : m));
-        } catch (e) {
-            alert("保存に失敗しました");
-        }
-    };
-
     // Current View Filter logic for matches, entries
     const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId);
     const activeMatches = matches.filter(m => m.tournamentId === selectedProjectId);
 
-    const clinicParticipatingTeams = activeEntries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
-    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
+    const clinicParticipatingTeams = activeEntries.filter(e => e.status !== 'cancelled' && e.clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + (e.clinicCount || 0), 0);
 
     const activeProjectData = projects.find(p => p.id === selectedProjectId);
 
@@ -231,7 +161,7 @@ export default function AdminDashboard() {
     // Helper to download Insurance List (Client-side)
     const downloadInsuranceList = () => {
         // 1. Flatten Data
-        const rows: any[] = [];
+        const rows: Record<string, string | number>[] = [];
         activeEntries.forEach(entry => {
             // Find User for Rep Name
             const user = users.find(u => u.id === entry.userId);
@@ -263,7 +193,7 @@ export default function AdminDashboard() {
 
     // Helper to download Detailed Team List
     const downloadDetailedTeamList = () => {
-        const rows: any[] = [];
+        const rows: Record<string, string | number>[] = [];
         activeEntries.forEach(entry => {
             const user = users.find(u => u.id === entry.userId);
             const repName = user ? user.name : "Unknown";
@@ -338,7 +268,7 @@ export default function AdminDashboard() {
             } else {
                 setSaveMessage({ type: 'error', text: '設定の保存に失敗しました' });
             }
-        } catch (e) {
+        } catch {
             setSaveMessage({ type: 'error', text: '通信エラーが発生しました' });
         } finally {
             setIsSavingSettings(false);
@@ -391,14 +321,14 @@ export default function AdminDashboard() {
         return matchesSearch && matchesFilter;
     });
 
-    const calculateLotteryNumbers = (entriesList: TeamEntry[]) => {
+    const calculateLotteryNumbers = (entriesList: TeamEntryDetails[]) => {
         const validEntries = entriesList.filter(e => e.status !== 'cancelled');
         const sorted = [...validEntries].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         const occupied = new Set<number>();
         const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
 
         for (const entry of sorted) {
-            let req = entry.preliminaryNumber;
+            const req = entry.preliminaryNumber;
             let finalNum: number | undefined = undefined;
             let bumped = false;
 
@@ -486,6 +416,8 @@ export default function AdminDashboard() {
                         </span>
                         <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white flex items-center gap-1 sm:gap-2" onClick={async () => {
                             await staffFetch('/api/admin/auth/logout', { method: 'POST' });
+                            // A new/cleared HttpOnly staff session must be checked on a fresh document.
+                            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                             window.location.href = '/';
                         }}>
                             <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline text-xs sm:text-sm font-medium">トップへ戻る</span>
@@ -576,7 +508,7 @@ export default function AdminDashboard() {
                                                     <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
                                                         <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
                                                         <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
-                                                        <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                        <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{e.clinicCount || 0}名</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -642,7 +574,6 @@ export default function AdminDashboard() {
                         </Card>
                     </motion.div>
 
-
                     {/* NEW: Team Management Section */}
                     <motion.div id="admin-teams" variants={itemVariants}>
                         <Card className="p-0 overflow-hidden">
@@ -682,7 +613,7 @@ export default function AdminDashboard() {
                                 <select
                                     aria-label="入金状況で絞り込み"
                                     value={teamFilterStatus}
-                                    onChange={(e) => setTeamFilterStatus(e.target.value as any)}
+                                    onChange={(e) => setTeamFilterStatus(e.target.value as typeof teamFilterStatus)}
                                     className="bg-slate-950 border border-slate-800 text-slate-300 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-48 p-2.5 outline-none transition-all"
                                 >
                                     <option value="all">すべてのステータス</option>
@@ -776,7 +707,7 @@ export default function AdminDashboard() {
                                                                 </span>
                                                             ) : entry.clinicParticipation === true ? (
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                                                    参加 ({(entry as any).clinicCount || 0}名)
+                                                                    参加 ({entry.clinicCount || 0}名)
                                                                 </span>
                                                             ) : (
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
@@ -799,7 +730,7 @@ export default function AdminDashboard() {
                                                                     });
                                                                     if (!response.ok) throw new Error('Save failed');
                                                                     setEntries(previous => previous.map(item => item.id === entry.id ? { ...item, isPaid: newStatus } : item));
-                                                                } catch (e) {
+                                                                } catch {
                                                                     alert("更新に失敗しました");
                                                                 }
                                                             }}
@@ -868,7 +799,7 @@ export default function AdminDashboard() {
                                     <div className="admin-dialog-header p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
                                         <div>
                                             <h2 className="text-2xl font-bold text-white tracking-tight">{selectedEntry.teamName}</h2>
-                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{(selectedEntry as any).projectName || selectedEntry.tournamentId}</p>
+                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{selectedEntry.projectName || selectedEntry.tournamentId}</p>
                                         </div>
                                         <button aria-label="閉じる"
                                             onClick={() => setSelectedEntry(null)}
@@ -960,7 +891,7 @@ export default function AdminDashboard() {
                                                             });
                                                             if (!response.ok) throw new Error('Save failed');
                                                             setEntries(prev => prev.map(entry => entry.id === selectedEntry.id ? { ...entry, uniformColor: newVal } : entry));
-                                                        } catch (err) {
+                                                        } catch {
                                                             alert("保存に失敗しました");
                                                         }
                                                     }}
@@ -997,7 +928,7 @@ export default function AdminDashboard() {
                                             <button
                                                 onClick={async () => {
                                                     if (!confirm(selectedEntry.status === 'cancelled' ? "このチームのキャンセルを取り消し、通常エントリーに戻しますか？" : "このチームをキャンセル状態にしますか？(キャンセル待ちのチームが自動的に繰り上がります)")) return;
-                                                    const newStatus = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
+                                                    const newStatus: TeamEntryDetails['status'] = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
 
                                                     try {
                                                         const res = await staffFetch('/api/admin/entry/update', {
@@ -1006,13 +937,13 @@ export default function AdminDashboard() {
                                                             body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: newStatus } })
                                                         });
                                                         if (res.ok) {
-                                                            const updatedEntry = { ...selectedEntry, status: newStatus as any };
+                                                            const updatedEntry = { ...selectedEntry, status: newStatus };
                                                             setSelectedEntry(updatedEntry);
                                                             setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
                                                         } else {
                                                             alert("更新に失敗しました");
                                                         }
-                                                    } catch (e) {
+                                                    } catch {
                                                         alert("エラーが発生しました");
                                                     }
                                                 }}
@@ -1036,13 +967,13 @@ export default function AdminDashboard() {
                                                                 body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: 'draft' } })
                                                             });
                                                             if (res.ok) {
-                                                                const updatedEntry = { ...selectedEntry, status: 'draft' as any };
+                                                                const updatedEntry = { ...selectedEntry, status: 'draft' as const };
                                                                 setSelectedEntry(updatedEntry);
                                                                 setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
                                                             } else {
                                                                 alert("更新に失敗しました");
                                                             }
-                                                        } catch (e) {
+                                                        } catch {
                                                             alert("エラーが発生しました");
                                                         }
                                                     }}
@@ -1068,7 +999,7 @@ export default function AdminDashboard() {
                                                         } else {
                                                             alert("削除に失敗しました");
                                                         }
-                                                    } catch (e) {
+                                                    } catch {
                                                         alert("エラーが発生しました");
                                                     }
                                                 }}
@@ -1107,11 +1038,6 @@ export default function AdminDashboard() {
                             </div>
                         )}
                     </motion.div>
-
-
-
-
-
 
                     {/* Quick Actions & Checklist Grid */}
                     <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">

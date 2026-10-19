@@ -18,7 +18,6 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
@@ -77,7 +76,6 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
     }
 
     // Calculate accounting details
-    let projectTotalAmount = 0;
     const teamAccountingList = targetEntries.map(entry => {
         const playerCount = entry.players ? entry.players.length : 0;
         const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
@@ -85,8 +83,6 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
         const participationTotal = playerCount * settings.participationFee;
         const insuranceTotal = insCount * settings.insuranceFee;
         const total = participationTotal + insuranceTotal;
-
-        projectTotalAmount += total;
 
         return {
             teamName: entry.teamName,
@@ -96,6 +92,8 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
             total: total
         };
     });
+
+    const projectTotalAmount = teamAccountingList.reduce((sum, entry) => sum + entry.total, 0);
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">

@@ -1,4 +1,5 @@
 "use client";
+import type { Setting } from "@/lib/types";
 import { participantFetch } from "@/lib/participant-fetch";
 
 import { useEffect, useState, Suspense } from "react";
@@ -9,7 +10,7 @@ import { Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ParticipantHeader, ParticipantHeading, ParticipantSectionNav, ParticipantSectionTitle, ParticipantFormFooter, ParticipantState } from "@/components/participant/ParticipantFrame";
-import { TeamEntry, User } from "@/lib/types";
+import { TeamEntryDetails, User } from "@/lib/types";
 
 function EditTeamContent() {
     const searchParams = useSearchParams();
@@ -18,7 +19,7 @@ function EditTeamContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
-    const [settings, setSettings] = useState<any>(null);
+    const [, setSettings] = useState<Partial<Setting> | null>(null);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [savedSignature, setSavedSignature] = useState("");
@@ -26,7 +27,7 @@ function EditTeamContent() {
     const [teamStatus, setTeamStatus] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    const [tournamentId, setTournamentId] = useState("");
+    const [, setTournamentId] = useState("");
     const [hasClinic, setHasClinic] = useState(false);
     const [clinicTitle, setClinicTitle] = useState("");
     const [clinicDescription, setClinicDescription] = useState("");
@@ -70,13 +71,13 @@ function EditTeamContent() {
                 if (!res.ok) throw new Error("Failed to fetch data");
 
                 const data = await res.json();
-                const team: TeamEntry = data.teamEntry;
+                const team: TeamEntryDetails = data.teamEntry;
                 setTournamentId(team.tournamentId);
-                setHasClinic((team as any).hasClinic || false);
-                setClinicTitle((team as any).clinicTitle || "");
-                setClinicDescription((team as any).clinicDescription || "");
-                setClinicLimit((team as any).clinicLimit !== undefined ? (team as any).clinicLimit : 20);
-                setProjectEndDate((team as any).projectEndDate || null);
+                setHasClinic(team.hasClinic || false);
+                setClinicTitle(team.clinicTitle || "");
+                setClinicDescription(team.clinicDescription || "");
+                setClinicLimit(team.clinicLimit !== undefined ? team.clinicLimit : 20);
+                setProjectEndDate(team.projectEndDate || null);
                 setTeamStatus(team.status);
                 if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
                 const user: User | undefined = data.user;
@@ -91,8 +92,8 @@ function EditTeamContent() {
                     repFurigana: repPlayer.furigana,
                     wristbandColor: repPlayer.wristbandColor || "赤",
                     insurance: repPlayer.insurance,
-                    clinicParticipation: (team as any).clinicParticipation !== undefined && (team as any).clinicParticipation !== null ? (team as any).clinicParticipation : null,
-                    clinicCount: (team as any).clinicCount || 0,
+                    clinicParticipation: team.clinicParticipation !== undefined && team.clinicParticipation !== null ? team.clinicParticipation : null,
+                    clinicCount: team.clinicCount || 0,
                 };
                 setFormData(initialForm);
                 setSavedSignature(JSON.stringify(initialForm));
@@ -130,7 +131,7 @@ function EditTeamContent() {
 
             setSuccessMsg("保存しました");
             setSavedSignature(JSON.stringify(formData));
-        } catch (e) {
+        } catch {
             setError("保存に失敗しました");
         } finally {
             setIsSaving(false);
@@ -275,7 +276,6 @@ function EditTeamContent() {
                                 />
                             </div>
                         </div>
-
 
                         {error && (
                             <div role="alert" className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">

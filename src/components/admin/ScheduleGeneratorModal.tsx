@@ -3,13 +3,15 @@
 import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/Button";
+
 import { X, Play, Clock, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+export interface ScheduleGenerationConfig { startTime: string; courts: number; matchDuration: number; interval: number; slotsPerCourt: number }
+
 interface ScheduleGeneratorModalProps {
     onClose: () => void;
-    onGenerate: (config: any) => Promise<void>;
+    onGenerate: (config: ScheduleGenerationConfig) => Promise<void>;
 }
 
 export default function ScheduleGeneratorModal({ onClose, onGenerate }: ScheduleGeneratorModalProps) {

@@ -1,4 +1,5 @@
 "use client";
+import type { Setting, RegistrationProject, User } from "@/lib/types";
 import { participantFetch } from "@/lib/participant-fetch";
 
 import { useState, useEffect } from "react";
@@ -23,8 +24,8 @@ export default function RegisterPage() {
     const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
     const [registeredPassword, setRegisteredPassword] = useState<string | null>(null);
     const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
-    const [settings, setSettings] = useState<any>(null);
-    const [projects, setProjects] = useState<any[]>([]);
+    const [settings, setSettings] = useState<Partial<Setting> | null>(null);
+    const [projects, setProjects] = useState<RegistrationProject[]>([]);
     const [formData, setFormData] = useState({
         projectId: "", // NEW: Selected Tournament Day/Project
         existingUserId: "", // NEW: Track existing user if logged in
@@ -51,11 +52,11 @@ export default function RegisterPage() {
 
     useEffect(() => {
         const userJson = localStorage.getItem('currentUser');
-        let initialUser: any = null;
+        let initialUser: (User & { furigana?: string }) | null = null;
         if (userJson) {
             try {
                 initialUser = JSON.parse(userJson);
-            } catch (e) { }
+            } catch { }
         }
 
         Promise.all([
@@ -148,15 +149,15 @@ export default function RegisterPage() {
             setRegisteredEmail(formData.email);
             setRegisteredPassword(formData.password);
 
-        } catch (err: any) {
-            if (err.message === 'このメールアドレスは既に登録されています') {
+        } catch (err) {
+            if (err instanceof Error && err.message === 'このメールアドレスは既に登録されています') {
                 showConfirm(
                     "登録済みのアカウント",
                     `「${formData.email}」\n上記のメールアドレスは既に登録されています。\n\nログイン画面へ移動しますか？`,
                     () => router.push(`/login?email=${encodeURIComponent(formData.email)}`)
                 );
             } else {
-                setError(err.message);
+                setError(err instanceof Error ? err.message : "登録に失敗しました");
             }
         } finally {
             setIsLoading(false);
@@ -284,7 +285,7 @@ export default function RegisterPage() {
                             >
                                 <option value="" disabled>選択してください</option>
                                 {projects.map(p => {
-                                    const isFull = p.maxTeams && (p.currentEntryCount || 0) >= p.maxTeams;
+                                    const isFull = !!p.maxTeams && (p.currentEntryCount || 0) >= p.maxTeams;
                                     const isWaitlistOff = p.isWaitlistEnabled === false;
                                     const isDisabled = isFull && isWaitlistOff;
                                     return (
@@ -524,7 +525,7 @@ export default function RegisterPage() {
                             }`}
                         disabled={isLoading || (() => {
                             const selectedProject = projects.find(p => p.id === formData.projectId);
-                            return selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams && selectedProject.isWaitlistEnabled === false;
+                            return !!selectedProject?.maxTeams && (selectedProject.currentEntryCount || 0) >= selectedProject.maxTeams && selectedProject.isWaitlistEnabled === false;
                         })()}
                     >
                         {isLoading ? (

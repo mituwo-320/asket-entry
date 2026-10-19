@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useBrowserPreference } from "@/lib/browser-preference";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { 
     BracketMatch, TournamentBracketData, TeamEntry, 
     TournamentBlock, BlockMatch, PlacementGroup, BlockStandingRow 
 } from "@/lib/types";
 import { 
     Trophy, Crown, X, Maximize2, Zap, Skull, Undo, 
-    ZoomIn, ZoomOut, Sun, Moon, Users 
+    ZoomIn, ZoomOut, Sun, Moon
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 
@@ -622,7 +623,7 @@ function TeamNameCard({
     readOnly: boolean;
     showScores: boolean;
     styles: ThemeStyles;
-    layout: any;
+    layout: ReturnType<typeof getLayoutSettings>;
     theme: 'light' | 'dark';
 }) {
     if (slot.isBye) {
@@ -732,8 +733,7 @@ function ProjectionMatch({
     recentWinnerId,
     onWin,
     readOnly,
-    scale,
-    matchRefs,
+    registerMatchRef,
     onScoreChange,
     showScores,
     onUndo,
@@ -747,12 +747,12 @@ function ProjectionMatch({
     onWin: (matchId: string, winnerId: string) => void;
     readOnly: boolean;
     scale: number;
-    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    registerMatchRef: (id: string, element: HTMLDivElement | null) => void;
     onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
     showScores: boolean;
     onUndo?: (matchId: string) => void;
     styles: ThemeStyles;
-    layout: any;
+    layout: ReturnType<typeof getLayoutSettings>;
     theme: 'light' | 'dark';
 }) {
     const isReady = match.status === 'ready' && match.slotA.teamId && match.slotB.teamId && !match.slotA.isBye && !match.slotB.isBye;
@@ -767,7 +767,7 @@ function ProjectionMatch({
 
     return (
         <motion.div
-            ref={el => { matchRefs.current[match.matchId] = el; }}
+            ref={el => registerMatchRef(match.matchId, el)}
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -864,7 +864,7 @@ function RoundGroup({
     onWin,
     readOnly,
     scale,
-    matchRefs,
+    registerMatchRef,
     onScoreChange,
     showScores,
     onUndo,
@@ -879,12 +879,12 @@ function RoundGroup({
     onWin: (matchId: string, winnerId: string) => void;
     readOnly: boolean;
     scale: number;
-    matchRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    registerMatchRef: (id: string, element: HTMLDivElement | null) => void;
     onScoreChange?: (matchId: string, isSlotA: boolean, val: string) => void;
     showScores: boolean;
     onUndo?: (matchId: string) => void;
     styles: ThemeStyles;
-    layout: any;
+    layout: ReturnType<typeof getLayoutSettings>;
     theme: 'light' | 'dark';
 }) {
     return (
@@ -901,7 +901,7 @@ function RoundGroup({
                     onWin={onWin}
                     readOnly={readOnly}
                     scale={scale}
-                    matchRefs={matchRefs}
+                    registerMatchRef={registerMatchRef}
                     onScoreChange={onScoreChange}
                     showScores={showScores}
                     onUndo={onUndo}
@@ -924,7 +924,7 @@ function SectionLabel({
     icon: React.ReactNode; 
     label: string; 
     colorClass: string; 
-    layout: any;
+    layout: ReturnType<typeof getLayoutSettings>;
 }) {
     const marginClass = layout.fontSizeClass.includes('text-[11px]') ? 'mb-4 mt-2' : 'mb-8 mt-4';
     const textClass = layout.fontSizeClass.includes('text-[11px]') ? 'text-sm' : layout.fontSizeClass.includes('text-sm') ? 'text-base' : 'text-xl';
@@ -953,13 +953,18 @@ export default function BracketFullscreen({
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const matchRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const registerMatchRef = useCallback((id: string, element: HTMLDivElement | null) => {
+        matchRefs.current[id] = element;
+    }, []);
 
     const [recentWinnerId, setRecentWinnerId] = useState<string | null>(null);
     const [scale, setScale] = useState(1);
     const [renderLinesTick, setRenderLinesTick] = useState(0);
     
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [showScores, setShowScores] = useState(defaultShowScores);
+    const [savedTheme, saveTheme] = useBrowserPreference('tournament-bracket-theme', 'light');
+    const theme = savedTheme === 'dark' ? 'dark' : 'light';
+    const [savedShowScores, saveShowScores] = useBrowserPreference('tournament-bracket-show-scores', String(defaultShowScores));
+    const showScores = savedShowScores === 'true';
 
     // Theatre/Show Mode state
     const [showTheatreMode, setShowTheatreMode] = useState(readOnly); // Default to true on read-only (projector display)
@@ -972,32 +977,13 @@ export default function BracketFullscreen({
     // Cinematic Auto-Camera Mode state
     const [isCinematicMode, setIsCinematicMode] = useState(readOnly); // Auto follow enabled on display page by default
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-    const [cameraIndex, setCameraIndex] = useState(0);
+    const [, setCameraIndex] = useState(0);
 
     // Store previous match statuses to detect changes
     const prevStatusesRef = useRef<Record<string, 'pending' | 'ready' | 'completed'>>({});
 
-    // Initial storage fetch
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('tournament-bracket-theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            setTheme(savedTheme);
-        }
-        const savedShowScores = localStorage.getItem('tournament-bracket-show-scores');
-        if (savedShowScores !== null) {
-            setShowScores(savedShowScores === 'true');
-        }
-    }, []);
-
-    const handleThemeChange = (newTheme: 'light' | 'dark') => {
-        setTheme(newTheme);
-        localStorage.setItem('tournament-bracket-theme', newTheme);
-    };
-
-    const handleShowScoresChange = (val: boolean) => {
-        setShowScores(val);
-        localStorage.setItem('tournament-bracket-show-scores', String(val));
-    };
+    const handleThemeChange = (newTheme: 'light' | 'dark') => saveTheme(newTheme);
+    const handleShowScoresChange = (val: boolean) => saveShowScores(String(val));
 
     const styles = themeStyles[theme];
     const layout = getLayoutSettings(bracketData.teamCount);
@@ -1068,63 +1054,61 @@ export default function BracketFullscreen({
     // Process celebration queue
     useEffect(() => {
         if (!celebratingMatch && celebrationQueue.length > 0) {
-            const nextMatch = celebrationQueue[0];
+            const frame = requestAnimationFrame(() => {
+                const nextMatch = celebrationQueue[0];
             
-            // Set up celebration particles
-            const colors = ['#f59e0b', '#ef4444', '#3b82f6', '#10b981', '#ec4899', '#ffffff', '#ffd700'];
-            const newParticles = Array.from({ length: 80 }).map((_, i) => ({
-                id: i,
-                left: Math.random() * 100,
-                delay: Math.random() * 5,
-                duration: 4 + Math.random() * 3,
-                size: 8 + Math.random() * 16,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                angle: Math.random() * 360,
-            }));
-            
-            const newSparks = Array.from({ length: 60 }).map((_, i) => {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 80 + Math.random() * 260;
-                return {
+                // Set up celebration particles
+                const colors = ['#f59e0b', '#ef4444', '#3b82f6', '#10b981', '#ec4899', '#ffffff', '#ffd700'];
+                const newParticles = Array.from({ length: 80 }).map((_, i) => ({
                     id: i,
-                    tx: Math.cos(angle) * distance,
-                    ty: Math.sin(angle) * distance,
-                    delay: Math.random() * 0.4,
-                    duration: 0.8 + Math.random() * 1.2,
-                    size: 3 + Math.random() * 5,
-                    color: ['#ffd700', '#ff9f00', '#ff4500', '#ff0000', '#ffffff'][Math.floor(Math.random() * 5)],
-                };
+                    left: Math.random() * 100,
+                    delay: Math.random() * 5,
+                    duration: 4 + Math.random() * 3,
+                    size: 8 + Math.random() * 16,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    angle: Math.random() * 360,
+                }));
+            
+                const newSparks = Array.from({ length: 60 }).map((_, i) => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 80 + Math.random() * 260;
+                    return {
+                        id: i,
+                        tx: Math.cos(angle) * distance,
+                        ty: Math.sin(angle) * distance,
+                        delay: Math.random() * 0.4,
+                        duration: 0.8 + Math.random() * 1.2,
+                        size: 3 + Math.random() * 5,
+                        color: ['#ffd700', '#ff9f00', '#ff4500', '#ff0000', '#ffffff'][Math.floor(Math.random() * 5)],
+                    };
+                });
+            
+                setParticles(newParticles);
+                setSparks(newSparks);
+                setCelebratingMatch(nextMatch);
+                setCelebrationQueue(q => q.slice(1));
+            
+                setIsShaking(true);
             });
-            
-            setParticles(newParticles);
-            setSparks(newSparks);
-            setCelebratingMatch(nextMatch);
-            setCelebrationQueue(q => q.slice(1));
-            
-            // Shake screen briefly
-            setIsShaking(true);
-            const shakeTimer = setTimeout(() => setIsShaking(false), 600);
-            
-            // Auto close celebration after 8 seconds
-            const timer = setTimeout(() => {
-                setCelebratingMatch(null);
-            }, 8000);
-            
-            return () => {
-                clearTimeout(shakeTimer);
-                clearTimeout(timer);
-            };
+            return () => cancelAnimationFrame(frame);
         }
     }, [celebratingMatch, celebrationQueue]);
 
-    const allMatches = getAllMatchesList(bracketData);
+    useEffect(() => {
+        if (!celebratingMatch) return;
+        const shakeTimer = setTimeout(() => setIsShaking(false), 600);
+        const timer = setTimeout(() => setCelebratingMatch(null), 8000);
+        return () => { clearTimeout(shakeTimer); clearTimeout(timer); };
+    }, [celebratingMatch]);
+
+    const allMatches = useMemo(() => getAllMatchesList(bracketData), [bracketData, getAllMatchesList]);
     
     // Live matches: status ready, not BYE (Includes undecided placeholder matches to avoid loading screens)
-    const liveMatches = allMatches.filter(m => 
+    const liveMatches = useMemo(() => allMatches.filter(m =>
         m.status === 'ready' && 
         !m.slotA.isBye && 
         !m.slotB.isBye
-    );
+    ), [allMatches]);
     
     // Upcoming matches: status pending, not BYE (Includes undecided placeholder matches to avoid loading screens)
     const upcomingMatches = allMatches.filter(m => 
@@ -1189,7 +1173,7 @@ export default function BracketFullscreen({
         setPanOffset({ x: tx, y: ty });
     }, []);
 
-    const getSlotDisplayName = useCallback((slot: any, matchId: string, isSlotA: boolean) => {
+    const getSlotDisplayName = useCallback((slot: Partial<BracketMatch['slotA']>, matchId: string, isSlotA: boolean) => {
         if (slot.teamName) return slot.teamName;
         if (slot.teamId) {
             const entry = entries.find(e => e.id === slot.teamId);
@@ -1252,7 +1236,7 @@ export default function BracketFullscreen({
         }
         
         return () => clearInterval(timer);
-    }, [isCinematicMode, showTheatreMode, liveMatches.length, isOpen, centerOnMatch]);
+    }, [isCinematicMode, showTheatreMode, liveMatches, isOpen, centerOnMatch]);
 
     // Build scrolling ticker items
     const getTickerItems = () => {
@@ -1863,7 +1847,7 @@ export default function BracketFullscreen({
                                                             onWin={handleWin}
                                                             readOnly={readOnly} 
                                                             scale={scale} 
-                                                            matchRefs={matchRefs}
+                                                            registerMatchRef={registerMatchRef}
                                                             onScoreChange={handleScoreUpdate} 
                                                             showScores={showScores}
                                                             onUndo={onUndo}
@@ -1896,7 +1880,7 @@ export default function BracketFullscreen({
                                                         onWin={handleWin}
                                                         readOnly={readOnly}
                                                         scale={scale}
-                                                        matchRefs={matchRefs}
+                                                        registerMatchRef={registerMatchRef}
                                                         onScoreChange={handleScoreUpdate}
                                                         showScores={showScores}
                                                         onUndo={onUndo}
@@ -1930,7 +1914,7 @@ export default function BracketFullscreen({
                                                             onWin={handleWin}
                                                             readOnly={readOnly} 
                                                             scale={scale} 
-                                                            matchRefs={matchRefs}
+                                                            registerMatchRef={registerMatchRef}
                                                             onScoreChange={handleScoreUpdate} 
                                                             showScores={showScores}
                                                             onUndo={onUndo}
@@ -2041,7 +2025,7 @@ export default function BracketFullscreen({
                                         '--tx': `${s.tx}px`,
                                         '--ty': `${s.ty}px`,
                                         animation: `spark-burst ${s.duration}s cubic-bezier(0.1, 0.8, 0.3, 1) ${s.delay}s forwards`
-                                    } as any}
+                                    } as React.CSSProperties}
                                 />
                             ))}
                         </div>
