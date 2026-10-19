@@ -12,21 +12,24 @@ interface PlayerFormProps {
     initialData?: Player;
     onSave: (player: Player) => void | Promise<void>;
     onCancel: () => void;
+    onCancelChanges?: () => void;
     isSaving?: boolean;
     error?: string | null;
     submitLabel?: string;
     cancelLabel?: string;
 }
 
-export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, error, submitLabel = "保存", cancelLabel = "キャンセル" }: PlayerFormProps) {
+export function PlayerForm({ initialData, onSave, onCancel, onCancelChanges, isSaving = false, error, submitLabel = "保存", cancelLabel = "キャンセル" }: PlayerFormProps) {
     const [playerId] = useState(() => initialData?.id || Math.random().toString(36).substr(2, 9));
-    const [formData, setFormData] = useState<Partial<Player>>(() => ({
+    const [initialValues] = useState<Partial<Player>>(() => ({
         name: "",
         furigana: "",
         insurance: true,
         ...initialData,
         wristbandColor: initialData?.wristbandColor || "赤",
     }));
+    const [formData, setFormData] = useState(initialValues);
+    const hasChanges = (['name', 'furigana', 'insurance', 'wristbandColor'] as const).some(field => formData[field] !== initialValues[field]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,7 +73,7 @@ export function PlayerForm({ initialData, onSave, onCancel, isSaving = false, er
             </fieldset>
 
             <div className="participant-dialog-actions">
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+                <Button type="button" variant="outline" onClick={() => { if (hasChanges && onCancelChanges) onCancelChanges(); else onCancel(); }} disabled={isSaving}>
                     {cancelLabel}
                 </Button>
                 <Button type="submit" disabled={isSaving}>

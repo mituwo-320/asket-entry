@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PlayerForm } from '@/components/ui/PlayerForm';
 import { ParticipantDialog } from './ParticipantDialog';
+import { PlayerHistoryBulkEditor } from './PlayerHistoryBulkEditor';
 import { participantFetch } from '@/lib/participant-fetch';
 import { MAX_HISTORY_IMPORT, playerIdentity, type HistoryPlayer, type HistoryTeam, type PlayerImportDraft } from '@/lib/player-history-types';
 import type { Player } from '@/lib/types';
 
 const searchKey = (value: string) => value.normalize('NFKC').replace(/\s+/g, '').toLocaleLowerCase('ja-JP').replace(/[ぁ-ゖ]/g, character => String.fromCharCode(character.charCodeAt(0) + 0x60));
+
+type DiscardPrompt = { kind: 'close' | 'clear' | 'edit' } | { kind: 'remove'; id: string };
 
 type ImportResult = { players: Player[]; added: number; skipped: number };
 export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComplete }: {
@@ -23,7 +26,9 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
     const [teamId, setTeamId] = useState('');
     const [search, setSearch] = useState('');
     const [view, setView] = useState<'browse' | 'review'>('browse');
-    const [discardPrompt, setDiscardPrompt] = useState(false);
+    const [discardPrompt, setDiscardPrompt] = useState<DiscardPrompt | null>(null);
+    const [bulkOpen, setBulkOpen] = useState(false);
+    const [bulkMessage, setBulkMessage] = useState('');
     const [drafts, setDrafts] = useState<Map<string, PlayerImportDraft>>(() => new Map());
     const [editingId, setEditingId] = useState<string | null>(null);
     const [error, setError] = useState('');
@@ -31,6 +36,7 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
     const pending = useRef(false);
     const editor = useRef<HTMLDivElement>(null);
     const reviewHeading = useRef<HTMLHeadingElement>(null);
+    const bulkButton = useRef<HTMLButtonElement>(null);
     const continueButton = useRef<HTMLButtonElement>(null);
     const feedback = useRef<HTMLParagraphElement>(null);
     const searchInput = useRef<HTMLInputElement>(null);
@@ -61,8 +67,10 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
 
     useEffect(() => { if (error) feedback.current?.focus(); }, [error]);
     useEffect(() => {
-        if (focusAfterRemoval.current) { reviewHeading.current?.focus(); focusAfterRemoval.current = false; }
+        if (focusAfterRemoval.current) { (reviewHeading.current || searchInput.current)?.focus(); focusAfterRemoval.current = false; }
     }, [drafts]);
+
+    useEffect(() => { if (!bulkOpen) bulkButton.current?.focus(); }, [bulkOpen]);
 
     const team = teams.find(item => item.id === teamId) || teams[0];
     const sources = new Map(teams.flatMap(item => item.players.map(player => [player.id, { player, team: item }] as const)));
@@ -80,24 +88,43 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
         const source = sources.get(draft.sourcePlayerId)?.player;
         return source && (draft.name !== source.name || draft.furigana !== source.furigana || draft.insurance !== source.insurance || draft.wristbandColor !== toDraft(source).wristbandColor);
     };
-    const remove = (id: string) => { focusAfterRemoval.current = view === 'review'; setDrafts(previous => { const next = new Map(previous); next.delete(id); return next; }); setError(''); };
+    const openPrompt = (prompt: DiscardPrompt) => {
+        returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        setDiscardPrompt(prompt);
+    };
+    const remove = (id: string) => { focusAfterRemoval.current = view === 'review'; setDrafts(previous => { const next = new Map(previous); next.delete(id); return next; }); setError(''); setBulkMessage(''); };
+    const requestRemove = (id: string) => {
+        const draft = drafts.get(id);
+        if (draft && isEdited(draft)) openPrompt({ kind: 'remove', id });
+        else remove(id);
+    };
+    const discard = () => {
+        if (!discardPrompt) return;
+        returnFocus.current = null;
+        if (discardPrompt.kind === 'close') { onClose(); return; }
+        if (discardPrompt.kind === 'edit') setEditingId(null);
+        else if (discardPrompt.kind === 'remove') remove(discardPrompt.id);
+        else { focusAfterRemoval.current = true; lastEdited.current = null; setDrafts(new Map()); setError(''); setBulkMessage(''); }
+        setDiscardPrompt(null);
+    };
     const changeView = (next: 'browse' | 'review') => { lastEdited.current = null; setView(next); setError(''); };
     const requestClose = () => {
         if (pending.current) return;
-        if (discardPrompt) { setDiscardPrompt(false); return; }
-        if (drafts.size) { returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setDiscardPrompt(true); }
+        if (discardPrompt) { setDiscardPrompt(null); return; }
+        if (drafts.size) openPrompt({ kind: 'close' });
         else onClose();
     };
     const toggle = (player: HistoryPlayer) => {
-        setError('');
+        if (drafts.has(player.id)) { requestRemove(player.id); return; }
+        setError(''); setBulkMessage('');
         setDrafts(previous => {
             const next = new Map(previous);
-            if (next.has(player.id)) next.delete(player.id);
-            else if (next.size < MAX_HISTORY_IMPORT) next.set(player.id, toDraft(player));
+            if (next.size < MAX_HISTORY_IMPORT) next.set(player.id, toDraft(player));
             return next;
         });
     };
     const edit = (player: HistoryPlayer) => {
+        setBulkMessage('');
         if (!drafts.get(player.id) && selected.length >= MAX_HISTORY_IMPORT) return;
         setDrafts(previous => new Map(previous).set(player.id, previous.get(player.id) || toDraft(player)));
         lastEdited.current = player.id;
@@ -105,6 +132,7 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
         setError('');
     };
     const selectVisible = () => {
+        setBulkMessage('');
         setDrafts(previous => {
             const next = new Map(previous);
             const names = new Set([...currentNames, ...Array.from(next.values()).map(playerIdentity)]);
@@ -129,31 +157,42 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
         finally { pending.current = false; setSaving(false); }
     };
     const editing = editingId ? drafts.get(editingId) : undefined;
+    const promptText = discardPrompt?.kind === 'edit'
+        ? { title: '編集途中の変更があります', description: '今回の変更はまだ選択内容に反映されていません。', message: '変更を破棄して一覧へ戻りますか？', action: '変更を破棄して一覧へ戻る' }
+        : discardPrompt?.kind === 'clear'
+        ? { title: '選択をすべて解除しますか？', description: '追加前の選択・編集内容を解除します。', message: `${selected.length}人の選択と、この画面で反映した編集内容が消えます。`, action: 'すべて解除する' }
+        : discardPrompt?.kind === 'remove'
+        ? { title: '変更したメンバーを外しますか？', description: 'この画面で編集した内容も解除されます。', message: `${drafts.get(discardPrompt.id)?.name || 'このメンバー'}を追加予定から外しますか？`, action: '変更を破棄して外す' }
+        : { title: '追加前の内容が残っています', description: '選択・編集した内容はまだ登録されていません。', message: `${selected.length}人の選択・編集内容を破棄して閉じますか？`, action: '破棄して閉じる' };
 
-    return <ParticipantDialog isOpen onClose={requestClose} title={discardPrompt ? '追加前の内容が残っています' : editing ? '引用するメンバーを編集' : '過去のメンバーから追加'} description={discardPrompt ? '選択・編集した内容はまだ登録されていません。' : editing ? '今回追加する情報だけを変更します。引用元のチームには反映されません。' : '以前登録したチームから選んで、まとめて追加できます。'} eyebrow="TEAM ROSTER / MEMBER ARCHIVE" busy={saving}>
+    return <ParticipantDialog isOpen onClose={requestClose} title={discardPrompt ? promptText.title : editing ? '引用するメンバーを編集' : bulkOpen ? '選択中の参加内容をまとめて変更' : '過去のメンバーから追加'} description={discardPrompt ? promptText.description : editing || bulkOpen ? '今回追加する情報だけを変更します。引用元のチームには反映されません。' : '自分が過去に登録したチームから、メンバーを選んで追加できます。'} eyebrow="TEAM ROSTER / MEMBER ARCHIVE" busy={saving}>
         {discardPrompt ? <div className="participant-history-discard">
-            <p>{selected.length}人の選択・編集内容を破棄して閉じますか？</p>
-            <div className="participant-dialog-actions"><Button ref={continueButton} type="button" onClick={() => setDiscardPrompt(false)}>作業を続ける</Button><Button variant="outline" type="button" onClick={onClose}>破棄して閉じる</Button></div>
+            <p>{promptText.message}</p>
+            <div className="participant-dialog-actions"><Button ref={continueButton} type="button" onClick={() => setDiscardPrompt(null)}>作業を続ける</Button><Button variant="outline" type="button" onClick={discard}>{promptText.action}</Button></div>
         </div> : null}
-        <div hidden={discardPrompt} className="participant-history-importer">
+        <div hidden={!!discardPrompt} className="participant-history-importer">
         {editing && editingId ? <div ref={editor}>
             <p className="participant-history-note">今回追加する情報を修正します。「変更を反映」で一覧へ戻り、まとめて登録できます。</p>
             <PlayerForm key={editingId} initialData={{ id: editingId, name: editing.name, furigana: editing.furigana, insurance: editing.insurance, wristbandColor: editing.wristbandColor, isRepresentative: false }} submitLabel="変更を反映" cancelLabel="一覧へ戻る" onSave={player => {
                 setDrafts(previous => new Map(previous).set(editingId, { sourcePlayerId: editingId, name: player.name, furigana: player.furigana, insurance: player.insurance, wristbandColor: player.wristbandColor || '赤' }));
                 setEditingId(null);
-            }} onCancel={() => setEditingId(null)} />
-        </div> : loading ? <p role="status" className="participant-history-state"><Loader2 className="animate-spin" aria-hidden="true" />以前のチームを読み込んでいます…</p>
+            }} onCancel={() => setEditingId(null)} onCancelChanges={() => openPrompt({ kind: 'edit' })} />
+        </div> : bulkOpen ? <PlayerHistoryBulkEditor players={selected} onCancel={() => setBulkOpen(false)} onApply={patch => {
+            setDrafts(previous => new Map(Array.from(previous, ([id, draft]) => [id, { ...draft, ...patch }])));
+            setBulkMessage(`${selected.length}人の参加内容に一括変更を反映しました。内容を確認して「まとめて追加」で登録してください。`);
+            setBulkOpen(false);
+        }} /> : loading ? <p role="status" className="participant-history-state"><Loader2 className="animate-spin" aria-hidden="true" />以前のチームを読み込んでいます…</p>
         : loadFailed ? <div className="participant-history-state"><p role="alert">過去のメンバーを読み込めませんでした。</p><Button variant="outline" onClick={() => { setLoading(true); setReload(value => value + 1); }}>もう一度読み込む</Button></div>
-        : !teams.length ? <div className="participant-history-state"><History size={30} aria-hidden="true" /><h3>引用できるメンバーがまだいません</h3><p>このアカウントで別のチームに登録したメンバーが、ここに表示されます。</p><Button variant="outline" onClick={onClose}>選手リストへ戻る</Button></div>
+        : !teams.length ? <div className="participant-history-state"><History size={30} aria-hidden="true" /><h3>引用できるメンバーがまだいません</h3><p>同じアカウントで、ほかの大会やチームに登録したメンバーがここに表示されます。</p><Button variant="outline" onClick={onClose}>選手リストへ戻る</Button></div>
         : <>
-            <div className="participant-history-note"><Users size={18} aria-hidden="true" /><p>自分が登録したチームのみ表示します。<strong>保険・リストバンドは今回の参加内容に合わせて確認してください。</strong>代表者も通常の選手として追加します。</p></div>
+            <div className="participant-history-note"><Users size={18} aria-hidden="true" /><p>同じアカウントで自分が過去に登録したチームのみ表示します。同じチーム名でも、別大会の登録から選べます。<strong>保険・リストバンドは今回の参加内容に合わせて確認してください。</strong>代表者も通常の選手として追加します。</p></div>
             <div className="participant-history-views" role="group" aria-label="メンバーの表示切り替え">
                 <button type="button" aria-pressed={view === 'browse'} disabled={saving} onClick={() => changeView('browse')}><Search size={16} aria-hidden="true" />メンバーを探す</button>
                 <button type="button" aria-pressed={view === 'review'} disabled={saving} onClick={() => changeView('review')}><Users size={16} aria-hidden="true" />選択中を確認<span>{selected.length}</span></button>
             </div>
             {view === 'browse' ? <fieldset disabled={saving} className="space-y-4">
                 <legend className="participant-sr-only">引用するメンバーを選択</legend>
-                <label className="participant-history-team-label">引用元のチーム
+                <label className="participant-history-team-label">自分が過去に登録したチーム
                     <select value={team?.id || ''} onChange={event => { setTeamId(event.target.value); setSearch(''); }}>
                         {teams.map(item => <option key={item.id} value={item.id}>{item.projectName} / {item.teamName}（{new Date(item.createdAt).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}）</option>)}
                     </select>
@@ -179,6 +218,7 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
                 <h3 id="history-review-heading" ref={reviewHeading} tabIndex={-1} className="participant-history-review-heading">追加するメンバーを確認</h3>
                 <p className="participant-history-review-help">チームをまたいで選んだ人も、ここでまとめて編集できます。</p>
                 {selected.length ? <>
+                    <div className="participant-history-bulk-entry"><Button ref={bulkButton} type="button" variant="outline" disabled={saving} onClick={() => { setError(''); setBulkMessage(''); setBulkOpen(true); }}>選択中の保険・リストバンドを一括変更</Button><p>選択中の{selected.length}人が対象です。反映前に変更内容を確認できます。</p></div>
                     <dl className="participant-history-totals"><div><dt>追加予定</dt><dd>{selected.length}<small>人</small></dd></div><div><dt>保険加入</dt><dd>{selected.filter(player => player.insurance).length}<small>人</small></dd></div><div><dt>保険なし</dt><dd>{selected.filter(player => !player.insurance).length}<small>人</small></dd></div></dl>
                     <ul className="participant-history-review-list" aria-label="追加予定のメンバー">
                         {selected.map(draft => {
@@ -186,14 +226,15 @@ export function PlayerHistoryImporter({ entryId, currentPlayers, onClose, onComp
                             return <li key={draft.sourcePlayerId} className="participant-history-review-card">
                                 <div className="participant-history-review-person"><strong>{draft.name}{isEdited(draft) ? <em className="participant-history-edited">変更あり</em> : null}</strong><span>{draft.furigana || 'フリガナの入力が必要です'}</span><small>{source?.team.projectName} / {source?.team.teamName}</small></div>
                                 <div className="participant-history-review-details"><span>リストバンド：{draft.wristbandColor}</span><span>保険：{draft.insurance ? '加入' : '加入しない'}</span></div>
-                                <div className="participant-history-review-controls"><button type="button" ref={element => { if (element) editButtons.current.set(draft.sourcePlayerId, element); else editButtons.current.delete(draft.sourcePlayerId); }} disabled={saving} aria-label={`${draft.name}を編集して追加`} onClick={() => { if (source) edit(source.player); }}><Pencil size={15} aria-hidden="true" />編集</button><button type="button" disabled={saving} aria-label={`${draft.name}の選択を解除`} onClick={() => remove(draft.sourcePlayerId)}><X size={15} aria-hidden="true" />外す</button></div>
+                                <div className="participant-history-review-controls"><button type="button" ref={element => { if (element) editButtons.current.set(draft.sourcePlayerId, element); else editButtons.current.delete(draft.sourcePlayerId); }} disabled={saving} aria-label={`${draft.name}を編集して追加`} onClick={() => { if (source) edit(source.player); }}><Pencil size={15} aria-hidden="true" />編集</button><button type="button" disabled={saving} aria-label={`${draft.name}の選択を解除`} onClick={() => requestRemove(draft.sourcePlayerId)}><X size={15} aria-hidden="true" />外す</button></div>
                             </li>;
                         })}
                     </ul>
                 </> : <div className="participant-history-state"><Users size={28} aria-hidden="true" /><p>まだメンバーが選ばれていません。</p><Button type="button" variant="outline" onClick={() => changeView('browse')}>チームからメンバーを選ぶ</Button></div>}
             </section>}
-            <div className="participant-history-selection"><strong role="status" aria-live="polite" aria-atomic="true">{selected.length}人を選択中</strong><span>チームを切り替えても選択は残ります。一度に{MAX_HISTORY_IMPORT}人まで。</span>{selected.length ? <button type="button" onClick={() => { setDrafts(new Map()); setError(''); }} disabled={saving}>選択を解除</button> : null}</div>
-            {selected.length && view === 'browse' ? <ul className="participant-history-selected-names" aria-label="追加するメンバー">{selected.map(draft => <li key={draft.sourcePlayerId}><button type="button" disabled={saving} aria-label={`${draft.name}の選択を解除`} onClick={() => remove(draft.sourcePlayerId)}>{draft.name}<span aria-hidden="true">×</span></button></li>)}</ul> : null}
+            <div className="participant-history-selection"><strong role="status" aria-live="polite" aria-atomic="true">{selected.length}人を選択中</strong><span>チームを切り替えても選択は残ります。一度に{MAX_HISTORY_IMPORT}人まで。</span>{selected.length ? <button type="button" onClick={() => openPrompt({ kind: 'clear' })} disabled={saving}>選択をすべて解除</button> : null}</div>
+            {selected.length && view === 'browse' ? <ul className="participant-history-selected-names" aria-label="追加するメンバー">{selected.map(draft => <li key={draft.sourcePlayerId}><button type="button" disabled={saving} aria-label={`${draft.name}の選択を解除`} onClick={() => requestRemove(draft.sourcePlayerId)}>{draft.name}<span aria-hidden="true">×</span></button></li>)}</ul> : null}
+            {bulkMessage ? <p role="status" className="participant-history-bulk-message">{bulkMessage}</p> : null}
             {error ? <p ref={feedback} tabIndex={-1} role="alert" className="participant-feedback participant-feedback-error">{error}</p> : null}
             <div className="participant-history-actions"><div className="participant-history-action-summary"><strong>{selected.length}人を追加予定</strong><span>{view === 'browse' ? '選択中の一覧で内容を確認できます' : '元のチームの情報は変更しません'}</span></div><div className="participant-history-action-buttons">{view === 'browse' && selected.length ? <Button type="button" variant="outline" onClick={() => changeView('review')} disabled={saving}>選択内容を確認</Button> : <Button type="button" variant="outline" onClick={view === 'review' ? () => changeView('browse') : requestClose} disabled={saving}>{view === 'review' ? <><ArrowLeft size={16} aria-hidden="true" />選択に戻る</> : 'キャンセル'}</Button>}<Button type="button" onClick={add} disabled={saving || !selected.length}>{saving ? <><Loader2 size={16} className="animate-spin" aria-hidden="true" />追加中…</> : `${selected.length}人をまとめて追加`}</Button></div></div>
             <p className="participant-history-footnote">同じ氏名・フリガナの登録は重複として扱います。別人の場合は通常の「選手を追加」を使ってください。</p>
