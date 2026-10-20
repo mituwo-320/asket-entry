@@ -69,7 +69,7 @@ function PrintChecklistContent({ projectId }: PrintChecklistProps) {
 
     const handleAddItem = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newItemName.trim()) return;
+        if (isLoading || error || !newItemName.trim()) return;
 
         setIsAdding(true);
         setError(null);
@@ -145,7 +145,7 @@ function PrintChecklistContent({ projectId }: PrintChecklistProps) {
                 <div className="flex justify-between items-center text-xs font-bold mb-1.5">
                     <span className="text-slate-400 tracking-wider">印刷進捗率</span>
                     <span className={`transition-colors duration-300 ${isAllCompleted ? 'text-emerald-400' : 'text-indigo-400'}`}>
-                        {progressPercent}% ({printedCount}/{totalCount})
+                        {error && items.length === 0 ? '取得できませんでした' : `${progressPercent}% (${printedCount}/${totalCount})`}
                     </span>
                 </div>
                 <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-white/5">
@@ -175,7 +175,7 @@ function PrintChecklistContent({ projectId }: PrintChecklistProps) {
 
             {/* Error Message */}
             {error && (
-                <div className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
+                <div role="alert" className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
                     <AlertCircle className="w-4 h-4" />
                     <span>{error}</span>
                 </div>
@@ -190,7 +190,7 @@ function PrintChecklistContent({ projectId }: PrintChecklistProps) {
                     </div>
                 ) : items.length === 0 ? (
                     <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-                        項目がありません。
+                        {error ? '更新ボタンで再読み込みしてください。' : '項目がありません。'}
                     </div>
                 ) : (
                     <AnimatePresence initial={false}>
@@ -250,12 +250,12 @@ function PrintChecklistContent({ projectId }: PrintChecklistProps) {
                     placeholder="新しい印刷物を追加..."
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    disabled={isAdding}
+                    disabled={isAdding || isLoading || !!error}
                     className="flex-1 bg-slate-950 border-slate-800 text-sm h-10 focus-visible:ring-indigo-500"
                 />
                 <Button 
                     type="submit"
-                    disabled={isAdding || !newItemName.trim()}
+                    disabled={isAdding || isLoading || !!error || !newItemName.trim()}
                     className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-10 px-4 flex items-center justify-center flex-shrink-0"
                 >
                     {isAdding ? (

@@ -1,4 +1,4 @@
-import { withAuthorization } from "@/lib/auth/authorize";
+import { STAFF, withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
@@ -138,10 +138,10 @@ async function handleDELETE(request: Request) {
     }
 }
 
-export const GET = withAuthorization(handleGET, { roles: ['admin'] });
+export const GET = withAuthorization(handleGET, { roles: STAFF });
 
-export const POST = withAuthorization(handlePOST, { roles: ['admin'] });
+export const POST = withAuthorization(handlePOST, { roles: STAFF });
 
-export const PATCH = withAuthorization(handlePATCH, { roles: ['admin'] });
+export const PATCH = withAuthorization(handlePATCH, { roles: STAFF });
 
-export const DELETE = withAuthorization(handleDELETE, { roles: ['admin'] });
+export const DELETE = withAuthorization(handleDELETE, { roles: STAFF });
