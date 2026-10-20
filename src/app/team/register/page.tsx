@@ -392,23 +392,21 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        <InsuranceChoices value={formData.insurance} onChange={(insurance) => setFormData({ ...formData, insurance })} />
-                        <div className="text-sm text-[#c6cdd8] leading-relaxed space-y-1">
-                            <p>大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</p>
-                            <p>※腰痛や鞭打ちなどは対象外</p>
-                            <p className="text-[#ffc0cc]"><strong>※ 別途{settings?.insuranceFee || 150}円が必要です</strong></p>
-                        </div>
+                        <InsuranceChoices value={formData.insurance} insuranceFee={settings?.insuranceFee || 150} onChange={(insurance) => setFormData({ ...formData, insurance })} />
                         <WristbandChoices value={formData.wristbandColor} onChange={(wristbandColor) => setFormData({ ...formData, wristbandColor })} />
 
                         <ParticipantSectionTitle id="entry-details" number="03" title="チーム紹介・各種設定" description="紹介文や参加内容を確認し、申し込みを完了してください。" />
                         <div className="space-y-2">
                             <label htmlFor="entry-introduction" className="text-sm font-medium text-[#e4e8ef] ml-1">チーム紹介・意気込み <span className="text-red-300 ml-1">*必須</span></label>
+                            <p id="entry-introduction-help" className="text-sm text-[#c6cdd8] leading-relaxed">今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）</p>
                             <textarea id="entry-introduction"
-                                placeholder="今回のチームの特徴並びに意気込み等ご記入ください。（開会式でのチーム紹介に活用させていただきます。できる限りご記入をお願いいたします。）"
+                                aria-describedby="entry-introduction-help"
+                                rows={6}
+                                placeholder="チームの特徴や大会への意気込みをご記入ください。"
                                 value={formData.introduction}
                                 onChange={(e) => setFormData({ ...formData, introduction: e.target.value })}
                                 required
-                                className="w-full bg-[#15171d] border border-[#707b8c] rounded-md p-3 min-h-[120px] focus:border-orange-500/50 focus:ring-orange-500/20 text-sm"
+                                className="participant-introduction-input w-full bg-[#15171d] border border-[#707b8c] rounded-md p-3 focus:border-orange-500/50 focus:ring-orange-500/20 text-sm"
                             />
                         </div>
 

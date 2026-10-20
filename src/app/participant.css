@@ -758,3 +758,10 @@ body:has([data-participant-dialog]) { overflow: hidden; }
   .participant-history-action-summary > span { flex-basis: 100%; }
   .participant-history-totals > div { padding: 10px; }
 }
+
+/* Keep coverage and the fee with the insurance option they describe. */
+.participant-surface .participant-insurance-note { display: block; margin-top: 12px; color: #dce0e6; font-size: 14px; line-height: 1.8; }
+.participant-insurance-note > span, .participant-insurance-note > strong { display: block; }
+.participant-insurance-note > * + * { margin-top: 6px; }
+.participant-insurance-note > strong { color: #ffc0cc; font-weight: 700; }
+.participant-surface textarea.participant-introduction-input { min-height: 180px; line-height: 1.75; resize: vertical; }
