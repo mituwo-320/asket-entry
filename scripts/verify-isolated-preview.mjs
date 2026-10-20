@@ -25,6 +25,7 @@ const tag = `qa_${randomUUID().replaceAll('-', '')}`;
 const projectIds = ['source', 'target', 'capacity', 'restore'].map(suffix => `${tag}_${suffix}`);
 const password = randomBytes(24).toString('hex');
 const base = 'http://127.0.0.1:4318';
+let requestOrigin = base;
 let server;
 let stage = 'database connection';
 let checks = 0;
@@ -38,7 +39,7 @@ async function test(label, action) {
   checks++;
   console.log(`[preview-qa] PASS ${label}`);
 }
-async function request(path, { cookie, teamId, body, origin = base } = {}) {
+async function request(path, { cookie, teamId, body, origin = requestOrigin } = {}) {
   const headers = { Origin: origin };
   if (cookie) headers.Cookie = cookie;
   if (teamId) headers['x-team-id'] = teamId;
@@ -74,6 +75,14 @@ try {
     try { await fetch(base, { signal: AbortSignal.timeout(1000) }); ready = true; break; } catch { await pause(500); }
   }
   check(ready, 'QA server startup timeout');
+  // Vercel's build config can reconstruct an HTTPS URL behind the local HTTP listener.
+  // Find that effective origin using a wrong-password request that cannot issue a session.
+  let originVerified = false;
+  for (const origin of [base, base.replace('http:', 'https:')]) {
+    const probe = await request('/api/admin/auth', { origin, body: { password: 'invalid-qa-probe' } });
+    if (probe.status === 401) { requestOrigin = origin; originVerified = true; break; }
+  }
+  check(originVerified, 'Could not verify local server origin');
   let owner, other, target, admin, management, sourcePlayer, copiedPlayer;
   await test('registration persists without SMTP and issues secure session', async () => {
     owner = await request('/api/team/register', { body: registration('owner') });
