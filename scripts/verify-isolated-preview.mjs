@@ -29,6 +29,7 @@ let server;
 let stage = 'database connection';
 let checks = 0;
 let fixturesStarted = false;
+let lastRequest = '';
 
 function check(condition, label) { assert.ok(condition, label); }
 async function test(label, action) {
@@ -48,6 +49,7 @@ async function request(path, { cookie, teamId, body, origin = base } = {}) {
     redirect: 'manual', signal: AbortSignal.timeout(20000),
   });
   const text = await response.text();
+  lastRequest = `${path}: HTTP ${response.status}`;
   let data;
   try { data = JSON.parse(text); } catch { data = null; }
   const setCookie = response.headers.get('set-cookie') || '';
@@ -167,6 +169,7 @@ try {
   });
 } catch (error) {
   console.error(`[preview-qa] FAIL ${stage} (${error.code || error.name || 'error'})`);
+  if (error.code === 'ERR_ASSERTION') console.error(`[preview-qa] ${error.message}; ${lastRequest}`);
   process.exitCode = 1;
 } finally {
   if (server && server.exitCode === null) {
