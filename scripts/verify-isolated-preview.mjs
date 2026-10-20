@@ -92,8 +92,9 @@ try {
     owner.cookie = login.cookie;
   });
   await test('same account registers another team', async () => {
-    target = await request('/api/team/register', { cookie: owner.cookie, body: { ...registration('target', projectIds[1]), existingUserId: owner.data.user.id } });
+    target = await request('/api/team/register', { cookie: owner.cookie, body: { ...registration('target', projectIds[1]), phone: '', existingUserId: owner.data.user.id } });
     check(target.status === 200 && target.data.user.id === owner.data.user.id, 'Existing account registration failed');
+    check(target.data.user.phone === registration('owner').phone, 'Stored contact phone was not preserved');
     other = await request('/api/team/register', { body: registration('other') });
     check(other.status === 200, 'Second test account failed');
   });

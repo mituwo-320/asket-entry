@@ -74,6 +74,7 @@ export default function RegisterPage() {
                         existingUserId: initialUser ? initialUser.id : "",
                         email: initialUser ? initialUser.email : "",
                         representative: initialUser ? initialUser.name : "",
+                        phone: initialUser ? initialUser.phone || "" : "",
                         furigana: initialUser && initialUser.furigana ? initialUser.furigana : ""
                     }));
                 } else if (initialUser) {
@@ -82,6 +83,7 @@ export default function RegisterPage() {
                         existingUserId: initialUser.id,
                         email: initialUser.email,
                         representative: initialUser.name,
+                        phone: initialUser.phone || "",
                         furigana: initialUser.furigana || ""
                     }));
                 }
@@ -228,6 +230,7 @@ export default function RegisterPage() {
                                                 existingUserId: "",
                                                 email: "",
                                                 representative: "",
+                                                phone: "",
                                                 furigana: "",
                                                 password: "",
                                                 confirmPassword: ""
@@ -386,8 +389,10 @@ export default function RegisterPage() {
                             <div className="space-y-2">
                                 <label className="text-xs font-medium text-[#c6cdd8] uppercase tracking-wider ml-1">連絡先</label>
                                 <div className="p-3 bg-[#242830] border border-[#707b8c] rounded-md text-[#e4e8ef] text-sm">
-                                    <p className="text-xs text-[#c6cdd8] mb-1">ログイン中のアカウントのアドレスを使用します</p>
+                                    <p className="text-xs text-[#c6cdd8] mb-1">ログイン中のアカウントの連絡先を使用します</p>
                                     <p>{formData.email}</p>
+                                    <p className="mt-2 text-xs text-[#c6cdd8]">電話番号・緊急連絡先</p>
+                                    <p>{formData.phone || 'アカウントに登録済みの電話番号を使用します。'}</p>
                                 </div>
                             </div>
                         )}
