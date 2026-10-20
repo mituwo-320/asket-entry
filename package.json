@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/guard-production-build.mjs && next build",
+    "build": "node scripts/guard-production-build.mjs && next build && node scripts/verify-production-connections.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
