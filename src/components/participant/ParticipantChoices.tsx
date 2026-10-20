@@ -21,7 +21,7 @@ export function WristbandChoices({ value, onChange }: { value: string; onChange:
   </fieldset>;
 }
 
-export function InsuranceChoices({ value, onChange }: { value: boolean; onChange: (value: boolean) => void }) {
+export function InsuranceChoices({ value, onChange, insuranceFee = 150 }: { value: boolean; onChange: (value: boolean) => void; insuranceFee?: number }) {
   const name = useId();
   return <fieldset className="space-y-3">
     <legend className="text-sm font-medium">スポーツ保険の加入状況</legend>
@@ -29,6 +29,11 @@ export function InsuranceChoices({ value, onChange }: { value: boolean; onChange
       <label className="participant-choice rounded-lg border border-slate-700 p-4 cursor-pointer">
         <span className="participant-choice-title"><input type="radio" name={name} checked={value} onChange={() => onChange(true)} />大会保険に加入</span>
         <span className="participant-choice-description text-xs">大会が指定するスポーツ保険に加入します（推奨）。</span>
+        <span className="participant-insurance-note">
+          <span>大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</span>
+          <span>※腰痛や鞭打ちなどは対象外</span>
+          <strong>※ 別途{insuranceFee}円が必要です</strong>
+        </span>
       </label>
       <label className="participant-choice rounded-lg border border-slate-700 p-4 cursor-pointer">
         <span className="participant-choice-title"><input type="radio" name={name} checked={!value} onChange={() => onChange(false)} />加入しない</span>
