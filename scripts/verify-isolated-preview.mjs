@@ -38,7 +38,7 @@ async function test(label, action) {
   checks++;
   console.log(`[preview-qa] PASS ${label}`);
 }
-async function request(path, { cookie, teamId, body, origin } = {}) {
+async function request(path, { cookie, teamId, body, origin, method } = {}) {
   // Node requests have no browser Origin. Browser origin/cookie behavior needs a separate UI check.
   const headers = {};
   if (origin) headers.Origin = origin;
@@ -46,7 +46,7 @@ async function request(path, { cookie, teamId, body, origin } = {}) {
   if (teamId) headers['x-team-id'] = teamId;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const response = await fetch(base + path, {
-    method: body === undefined ? 'GET' : 'POST', headers,
+    method: method || (body === undefined ? 'GET' : 'POST'), headers,
     body: body === undefined ? undefined : JSON.stringify(body),
     redirect: 'manual', signal: AbortSignal.timeout(20000),
   });
@@ -92,8 +92,9 @@ try {
     owner.cookie = login.cookie;
   });
   await test('same account registers another team', async () => {
-    target = await request('/api/team/register', { cookie: owner.cookie, body: { ...registration('target', projectIds[1]), existingUserId: owner.data.user.id } });
+    target = await request('/api/team/register', { cookie: owner.cookie, body: { ...registration('target', projectIds[1]), phone: '', existingUserId: owner.data.user.id } });
     check(target.status === 200 && target.data.user.id === owner.data.user.id, 'Existing account registration failed');
+    check(target.data.user.phone === registration('owner').phone, 'Stored contact phone was not preserved');
     other = await request('/api/team/register', { body: registration('other') });
     check(other.status === 200, 'Second test account failed');
   });
@@ -141,6 +142,25 @@ try {
     const saved = await db.teamEntry.findUnique({ where: { id: target.data.teamId } });
     check(saved.isPaid && saved.managementMemo === '検証メモ' && saved.uniformColor === '赤', 'Operations data not persisted');
   });
+  await test('operations checklist preserves saved items and checked states', async () => {
+    const fixture = await db.printChecklistItem.create({ data: { projectId: projectIds[0], name: '保存済み印刷物', isPrinted: true } });
+    const path = '/api/admin/checklist';
+    check((await request(`${path}?projectId=${projectIds[0]}`)).status === 401, 'Anonymous checklist access allowed');
+    check((await request(`${path}?projectId=${projectIds[0]}`, { cookie: owner.cookie })).status === 403, 'Participant checklist access allowed');
+    for (const staff of [management, admin]) {
+      const loaded = await request(`${path}?projectId=${projectIds[0]}`, { cookie: staff.cookie });
+      check(loaded.status === 200 && loaded.data.items.length === 1 && loaded.data.items[0].id === fixture.id && loaded.data.items[0].isPrinted, 'Saved checklist missing or reset');
+      const added = await request(path, { cookie: staff.cookie, body: { projectId: projectIds[0], name: '追加印刷物' } });
+      check(added.status === 200 && added.data.success, 'Checklist addition failed');
+      const id = added.data.item.id;
+      check((await request(path, { cookie: staff.cookie, method: 'PATCH', body: { id, isPrinted: true } })).status === 200, 'Checklist update failed');
+      const reloaded = await request(`${path}?projectId=${projectIds[0]}`, { cookie: staff.cookie });
+      check(reloaded.data.items.some(item => item.id === id && item.isPrinted), 'Checklist update not persisted');
+      check((await request(`${path}?id=${id}`, { cookie: staff.cookie, method: 'DELETE' })).status === 200, 'Checklist deletion failed');
+    }
+    check(await db.printChecklistItem.count({ where: { projectId: projectIds[0] } }) === 1, 'Existing checklist changed');
+    check((await db.printChecklistItem.findUnique({ where: { id: fixture.id } })).isPrinted, 'Existing checked state lost');
+  });
   await test('concurrent receipt issuance/view claims are idempotent', async () => {
     const opts = { cookie: owner.cookie, teamId: target.data.teamId, body: { receiptName: '検証用宛名' } };
     const issued = await Promise.all([request('/api/team/receipt/issue', opts), request('/api/team/receipt/issue', opts)]);
@@ -185,6 +205,7 @@ try {
       await db.teamEntry.deleteMany({ where: { tournamentId: { in: projectIds } } });
       await db.user.deleteMany({ where: { email: { startsWith: `${tag}_`, endsWith: '@example.invalid' } } });
       await db.backup.deleteMany({ where: { tournamentId: { in: projectIds } } });
+      await db.printChecklistItem.deleteMany({ where: { projectId: { in: projectIds } } });
       await db.project.deleteMany({ where: { id: { in: projectIds } } });
       check(await db.teamEntry.count({ where: { tournamentId: { in: projectIds } } }) === 0, 'Fixture cleanup failed');
       console.log('[preview-qa] Fixtures removed');

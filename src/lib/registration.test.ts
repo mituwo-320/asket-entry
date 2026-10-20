@@ -59,3 +59,21 @@ test('registration preserves the exact password, including intentional spaces', 
   await registerTeam({ ...body, password }, null);
   expect(await compare(password, tx.user.create.mock.calls[0][0].data.password)).toBe(true);
 });
+
+test.each(['', undefined])('an authenticated existing account can register without resending its phone: %p', async phone => {
+  const user = { id: 'existing-user', email: body.email, name: body.representative, phone: '09012345678', password: 'stored-hash' };
+  tx.user.findUnique.mockResolvedValue(user);
+  const result = await registerTeam({ ...body, phone, existingUserId: user.id, password: '' }, { role: 'user', sub: user.id, exp: 9999999999, credential: 'stamp' });
+  expect(result.user).toEqual(user);
+  expect(tx.user.findUnique).toHaveBeenCalledWith({ where: { id: user.id } });
+  expect(tx.user.create).not.toHaveBeenCalled();
+  expect(tx.teamEntry.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId: user.id }) }));
+});
+test.each(['', undefined])('a new account still requires its phone: %p', async phone => {
+  await expect(registerTeam({ ...body, phone }, null)).rejects.toMatchObject({ status: 400, message: '電話番号を入力してください' });
+  expect(db.$transaction).not.toHaveBeenCalled();
+});
+test('omitting contact details does not allow selecting a foreign account', async () => {
+  await expect(registerTeam({ ...body, phone: '', existingUserId: 'someone-else' }, { role: 'user', sub: 'owner', exp: 9999999999, credential: 'stamp' })).rejects.toMatchObject({ status: 403 });
+  expect(db.$transaction).not.toHaveBeenCalled();
+});

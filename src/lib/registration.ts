@@ -16,10 +16,11 @@ export async function registerTeam(input: Record<string, unknown>, session: Sess
   const tournamentId = required(input.tournamentId, '大会');
   const teamName = required(input.name, 'チーム名');
   const representative = required(input.representative, '代表者名');
-  const phone = required(input.phone, '電話番号');
   const email = required(input.email, 'メールアドレス');
   const existingUserId = typeof input.existingUserId === 'string' ? input.existingUserId : '';
   if (existingUserId && (session?.role !== 'admin' && (session?.role !== 'user' || session.sub !== existingUserId))) throw new RegistrationError(403, 'ログインしているアカウントを確認してください');
+  // Existing accounts keep their stored contact details; only new accounts create them.
+  const phone = existingUserId ? '' : required(input.phone, '電話番号');
   if (!existingUserId && (typeof input.password !== 'string' || !input.password)) throw new RegistrationError(400, 'パスワードを入力してください');
   const password = existingUserId ? '' : input.password as string;
   const passwordHash = existingUserId ? '' : await hash(password, 10);
