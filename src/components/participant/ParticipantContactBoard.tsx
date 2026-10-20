@@ -18,7 +18,7 @@ export function ParticipantContactBoard({ projects, entries, defaultLink, onDism
     <ul>{contacts.map(project => {
       const projectEntries = entries.filter(entry => entry.tournamentId === project.id);
       const confirmed = projectEntries.every(entry => entry.isOpenChatJoined === true);
-      return <li key={project.id} data-confirmed={confirmed}><div><span className="participant-contact-status">{confirmed ? <CheckCircle2 size={14} aria-hidden="true" /> : <span className="participant-contact-dot" aria-hidden="true" />}{confirmed ? "運営が参加を確認済み" : "参加状況をご確認ください"}</span><h3>{project.name}</h3><p>{confirmed ? "参加の確認が取れています。最新のお知らせはチャットでご確認ください。" : "参加済みの場合も、運営の確認が反映されるまではこの案内が表示されます。"}</p></div><a href={project.lineOpenChatLink || defaultLink} target="_blank" rel="noopener noreferrer">チャットを開く<ArrowUpRight size={17} aria-hidden="true" /><span className="sr-only">（{project.name}・別タブ）</span></a></li>;
+      return <li key={project.id} data-confirmed={confirmed}><div><span className="participant-contact-status">{confirmed ? <CheckCircle2 size={14} aria-hidden="true" /> : <span className="participant-contact-dot" aria-hidden="true" />}{confirmed ? "運営が参加を確認済み" : "参加状況をご確認ください"}</span><h3>{project.name}</h3><p>{confirmed ? "参加の確認が取れています。最新のお知らせはチャットでご確認ください。" : "参加済みの場合も、運営の確認が反映されるまではこの案内が表示されます。"}</p></div><a href={project.lineOpenChatLink || defaultLink} target="_blank" rel="noopener noreferrer">LINEオープンチャットを開く<ArrowUpRight size={17} aria-hidden="true" /><span className="sr-only">（{project.name}・別タブ）</span></a></li>;
     })}</ul>
     <footer>リンクを開いただけでは、参加確認済みにはなりません。</footer>
   </section>;
