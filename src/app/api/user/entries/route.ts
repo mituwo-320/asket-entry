@@ -1,8 +1,9 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { getUserEntries, getProjects } from '@/lib/sheets';
 import { db } from '@/lib/db';
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -39,3 +40,5 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ entries: entriesWithDetails });
 }
+
+export const GET = withAuthorization(handleGET, { roles: ['admin', 'user'], user: 'query' });

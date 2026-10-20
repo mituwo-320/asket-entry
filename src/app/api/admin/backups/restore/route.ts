@@ -1,8 +1,10 @@
+import { randomBytes } from "node:crypto";
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import * as bcrypt from 'bcryptjs';
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   try {
     const body = await req.json();
     const { fileName } = body;
@@ -23,18 +25,19 @@ export async function POST(req: Request) {
     const data = JSON.parse(backup.data);
     const { tournamentId, users, entries } = data;
 
-    if (!tournamentId || !users || !entries) {
+    if (!tournamentId || tournamentId !== backup.tournamentId || !Array.isArray(users) || !Array.isArray(entries) || entries.some(e => e.tournamentId !== tournamentId)) {
       return NextResponse.json({ error: '無効なバックアップフォーマットです。' }, { status: 400 });
     }
 
     console.log(`Restoring ${users.length} users and ${entries.length} entries for tournament: ${tournamentId}`);
 
+    return await db.$transaction(async tx => {
     const userIdMap = new Map<string, string>();
-    const dummyPasswordHash = await bcrypt.hash('dummy-password-1234', 10);
+    const dummyPasswordHash = await bcrypt.hash(randomBytes(32).toString('base64url'), 10);
 
     // 1. Restore/Sync Users
     for (const u of users) {
-      const existingUser = await db.user.findFirst({
+      const existingUser = await tx.user.findFirst({
         where: {
           OR: [
             { id: u.id },
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
       });
 
       if (existingUser) {
-        await db.user.update({
+        await tx.user.update({
           where: { id: existingUser.id },
           data: {
             name: u.name,
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
         });
         userIdMap.set(u.id, existingUser.id);
       } else {
-        const created = await db.user.create({
+        const created = await tx.user.create({
           data: {
             id: u.id,
             email: u.email,
@@ -74,7 +77,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Clear current database entries for target tournamentId
-    await db.player.deleteMany({
+    await tx.player.deleteMany({
       where: {
         teamEntry: {
           tournamentId: tournamentId,
@@ -82,7 +85,7 @@ export async function POST(req: Request) {
       },
     });
 
-    await db.teamEntry.deleteMany({
+    await tx.teamEntry.deleteMany({
       where: {
         tournamentId: tournamentId,
       },
@@ -93,22 +96,18 @@ export async function POST(req: Request) {
     let playerCount = 0;
 
     for (const e of entries) {
-      let resolvedUserId = userIdMap.get(e.userId) || e.userId;
+      const resolvedUserId = userIdMap.get(e.userId) || e.userId;
 
       // Verify user exists in database
-      const userExists = await db.user.findUnique({
+      const userExists = await tx.user.findUnique({
         where: { id: resolvedUserId }
       });
 
       if (!userExists) {
-        const fallbackUser = await db.user.findFirst();
-        if (!fallbackUser) {
-          return NextResponse.json({ error: 'データベースにユーザーが登録されていません。先にログインまたはユーザー作成を行ってください。' }, { status: 500 });
-        }
-        resolvedUserId = fallbackUser.id;
+        throw new Error("Backup references an unknown user");
       }
 
-      await db.teamEntry.create({
+      await tx.teamEntry.create({
         data: {
           id: e.id,
           userId: resolvedUserId, // Use resolved/mapped userId
@@ -136,7 +135,7 @@ export async function POST(req: Request) {
 
       if (e.players && Array.isArray(e.players)) {
         for (const p of e.players) {
-          await db.player.create({
+          await tx.player.create({
             data: {
               id: p.id,
               entryId: e.id,
@@ -158,8 +157,12 @@ export async function POST(req: Request) {
       message: `バックアップ "${fileName}" から ${entryCount} チームと ${playerCount} 名の選手データを正常に復元しました。`
     });
 
-  } catch (error: any) {
+    }, { timeout: 30000 });
+
+  } catch (error) {
     console.error('Failed to restore backup:', error);
-    return NextResponse.json({ error: 'Failed to restore backup', details: error.message }, { status: 500 });
+    return NextResponse.json({ error: '復元に失敗したため、変更を取り消しました。バックアップの内容を確認してください。' }, { status: 500 });
   }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });

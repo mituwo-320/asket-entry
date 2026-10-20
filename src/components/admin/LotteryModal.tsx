@@ -1,8 +1,8 @@
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Trophy, Sparkles, X } from "lucide-react";
-import { Card } from "@/components/ui/Card";
 
 interface Participant {
     teamName: string;
@@ -19,19 +19,22 @@ interface LotteryModalProps {
 
 export default function LotteryModal({ isOpen, onClose, participants }: LotteryModalProps) {
     const [winner, setWinner] = useState<Participant | null>(null);
+    const dialogRef = useAdminDialogFocus(isOpen, onClose);
     const [isSpinning, setIsSpinning] = useState(false);
     const [displayCandidate, setDisplayCandidate] = useState<Participant | null>(null);
     const [isSuspenseMode, setIsSuspenseMode] = useState(false);
     const [revealStep, setRevealStep] = useState(0); // 0: Hidden, 1: Team, 2: Name/Full
 
-    useEffect(() => {
+    const [previousOpen, setPreviousOpen] = useState(isOpen);
+    if (previousOpen !== isOpen) {
+        setPreviousOpen(isOpen);
         if (isOpen) {
             setWinner(null);
             setIsSpinning(false);
             setDisplayCandidate(null);
             setRevealStep(0);
         }
-    }, [isOpen]);
+    }
 
     const startLottery = () => {
         if (participants.length === 0) return;
@@ -50,7 +53,7 @@ export default function LotteryModal({ isOpen, onClose, participants }: LotteryM
 
         setIsSpinning(true);
 
-        let duration = 3000; // 3 seconds spin
+        const duration = 3000; // 3 seconds spin
         let interval = 50;
         let elapsed = 0;
 
@@ -79,9 +82,10 @@ export default function LotteryModal({ isOpen, onClose, participants }: LotteryM
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col overflow-hidden">
+            <div ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="大抽選会" className="admin-dialog admin-lottery-dialog bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col overflow-hidden">
                 {/* Close Button */}
                 <button
+                    aria-label="閉じる"
                     onClick={onClose}
                     className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
                 >

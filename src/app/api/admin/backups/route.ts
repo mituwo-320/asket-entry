@@ -1,10 +1,11 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { backupTournamentData } from '@/lib/backup';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+async function handleGET() {
   try {
     const dbBackups = await db.backup.findMany({
       orderBy: { createdAt: 'desc' }
@@ -24,7 +25,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const body = await request.json();
     const { tournamentId } = body;
@@ -45,3 +46,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create backup' }, { status: 500 });
   }
 }
+
+export const GET = withAuthorization(handleGET, { roles: ['admin'] });
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });

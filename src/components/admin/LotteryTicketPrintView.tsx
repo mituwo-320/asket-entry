@@ -1,8 +1,9 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Loader2, Printer, ArrowLeft, Scissors } from "lucide-react";
+import { Loader2, Printer, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { TeamEntry, Project } from "@/lib/types";
 
@@ -25,15 +26,14 @@ export default function LotteryTicketPrintView({ backUrl }: { backUrl: string })
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
         const fetchData = async () => {
             try {
                 const [dataRes, projectsRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch('/api/admin/projects')
+                    staffFetch('/api/admin/data'),
+                    staffFetch('/api/admin/projects')
                 ]);
 
                 if (dataRes.ok) {

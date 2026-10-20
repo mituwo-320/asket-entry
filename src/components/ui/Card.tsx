@@ -6,13 +6,14 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> { }
+type CardProps = HTMLAttributes<HTMLDivElement>;
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
     ({ className, ...props }, ref) => {
         return (
             <div
                 ref={ref}
+                data-ui="card"
                 className={cn(
                     'glass-card rounded-2xl p-6', // Increased border radius and used global utility
                     className

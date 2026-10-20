@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { staffFetch } from "@/lib/staff-fetch";
+import { useAdminDialogFocus } from "./useAdminDialogFocus";
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,43 +22,47 @@ interface BackupManagerModalProps {
 
 export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, projects }: BackupManagerModalProps) {
     const [backups, setBackups] = useState<BackupItem[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const dialogRef = useAdminDialogFocus(isOpen, onClose);
+    const [isLoading, setIsLoading] = useState(isOpen);
     const [isRestoring, setIsRestoring] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-    const [backupProjectId, setBackupProjectId] = useState<string>('');
+    const [backupProjectIdOverride, setBackupProjectId] = useState<string>('');
+    const backupProjectId = backupProjectIdOverride || projects[0]?.id || '';
     const [isCreating, setIsCreating] = useState(false);
 
-    const loadBackups = async () => {
-        setIsLoading(true);
-        try {
-            const res = await fetch('/api/admin/backups');
+    const fetchBackups = useCallback(() => {
+        return staffFetch('/api/admin/backups').then(async (res) => {
             if (res.ok) {
                 const data = await res.json();
                 setBackups(data.backups || []);
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error('Failed to load backups', e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
+
+    const loadBackups = () => { setIsLoading(true); return fetchBackups(); };
+
+    const [previousOpen, setPreviousOpen] = useState(isOpen);
+    if (previousOpen !== isOpen) {
+        setPreviousOpen(isOpen);
+        if (isOpen) { setMessage(null); setIsLoading(true); }
+    }
 
     useEffect(() => {
         if (isOpen) {
-            loadBackups();
-            setMessage(null);
-            if (projects.length > 0 && !backupProjectId) {
-                setBackupProjectId(projects[0].id);
-            }
+            fetchBackups();
         }
-    }, [isOpen, projects]);
+    }, [isOpen, projects, fetchBackups]);
 
     const handleCreateBackup = async () => {
         if (!backupProjectId) return;
         setIsCreating(true);
         setMessage(null);
         try {
-            const res = await fetch('/api/admin/backups', {
+            const res = await staffFetch('/api/admin/backups', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: backupProjectId })
@@ -68,7 +74,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
             } else {
                 setMessage({ type: 'error', text: data.error || 'バックアップ作成に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsCreating(false);
@@ -87,7 +93,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
         setMessage(null);
 
         try {
-            const res = await fetch('/api/admin/backups/restore', {
+            const res = await staffFetch('/api/admin/backups/restore', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fileName: backup.fileName })
@@ -100,7 +106,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
             } else {
                 setMessage({ type: 'error', text: data.error || '復元に失敗しました。' });
             }
-        } catch (e) {
+        } catch {
             setMessage({ type: 'error', text: '通信エラーが発生しました。' });
         } finally {
             setIsRestoring(null);
@@ -124,16 +130,16 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+            <div className="admin-dialog-layer fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
                     className="w-full max-w-2xl max-h-[85vh] flex flex-col"
                 >
-                    <Card className="bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
+                    <Card ref={dialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="自動バックアップからのデータ復元" className="admin-dialog bg-slate-900 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
+                        <div className="admin-dialog-header flex items-center justify-between p-6 border-b border-white/10 bg-slate-900/50">
                             <div>
                                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                     <HardDrive className="w-5 h-5 text-indigo-400" />
@@ -141,7 +147,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
                                 </h2>
                                 <p className="text-xs text-slate-400 mt-1">シードデータの作成（流し込み）や削除の直前に自動保存された履歴から、データを以前の状態に復元できます。</p>
                             </div>
-                            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
+                            <Button aria-label="閉じる" variant="ghost" size="sm" onClick={onClose} className="rounded-full hover:bg-white/5 w-8 h-8 p-0">
                                 <X className="w-5 h-5 text-slate-400 hover:text-white" />
                             </Button>
                         </div>
@@ -162,7 +168,7 @@ export default function BackupManagerModal({ isOpen, onClose, onRestoreSuccess, 
                                     <span>手動バックアップの作成</span>
                                 </h3>
                                 <div className="flex flex-col sm:flex-row gap-3">
-                                    <select
+                                    <select aria-label="バックアップ対象のプロジェクト"
                                         value={backupProjectId}
                                         onChange={(e) => setBackupProjectId(e.target.value)}
                                         className="flex-1 h-9 bg-slate-900 border border-slate-700 rounded-md text-sm px-3 text-slate-200"

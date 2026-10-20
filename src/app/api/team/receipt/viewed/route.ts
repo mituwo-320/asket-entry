@@ -1,42 +1,16 @@
+import { withAuthorization } from '@/lib/auth/authorize';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-// 領収書を閲覧済みとしてマークするAPI（1回のみ、ユーザー向け）
-export async function POST(request: Request) {
-    try {
-        const entryId = request.headers.get('x-team-id');
-        if (!entryId) {
-            return NextResponse.json({ error: 'Entry ID required' }, { status: 400 });
-        }
-
-        const existing = await db.teamEntry.findUnique({ where: { id: entryId } });
-        if (!existing) {
-            return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
-        }
-
-        // 既に閲覧済みの場合
-        if (existing.receiptViewedAt) {
-            return NextResponse.json({
-                success: true,
-                alreadyViewed: true,
-                receiptViewedAt: existing.receiptViewedAt.toISOString()
-            });
-        }
-
-        // 初回閲覧：日時を記録
-        const updated = await db.teamEntry.update({
-            where: { id: entryId },
-            data: { receiptViewedAt: new Date() }
-        });
-
-        return NextResponse.json({
-            success: true,
-            alreadyViewed: false,
-            receiptViewedAt: updated.receiptViewedAt?.toISOString()
-        });
-
-    } catch (e) {
-        console.error('[API receipt/viewed] Error:', e);
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
-    }
+async function handlePOST(request: Request) {
+  try {
+    const entryId = request.headers.get('x-team-id');
+    if (!entryId) return NextResponse.json({ error: 'Entry ID required' }, { status: 400 });
+    const result = await db.teamEntry.updateMany({ where: { id: entryId, isPaid: true, receiptIssuedAt: { not: null }, receiptViewedAt: null }, data: { receiptViewedAt: new Date() } });
+    const entry = await db.teamEntry.findUnique({ where: { id: entryId } });
+    if (!entry) return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
+    if (!entry.isPaid || !entry.receiptIssuedAt) return NextResponse.json({ error: '発行済みの領収書を確認できません' }, { status: 403 });
+    return NextResponse.json({ success: true, alreadyViewed: result.count === 0, receiptViewedAt: entry.receiptViewedAt?.toISOString() });
+  } catch { return NextResponse.json({ error: '領収書の閲覧を記録できませんでした' }, { status: 500 }); }
 }
+export const POST = withAuthorization(handlePOST, { roles: ['admin', 'user'], entry: true });

@@ -1,7 +1,9 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import type { Prisma } from '@prisma/client';
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const { entryId, updates } = await request.json();
 
@@ -10,7 +12,7 @@ export async function POST(request: Request) {
         }
 
         // Only allow updating isOpenChatJoined, isPaid, and managementMemo from this endpoint
-        const validUpdates: any = {};
+        const validUpdates: Prisma.TeamEntryUpdateInput = {};
         if (typeof updates.isOpenChatJoined === 'boolean') {
             validUpdates.isOpenChatJoined = updates.isOpenChatJoined;
         }
@@ -20,10 +22,12 @@ export async function POST(request: Request) {
         if (typeof updates.managementMemo === 'string') {
             validUpdates.managementMemo = updates.managementMemo;
         }
-        if (typeof updates.status === 'string') {
+        if (typeof updates.uniformColor === "string") validUpdates.uniformColor = updates.uniformColor;
+        if (typeof updates.status === 'string' && ["draft", "submitted", "cancelled"].includes(updates.status)) {
             validUpdates.status = updates.status;
         }
 
+        if (Object.keys(validUpdates).length === 0) return NextResponse.json({ success: false, error: "更新する内容がありません" }, { status: 400 });
         await db.teamEntry.update({
             where: { id: entryId },
             data: validUpdates
@@ -35,3 +39,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Failed to update entry' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });

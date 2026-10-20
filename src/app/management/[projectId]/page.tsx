@@ -1,13 +1,15 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Search, Loader2, Users, ArrowLeft, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy, Trash2 } from "lucide-react";
+import { Search, CheckCircle2, MessageSquare, X, Smartphone, ListCollapse, Printer, Trophy, Trash2 } from "lucide-react";
 import { TeamEntry, User, Project } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
+import { OperationsHeader, OperationsHeading, OperationsOverview, OperationsState } from "@/components/operations/OperationsFrame";
 import PrintChecklist from "@/components/admin/PrintChecklist"; // NEW
 
 export default function ManagementProjectDetail() {
@@ -24,13 +26,12 @@ export default function ManagementProjectDetail() {
     const [selectedEntry, setSelectedEntry] = useState<TeamEntry | null>(null);
     const [isChecklistOpen, setIsChecklistOpen] = useState(false); // NEW: Checklist Collapsible state
 
-    const loadData = async () => {
-        try {
-            const [dataRes, projectsRes, settingsRes] = await Promise.all([
-                fetch('/api/admin/data'),
-                fetch('/api/admin/projects'),
-                fetch('/api/settings')
-            ]);
+    const loadData = useCallback(() => {
+        return Promise.all([
+                staffFetch('/api/admin/data'),
+                staffFetch('/api/admin/projects'),
+                staffFetch('/api/settings')
+            ]).then(async ([dataRes, projectsRes, settingsRes]) => {
             
             if (dataRes.ok) {
                 const data = await dataRes.json();
@@ -48,16 +49,16 @@ export default function ManagementProjectDetail() {
                 const s = await settingsRes.json();
                 setSettings({ participationFee: Number(s.participationFee || 0), insuranceFee: Number(s.insuranceFee || 0) });
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to fetch data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
 
     useEffect(() => {
         loadData();
-    }, [projectId]);
+    }, [loadData]);
 
     const getRepName = (userId: string) => {
         const user = users.find(u => u.id === userId);
@@ -70,33 +71,29 @@ export default function ManagementProjectDetail() {
     };
 
     const handleUpdateEntry = async (entryId: string, updates: Partial<TeamEntry>) => {
-        setEntries(entries.map(e => e.id === entryId ? { ...e, ...updates } : e));
-        if (selectedEntry && selectedEntry.id === entryId) {
-            setSelectedEntry({ ...selectedEntry, ...updates });
-        }
         try {
-            await fetch('/api/management/entry/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await staffFetch('/api/management/entry/update', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ entryId, updates })
             });
-        } catch (e) {
-            alert("更新に失敗しました。再読み込みします。");
-            loadData();
+            if (!response.ok) throw new Error('Save failed');
+            setEntries(previous => previous.map(entry => entry.id === entryId ? { ...entry, ...updates } : entry));
+            // Text fields already contain current typing; do not overwrite newer edits after a blur save.
+            const confirmationUpdates = { ...updates };
+            delete confirmationUpdates.managementMemo;
+            delete confirmationUpdates.uniformColor;
+            setSelectedEntry(previous => previous?.id === entryId ? { ...previous, ...confirmationUpdates } : previous);
+        } catch {
+            alert('更新を保存できませんでした。入力内容を確認し、もう一度お試しください。');
         }
     };
 
     if (isLoading) {
-        return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white"><Loader2 className="animate-spin w-8 h-8 text-emerald-500 mb-4" /><span className="text-sm tracking-widest text-slate-400">データ読み込み中...</span></div>;
+        return <OperationsState title="大会の受付情報を読み込んでいます" loading />;
     }
 
     if (!project) {
-        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white p-4 text-center">
-            <div>
-                <p className="text-xl mb-4 font-bold text-red-400">プロジェクトが見つかりません</p>
-                <Button onClick={() => router.push('/management')} variant="outline" className="border-slate-700">一覧に戻る</Button>
-            </div>
-        </div>;
+        return <OperationsState title="大会情報を確認できませんでした" message="大会一覧に戻り、対象の大会を選び直してください。" />;
     }
 
     const filteredEntries = entries.filter(entry => {
@@ -123,7 +120,7 @@ export default function ManagementProjectDetail() {
         const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
 
         for (const entry of sorted) {
-            let req = entry.preliminaryNumber;
+            const req = entry.preliminaryNumber;
             let finalNum: number | undefined = undefined;
             let bumped = false;
 
@@ -150,8 +147,10 @@ export default function ManagementProjectDetail() {
     const confirmedEntries = filteredEntries.filter(e => !isWaitlisted(e) && e.status !== 'cancelled');
     const otherEntries = filteredEntries.filter(e => isWaitlisted(e) || e.status === 'cancelled');
 
-    const clinicParticipatingTeams = entries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
-    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
+    const clinicParticipatingTeams = entries.filter(e => e.status !== 'cancelled' && e.clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + (e.clinicCount || 0), 0);
+
+    const deskEntries = entries.filter(entry => entry.status !== "cancelled" && !isWaitlisted(entry));
 
     const renderEntryCard = (entry: TeamEntry) => {
         const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
@@ -164,7 +163,7 @@ export default function ManagementProjectDetail() {
 
         return (
             <motion.div key={entry.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-                <Card className={`overflow-hidden border-slate-700/50 ${wl ? 'bg-amber-950/40 border-amber-500/30' : 'bg-slate-900/60'} p-0`}>
+                <Card className={`operations-entry-card overflow-hidden border-slate-700/50 ${wl ? 'bg-amber-950/40 border-amber-500/30' : 'bg-slate-900/60'} p-0`}>
                     <div className="p-4 sm:p-5 relative">
                         {/* Top row: Status/Waitlist & Prelim Number */}
                         <div className="flex justify-between items-start mb-3">
@@ -172,9 +171,9 @@ export default function ManagementProjectDetail() {
                                 {entry.status === 'cancelled' ? (
                                     <span className="text-[10px] font-bold tracking-wider bg-slate-800 text-slate-500 px-2 py-0.5 rounded border border-slate-700">キャンセル</span>
                                 ) : wl ? (
-                                    <span className="text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20">C待ち</span>
+                                    <span className="text-[10px] font-bold tracking-wider bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20">キャンセル待ち</span>
                                 ) : (
-                                    <span className="text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">確定済</span>
+                                    <span className="text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">参加枠内</span>
                                 )}
                             </div>
                             
@@ -234,7 +233,7 @@ export default function ManagementProjectDetail() {
                                         <span className="text-[10px] font-extrabold tracking-wider">
                                             🏀 クリニック希望：参加する
                                         </span>
-                                        <span className="text-xs font-black text-indigo-400">{(entry as any).clinicCount}名</span>
+                                        <span className="text-xs font-black text-indigo-400">{entry.clinicCount}名</span>
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-700 bg-slate-950/50 text-slate-400">
@@ -261,14 +260,18 @@ export default function ManagementProjectDetail() {
                         <div className="flex flex-col sm:flex-row gap-2 border-t border-slate-800 pt-4">
                             <div className="flex gap-2 w-full">
                                 <button
+                                    aria-pressed={!!entry.isOpenChatJoined}
+                                    aria-label={`${entry.teamName}のLINE参加確認`}
                                     onClick={() => handleUpdateEntry(entry.id, { isOpenChatJoined: !entry.isOpenChatJoined })}
                                     className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isOpenChatJoined ? 'bg-emerald-900/30 border-emerald-500/40 text-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
                                 >
                                     {entry.isOpenChatJoined ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
-                                    <span className="text-[10px] font-bold tracking-wider">オープンチャット</span>
+                                    <span className="text-[10px] font-bold tracking-wider">{entry.isOpenChatJoined ? "LINE 確認済" : "LINE 未確認"}</span>
                                 </button>
                                 
                                 <button
+                                    aria-pressed={!!entry.isPaid}
+                                    aria-label={`${entry.teamName}の入金確認`}
                                     onClick={() => {
                                         const alreadyPaid = entry.isPaid;
                                         if (alreadyPaid) {
@@ -285,7 +288,7 @@ export default function ManagementProjectDetail() {
                                     className={`flex-1 flex flex-col items-center justify-center p-2 rounded-xl border transition-colors ${entry.isPaid ? 'bg-blue-900/30 border-blue-500/40 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
                                 >
                                     {entry.isPaid ? <CheckCircle2 className="w-5 h-5 mb-1" /> : <div className="w-5 h-5 rounded-full border border-current mb-1 opacity-50" />}
-                                    <span className="text-[10px] font-bold tracking-wider">参加費 支払済</span>
+                                    <span className="text-[10px] font-bold tracking-wider">{entry.isPaid ? "入金確認済" : "入金未確認"}</span>
                                 </button>
                             </div>
                             
@@ -300,7 +303,7 @@ export default function ManagementProjectDetail() {
                                 </a>
                             )}
                             {/* ユーザー側の領収書発行状況 */}
-                            {(entry as any).receiptIssuedAt ? (
+                            {entry.receiptIssuedAt ? (
                                 <a href={`/management/receipt?id=${entry.id}`} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto h-auto py-2 flex flex-col items-center justify-center border border-emerald-500/30 bg-emerald-900/20 hover:bg-emerald-900/40 rounded-xl text-emerald-400 transition-colors">
                                     <Printer className="w-5 h-5 mb-1 opacity-80" />
                                     <span className="text-[10px] font-bold">領収書(発行済)</span>
@@ -319,30 +322,18 @@ export default function ManagementProjectDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 pb-20">
+        <div className="operations-workspace operations-project-detail">
             {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2" onClick={() => router.push('/management')}>
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
-                        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight line-clamp-1">{project.name}</h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            className="bg-indigo-900/40 hover:bg-indigo-800/60 text-indigo-400 border border-indigo-500/30"
-                            size="sm"
-                            onClick={() => router.push(`/management/${projectId}/bracket`)}
-                        >
-                            <Trophy className="w-4 h-4 mr-2" />
-                            トーナメント表
-                        </Button>
-                    </div>
-                </div>
-            </header>
+            <OperationsHeader title="大会の受付・進行"><Button size="sm" onClick={() => router.push(`/management/${projectId}/bracket`)}><Trophy size={17} className="mr-2" aria-hidden="true" />トーナメント表</Button></OperationsHeader>
 
-            <main className="container mx-auto px-4 py-6 max-w-4xl">
+            <main id="operations-main" tabIndex={-1} className="operations-main">
+                <OperationsHeading eyebrow="TOURNAMENT / CONTROL DESK" title={project.name} description="受付と連絡状況を確認し、チームごとの対応を進めます。" />
+                <OperationsOverview items={[
+                    { label: "参加枠内", value: deskEntries.length, note: "キャンセル待ち・辞退を除く" },
+                    { label: "メンバー未確定", value: deskEntries.filter(e => e.status === "draft").length, note: "登録内容の確定前", attention: true },
+                    { label: "未入金", value: deskEntries.filter(e => !e.isPaid).length, note: "支払い確認が必要", attention: true },
+                    { label: "LINE未確認", value: deskEntries.filter(e => !e.isOpenChatJoined).length, note: "運営による確認前", attention: true },
+                ]} />
                 {project?.hasClinic && (
                     <div className="mb-8 space-y-4">
                         <Card className="p-5 bg-indigo-950/20 border-indigo-500/30 text-indigo-200 shadow-xl rounded-2xl">
@@ -380,7 +371,7 @@ export default function ManagementProjectDetail() {
                                                 <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
                                                     <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
                                                     <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
-                                                    <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                    <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{e.clinicCount || 0}名</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -392,12 +383,13 @@ export default function ManagementProjectDetail() {
                 )}
 
                 {/* Search Bar - Sticky on mobile */}
-                <div className="sticky top-[72px] z-40 bg-slate-950/90 backdrop-blur-sm py-2 mb-6">
+                <div className="operations-search">
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                         <Input
-                            type="text"
-                            placeholder="名前・電話番号で検索..."
+                            aria-label="チーム名・代表者・電話番号で検索"
+                            type="search"
+                            placeholder="チーム名・代表者・電話番号で検索"
                             value={teamSearchQuery}
                             onChange={(e) => setTeamSearchQuery(e.target.value)}
                             className="pl-11 bg-slate-900/80 border-slate-700 h-12 text-base focus-visible:ring-emerald-500 shadow-xl rounded-2xl"
@@ -408,6 +400,7 @@ export default function ManagementProjectDetail() {
                 {/* Print Checklist Section */}
                 <div className="mb-6 relative z-30">
                     <button
+                        aria-expanded={isChecklistOpen}
                         onClick={() => setIsChecklistOpen(!isChecklistOpen)}
                         className="w-full flex items-center justify-between p-4 bg-slate-900/60 border border-slate-700/50 rounded-2xl hover:bg-slate-900/80 transition-colors shadow-lg"
                     >
@@ -434,9 +427,9 @@ export default function ManagementProjectDetail() {
                     </AnimatePresence>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 px-1 gap-4">
+                <div className="operations-print-actions flex flex-col md:flex-row md:items-center justify-between mb-4 px-1 gap-4">
                     <h2 className="text-sm font-black text-slate-400 tracking-widest uppercase flex items-center gap-2">
-                        <ListCollapse className="w-4 h-4" /> 確定エントリー一覧 ({confirmedEntries.length})
+                        <ListCollapse className="w-4 h-4" /> 参加枠内のチーム ({confirmedEntries.length})
                     </h2>
                     <div className="grid grid-cols-2 md:flex md:flex-wrap md:justify-end gap-2 w-full md:w-auto">
                         <Button
@@ -488,7 +481,7 @@ export default function ManagementProjectDetail() {
                         {confirmedEntries.map(renderEntryCard)}
                         {confirmedEntries.length === 0 && (
                             <div className="text-center py-12 bg-slate-900/30 rounded-2xl border border-white/5">
-                                <p className="text-slate-500">条件に一致する確定チームがありません</p>
+                                <p className="text-slate-500">条件に一致する参加枠内のチームがありません</p>
                             </div>
                         )}
                     </AnimatePresence>
@@ -523,47 +516,50 @@ export default function ManagementProjectDetail() {
                             />
                             <motion.div
                                 initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                className="bg-slate-900 border-t sm:border border-slate-700/50 sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] pb-8 sm:pb-0 overflow-y-auto relative z-10 flex flex-col rounded-t-3xl"
+                                role="dialog" aria-modal="true" aria-labelledby="operations-team-title"
+                                className="operations-team-sheet bg-slate-900 border-t sm:border border-slate-700/50 sm:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] pb-8 sm:pb-0 overflow-y-auto relative z-10 flex flex-col rounded-t-3xl"
                             >
                                 <div className="p-1 flex justify-center sm:hidden">
                                     <div className="w-12 h-1.5 bg-slate-700 rounded-full my-2" />
                                 </div>
-                                <div className="p-4 sm:p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
+                                <div className="operations-team-sheet-header p-4 sm:p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
                                     <div className="pr-8">
-                                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">{selectedEntry.teamName}</h2>
+                                        <p className="operations-sheet-kicker">TEAM FILE / チーム受付票</p>
+                                        <h2 id="operations-team-title" className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">{selectedEntry.teamName}</h2>
                                         <p className="text-slate-400 text-xs sm:text-sm mt-1">{selectedEntry.teamNameKana || "フリガナなし"}</p>
                                     </div>
-                                    <button onClick={() => setSelectedEntry(null)} className="absolute right-4 top-4 text-slate-400 bg-slate-800 p-1.5 rounded-full hover:bg-slate-700 transition-colors">
+                                    <button aria-label="チーム詳細を閉じる" onClick={() => setSelectedEntry(null)} className="absolute right-4 top-4 text-slate-400 bg-slate-800 p-1.5 rounded-full hover:bg-slate-700 transition-colors">
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
-                                <div className="p-4 sm:p-6 space-y-6">
-                                    <div className="bg-slate-950/50 p-4 rounded-xl border border-white/5">
+                                <div className="operations-team-sheet-body p-4 sm:p-6 space-y-6">
+                                    <div className="operations-sheet-introduction bg-slate-950/50 p-4 rounded-xl border border-white/5">
                                         <p className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider">意気込み・紹介文</p>
                                         <p className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed">{selectedEntry.teamIntroduction || "（未記入）"}</p>
                                     </div>
 
                                     {project?.hasClinic && (
-                                        <div className="bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
+                                        <div className="operations-sheet-clinic bg-indigo-950/20 p-4 rounded-xl border border-indigo-500/20">
                                             <p className="text-indigo-400 text-xs font-bold mb-2 uppercase tracking-wider">{project.clinicTitle || '🏀 バスケクリニック参加希望状況'}</p>
                                             <p className="text-slate-200 text-sm font-bold">
-                                                {(selectedEntry as any).clinicParticipation
-                                                    ? `✅ 参加する (${(selectedEntry as any).clinicCount}名)`
+                                                {selectedEntry.clinicParticipation
+                                                    ? `✅ 参加する (${selectedEntry.clinicCount}名)`
                                                     : "▫️ 参加しない"}
                                             </p>
                                         </div>
                                     )}
 
                                     {/* Editable Management Section */}
-                                    <div className="space-y-4">
+                                    <div className="operations-sheet-memo space-y-4">
                                         <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2 border-b border-white/5 pb-2 uppercase tracking-widest pl-1">
                                             <MessageSquare className="w-4 h-4" /> 運営用メモ設定
                                         </h3>
 
                                         <div className="mb-4">
-                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
+                                            <label htmlFor="operations-uniform" className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
                                             <Input
+                                                id="operations-uniform"
                                                 type="text"
                                                 className="w-full bg-slate-950 border-slate-700 text-slate-200 focus-visible:ring-emerald-500"
                                                 placeholder="例：赤、白、黒 など"
@@ -574,8 +570,9 @@ export default function ManagementProjectDetail() {
                                         </div>
 
                                         <div>
-                                            <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">運営用メモ</label>
+                                            <label htmlFor="operations-memo" className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">運営用メモ</label>
                                             <textarea
+                                                id="operations-memo"
                                                 className="w-full h-40 bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none text-base sm:text-sm"
                                                 placeholder="チームについての備考や引き継ぎ事項などを記入してください..."
                                                 value={selectedEntry.managementMemo || ""}
@@ -588,8 +585,10 @@ export default function ManagementProjectDetail() {
                                             <p className="text-xs text-amber-500/80 mt-2 font-bold px-1">入力箇所から外をタップすると自動保存されます。</p>
                                         </div>
                                         
-                                        <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div className="operations-sheet-actions grid grid-cols-2 gap-3 pt-2">
+                                            <p className="operations-sheet-action-heading col-span-2">受付確認</p>
                                             <Button
+                                                 aria-pressed={!!selectedEntry.isOpenChatJoined}
                                                  className={`h-12 border transition-colors text-sm font-bold shadow-none ${selectedEntry.isOpenChatJoined ? 'bg-emerald-900/20 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                                  onClick={() => handleUpdateEntry(selectedEntry.id, { isOpenChatJoined: !selectedEntry.isOpenChatJoined })}
                                             >
@@ -597,6 +596,7 @@ export default function ManagementProjectDetail() {
                                                 OPチャット{selectedEntry.isOpenChatJoined ? '参加済' : '未確認'}
                                             </Button>
                                             <Button
+                                                aria-pressed={!!selectedEntry.isPaid}
                                                 className={`h-12 border transition-colors text-sm font-bold shadow-none ${selectedEntry.isPaid ? 'bg-blue-900/20 border-blue-500/50 text-blue-400 hover:bg-blue-900/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                                 onClick={() => handleUpdateEntry(selectedEntry.id, { isPaid: !selectedEntry.isPaid })}
                                             >
@@ -604,9 +604,9 @@ export default function ManagementProjectDetail() {
                                                 参加費{selectedEntry.isPaid ? '支払済' : '未払い'}
                                             </Button>
 
-                                            <div className="col-span-2 mt-4 space-y-3">
+                                            <div className="operations-sheet-tools col-span-2 mt-4 space-y-3">
                                                 <Button
-                                                    className="w-full h-12 border bg-indigo-900/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/40 font-bold flex items-center justify-center"
+                                                    className="operations-sheet-print w-full h-12 border bg-indigo-900/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/40 font-bold flex items-center justify-center"
                                                     onClick={() => window.open(`/management/print?teamId=${selectedEntry.id}`, '_blank')}
                                                 >
                                                     <Printer className="w-5 h-5 mr-2" />
@@ -622,11 +622,11 @@ export default function ManagementProjectDetail() {
                                                     仮エントリーに戻す
                                                 </Button>
                                                 <Button
-                                                    className="w-full h-12 border bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-900/30 font-bold flex items-center justify-center gap-2"
+                                                    className="operations-sheet-delete w-full h-12 border bg-red-950/40 border-red-900/30 text-red-400 hover:bg-red-900/30 font-bold flex items-center justify-center gap-2"
                                                     onClick={async () => {
                                                         if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。選手データもすべて物理削除され、募集枠が解放されます。")) return;
                                                         try {
-                                                            const res = await fetch('/api/admin/entry/delete', {
+                                                            const res = await staffFetch('/api/admin/entry/delete', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id })
@@ -638,7 +638,7 @@ export default function ManagementProjectDetail() {
                                                             } else {
                                                                 alert("削除に失敗しました");
                                                             }
-                                                        } catch (e) {
+                                                        } catch {
                                                             alert("エラーが発生しました");
                                                         }
                                                     }}

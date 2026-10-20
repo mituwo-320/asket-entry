@@ -520,8 +520,6 @@ export function recordMatchResult(
             const newMatches = block.matches.map(m => {
                 if (m.matchId === matchId) {
                     const loserId = m.slotA.teamId === winnerId ? m.slotB.teamId : m.slotA.teamId;
-                    const winnerName = m.slotA.teamId === winnerId ? m.slotA.teamName : m.slotB.teamName;
-                    const loserName = m.slotA.teamId === winnerId ? m.slotB.teamName : m.slotA.teamName;
                     updatedBlock = true;
                     return { ...m, winnerId, loserId, status: 'completed' as const };
                 }
@@ -738,7 +736,7 @@ export function undoMatchResult(
         return result;
     } else {
         // Double Elimination Undo Logic
-        let result: TournamentBracketData = { ...bracket };
+        const result: TournamentBracketData = { ...bracket };
         const allMatches = [
             ...result.initialMatches,
             ...result.winnersMatches,
@@ -800,7 +798,6 @@ function resetBlockTournamentDownstream(bracket: TournamentBracketData, matchId:
     const newBlocks = bracket.blocks.map(block => {
         if (block.type !== 'tournament') return block;
 
-        const sfMatches = ['SF1', 'SF2'];
         const targetSuffix = matchId.endsWith('SF1') ? 'SF1' : matchId.endsWith('SF2') ? 'SF2' : null;
         if (!targetSuffix) return block;
 
@@ -1110,7 +1107,7 @@ export function updateMatchInfo(
     court?: string,
     referee?: string
 ): TournamentBracketData {
-    let result: TournamentBracketData = { ...bracket };
+    const result: TournamentBracketData = { ...bracket };
     
     if (bracket.format === 'blocks_and_placement') {
         result.blocks = result.blocks?.map(block => {

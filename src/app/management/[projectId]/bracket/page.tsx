@@ -1,6 +1,7 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -12,6 +13,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { TeamEntry, TournamentBracketData, Project } from "@/lib/types";
+import { OperationsHeading, OperationsState } from "@/components/operations/OperationsFrame";
 import TournamentBracket from "@/components/admin/TournamentBracket";
 import BracketFullscreen from "@/components/admin/BracketFullscreen";
 import { recordMatchResult, updateMatchScore, undoMatchResult } from "@/lib/bracket-generator";
@@ -26,23 +28,18 @@ export default function ManagementTournamentBracketPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [bracketData, setBracketData] = useState<TournamentBracketData | null>(null);
     const [bracketId, setBracketId] = useState<string | null>(null);
-    const [teamCount, setTeamCount] = useState<number>(16);
+    const [teamCountOverride, setTeamCount] = useState<number | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isSeedingTeams, setIsSeedingTeams] = useState(false);
     const [seedMessage, setSeedMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, [projectId]);
-
-    const loadData = async () => {
-        try {
-            const [dataRes, projectsRes, bracketRes] = await Promise.all([
-                fetch('/api/admin/data'),
-                fetch('/api/admin/projects'),
-                fetch(`/api/admin/bracket?tournamentId=${projectId}`)
-            ]);
+    const loadData = useCallback(() => {
+        return Promise.all([
+                staffFetch('/api/admin/data'),
+                staffFetch('/api/admin/projects'),
+                staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
+            ]).then(async ([dataRes, projectsRes, bracketRes]) => {
 
             if (dataRes.ok) {
                 const data = await dataRes.json();
@@ -67,12 +64,16 @@ export default function ManagementTournamentBracketPage() {
                     setBracketData(null);
                 }
             }
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to load tournament bracket data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const seedTestTeams = async () => {
         const input = prompt("検証したいテストチーム数を指定してください (8〜16):", "16");
@@ -87,7 +88,7 @@ export default function ManagementTournamentBracketPage() {
         setIsSeedingTeams(true);
         setSeedMessage(null);
         try {
-            const res = await fetch('/api/admin/bracket/seed-teams', {
+            const res = await staffFetch('/api/admin/bracket/seed-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: projectId, teamCount: count }),
@@ -97,9 +98,9 @@ export default function ManagementTournamentBracketPage() {
                 setSeedMessage({ type: 'success', text: data.message });
                 
                 // Refresh data
-                const [dataRes, bracketRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch(`/api/admin/bracket?tournamentId=${projectId}`)
+                const [dataRes] = await Promise.all([
+                    staffFetch('/api/admin/data'),
+                    staffFetch(`/api/admin/bracket?tournamentId=${projectId}`)
                 ]);
                 if (dataRes.ok) {
                     const dataJson = await dataRes.json();
@@ -108,7 +109,7 @@ export default function ManagementTournamentBracketPage() {
                 
                 // Automatically generate a new bracket matching the seeded team count
                 setTeamCount(count);
-                const genRes = await fetch('/api/admin/bracket', {
+                const genRes = await staffFetch('/api/admin/bracket', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tournamentId: projectId, teamCount: count }),
@@ -121,7 +122,7 @@ export default function ManagementTournamentBracketPage() {
             } else {
                 setSeedMessage({ type: 'error', text: data.error || '失敗しました' });
             }
-        } catch (e) {
+        } catch {
             setSeedMessage({ type: 'error', text: 'エラーが発生しました' });
         } finally {
             setIsSeedingTeams(false);
@@ -138,7 +139,7 @@ export default function ManagementTournamentBracketPage() {
 
         setIsGenerating(true);
         try {
-            const res = await fetch('/api/admin/bracket', {
+            const res = await staffFetch('/api/admin/bracket', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournamentId: projectId, teamCount }),
@@ -150,7 +151,7 @@ export default function ManagementTournamentBracketPage() {
             } else {
                 alert(data.error || "生成に失敗しました");
             }
-        } catch (e) {
+        } catch {
             alert("エラーが発生しました");
         } finally {
             setIsGenerating(false);
@@ -159,7 +160,7 @@ export default function ManagementTournamentBracketPage() {
 
     const saveBracket = async (data: TournamentBracketData, status?: string) => {
         if (!bracketId) return;
-        const res = await fetch('/api/admin/bracket/update', {
+        const res = await staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: data, status }),
@@ -172,7 +173,7 @@ export default function ManagementTournamentBracketPage() {
         const updated = recordMatchResult(bracketData, matchId, winnerId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -185,7 +186,7 @@ export default function ManagementTournamentBracketPage() {
         const updated = undoMatchResult(bracketData, matchId);
         setBracketData(updated);
         if (bracketId) {
-            fetch('/api/admin/bracket/update', {
+            staffFetch('/api/admin/bracket/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bracketId, brackets: updated, status: 'in_progress' }),
@@ -228,7 +229,7 @@ export default function ManagementTournamentBracketPage() {
 
         const updated = updateMatchScore(bracketData, matchId, newScoreA, newScoreB);
         setBracketData(updated);
-        fetch('/api/admin/bracket/update', {
+        staffFetch('/api/admin/bracket/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bracketId, brackets: updated }),
@@ -238,40 +239,18 @@ export default function ManagementTournamentBracketPage() {
     const displayUrl = `/admin/tournament-bracket/display?id=${projectId}`;
     const activeEntries = entries.filter(e => e.status !== 'cancelled');
 
-    // Automatically suggest active entries count as default teamCount
-    useEffect(() => {
-        if (!isLoading && !bracketData && activeEntries.length >= 2) {
-            setTeamCount(activeEntries.length);
-        }
-    }, [isLoading, bracketData, activeEntries.length]);
+    const teamCount = teamCountOverride ?? (!bracketData && activeEntries.length >= 2 ? activeEntries.length : 16);
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-                <Loader2 className="animate-spin w-8 h-8 mr-3 text-emerald-500" />
-                <span className="text-lg">読み込み中...</span>
-            </div>
-        );
-    }
-
-    if (!project) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white p-4 text-center">
-                <div>
-                    <p className="text-xl mb-4 font-bold text-red-400">プロジェクトが見つかりません</p>
-                    <Button onClick={() => router.push('/management')} variant="outline" className="border-slate-700">一覧に戻る</Button>
-                </div>
-            </div>
-        );
-    }
+    if (isLoading) return <OperationsState title="対戦表を読み込んでいます" loading />;
+    if (!project) return <OperationsState title="大会情報を確認できませんでした" message="大会一覧から対象の大会を選び直してください。" />;
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col text-slate-200">
+        <div className="operations-bracket min-h-screen flex flex-col text-slate-200">
             {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
+            <header className="operations-bracket-header border-b border-white/5 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2" onClick={() => router.push(`/management/${projectId}`)}>
+                        <Button aria-label="大会の受付ページへ戻る" variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2" onClick={() => router.push(`/management/${projectId}`)}>
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                         <h1 className="text-base sm:text-lg font-bold text-white tracking-tight line-clamp-1 flex items-center gap-2">
@@ -307,7 +286,8 @@ export default function ManagementTournamentBracketPage() {
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col p-4 w-full max-w-7xl mx-auto">
+            <main id="operations-main" tabIndex={-1} className="flex-1 flex flex-col p-4 w-full max-w-7xl mx-auto">
+                <OperationsHeading eyebrow="TOURNAMENT / MATCH CONTROL" title="対戦表と試合の進行" description="対戦表・表示用画面・操作画面を、用途に合わせて開きます。" />
                 {/* Seed message toast */}
                 <AnimatePresence>
                     {seedMessage && (
@@ -335,7 +315,7 @@ export default function ManagementTournamentBracketPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="max-w-lg mx-auto mt-12 w-full"
                     >
-                        <Card className="p-8 border-white/5 bg-slate-900/60 backdrop-blur-xl">
+                        <Card className="operations-bracket-setup p-8 border-white/5 bg-slate-900/60 backdrop-blur-xl">
                             <div className="text-center mb-8">
                                 <div className="inline-block p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 mb-4">
                                     <Trophy className="w-12 h-12 text-emerald-400" />
@@ -353,6 +333,7 @@ export default function ManagementTournamentBracketPage() {
                                         参加チーム数
                                     </label>
                                     <Input
+                                        aria-label="参加チーム数"
                                         type="number"
                                         min={2}
                                         max={64}
@@ -403,7 +384,7 @@ export default function ManagementTournamentBracketPage() {
                         animate={{ opacity: 1 }}
                         className="flex flex-col flex-1 gap-2 h-full"
                     >
-                        <div className="flex items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-lg border border-white/5">
+                        <div className="operations-bracket-links flex items-center justify-between gap-3 bg-slate-900/40 p-2 rounded-lg border border-white/5">
                             <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
                                 <span className="flex items-center gap-1.5 focus:outline-none">
                                     <Monitor className="w-3.5 h-3.5 text-emerald-400" />
@@ -445,8 +426,9 @@ export default function ManagementTournamentBracketPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 min-h-0 bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div className="operations-bracket-board flex-1 min-h-0 bg-white rounded-lg overflow-hidden shadow-sm">
                             <TournamentBracket
+                                appearance="operations"
                                 bracketData={bracketData}
                                 entries={activeEntries}
                                 bracketId={bracketId!}
@@ -461,6 +443,7 @@ export default function ManagementTournamentBracketPage() {
             {/* Admin fullscreen (with win controls) */}
             {bracketData && (
                 <BracketFullscreen
+                    appearance="operations"
                     isOpen={isFullscreen}
                     onClose={() => setIsFullscreen(false)}
                     bracketData={bracketData}

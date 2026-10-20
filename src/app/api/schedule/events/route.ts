@@ -1,7 +1,8 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { getScheduleEvents, saveScheduleEvents, deleteScheduleEvent } from '@/lib/sheets';
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
     const { searchParams } = new URL(request.url);
     const tournamentId = searchParams.get('tournamentId');
 
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const { events } = body;
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+async function handleDELETE(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const eventId = searchParams.get('id');
@@ -62,3 +63,9 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: STAFF });
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });
+
+export const DELETE = withAuthorization(handleDELETE, { roles: STAFF });

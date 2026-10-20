@@ -1,9 +1,10 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 
 import { NextResponse } from 'next/server';
 import { findTeamEntry, saveTeamEntry } from '@/lib/sheets';
 import { TeamEntry } from '@/lib/types';
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const { entryId, updates } = body;
@@ -38,3 +39,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });

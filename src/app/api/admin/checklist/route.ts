@@ -1,3 +1,4 @@
+import { withAuthorization } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
@@ -17,7 +18,7 @@ const DEFAULT_CHECKLIST_ITEMS = [
   "シュートチャレンジリスト"
 ];
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const projectId = searchParams.get('projectId');
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const { projectId, name } = body;
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     }
 }
 
-export async function PATCH(request: Request) {
+async function handlePATCH(request: Request) {
     try {
         const body = await request.json();
         const { id, isPrinted } = body;
@@ -117,7 +118,7 @@ export async function PATCH(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
+async function handleDELETE(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -136,3 +137,11 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
     }
 }
+
+export const GET = withAuthorization(handleGET, { roles: ['admin'] });
+
+export const POST = withAuthorization(handlePOST, { roles: ['admin'] });
+
+export const PATCH = withAuthorization(handlePATCH, { roles: ['admin'] });
+
+export const DELETE = withAuthorization(handleDELETE, { roles: ['admin'] });

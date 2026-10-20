@@ -1,10 +1,13 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAdminDialogFocus } from "@/components/admin/useAdminDialogFocus";
+import { AdminHeading, AdminSectionNav, AdminState } from "@/components/admin/AdminFrame";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Settings, Save, AlertCircle, Plus, Copy, Trash2, Link as LinkIcon, RefreshCcw, Bell, ShieldCheck, Mail, LogOut, Loader2, LayoutDashboard, Target, Users, Megaphone, Smartphone, CheckCircle2, MessageSquare, Menu, Calendar, X, FileEdit, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft, HardDrive } from "lucide-react";
+import { Settings, AlertCircle, Trash2, Loader2, Users, CheckCircle2, MessageSquare, Calendar, X, Printer, Search, Download, ShieldAlert, Trophy, FileDown, Ticket, Edit2, ArrowLeft, HardDrive } from "lucide-react";
 import TimeScheduleEditor from '@/components/admin/TimeScheduleEditor';
 import MatchResultModal from '@/components/admin/MatchResultModal';
 import LotteryModal from '@/components/admin/LotteryModal';
@@ -14,13 +17,13 @@ import BackupManagerModal from '@/components/admin/BackupManagerModal'; // NEW
 import PrintChecklist from '@/components/admin/PrintChecklist'; // NEW
 import Link from "next/link";
 import * as XLSX from 'xlsx';
-import { TeamEntry, User, Match, Project } from "@/lib/types";
-import { getTournamentName } from "@/lib/tournament-constants";
+import { TeamEntryDetails, User, Match, Project } from "@/lib/types";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboard() {
     // State
-    const [entries, setEntries] = useState<TeamEntry[]>([]);
+    const [entries, setEntries] = useState<TeamEntryDetails[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]); // NEW: Projects State
     const [selectedProjectId, setSelectedProjectId] = useState<string>("2024-Spring"); // NEW: Project filter
@@ -29,10 +32,9 @@ export default function AdminDashboard() {
     const [searchResult, setSearchResult] = useState<{ playerName: string, teamName: string, insurance: boolean } | null>(null);
     const [teamSearchQuery, setTeamSearchQuery] = useState("");
     const [teamFilterStatus, setTeamFilterStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
-    const [selectedEntry, setSelectedEntry] = useState<TeamEntry | null>(null); // For Details Modal
+    const [selectedEntry, setSelectedEntry] = useState<TeamEntryDetails | null>(null); // For Details Modal
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); // NEW: For Match Result Modal
     const [matches, setMatches] = useState<Match[]>([]);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [isLotteryOpen, setIsLotteryOpen] = useState(false);
     const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false); // NEW
     const [isBackupModalOpen, setIsBackupModalOpen] = useState(false); // NEW
@@ -43,6 +45,9 @@ export default function AdminDashboard() {
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
+    const teamDialogRef = useAdminDialogFocus(!!selectedEntry, () => setSelectedEntry(null));
+    const settingsDialogRef = useAdminDialogFocus(isSettingsModalOpen, () => setIsSettingsModalOpen(false));
+
     // Helper
     const getTeamName = (teamId: string) => {
         if (teamId === 'Bye') return '不戦勝';
@@ -51,21 +56,19 @@ export default function AdminDashboard() {
     };
 
     // Fetch Data
-    const loadData = async () => {
-        try {
-            // Fetch basic data
-            const res = await fetch('/api/admin/data');
+    const loadData = useCallback(() => {
+        return staffFetch('/api/admin/data').then(async (res) => {
             const data = await res.json();
             if (data.entries) setEntries(data.entries);
             if (data.users) setUsers(data.users);
 
             // Fetch matches
-            const matchRes = await fetch('/api/matches');
+            const matchRes = await staffFetch('/api/matches');
             const matchData = await matchRes.json();
             if (matchData.matches) setMatches(matchData.matches);
 
             // Fetch Projects (Dates)
-            const projectsRes = await fetch('/api/admin/projects');
+            const projectsRes = await staffFetch('/api/admin/projects');
             if (projectsRes.ok) {
                 const projectsData = await projectsRes.json();
                 if (projectsData.projects) {
@@ -77,23 +80,23 @@ export default function AdminDashboard() {
             }
 
             // Fetch Settings
-            const settingsRes = await fetch('/api/settings');
+            const settingsRes = await staffFetch('/api/settings');
             if (settingsRes.ok) {
                 const settingsData = await settingsRes.json();
                 if (settingsData && settingsData.participationFee !== undefined) setSettings(settingsData);
             }
 
-        } catch (e) {
+        }).catch((e) => {
             console.error("Failed to fetch admin data", e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, []);
 
     useEffect(() => {
-        // middleware.ts handles admin route protection, no need for localStorage checks here.
+        // proxy.ts and API authorization enforce staff access.
         loadData();
-    }, []);
+    }, [loadData]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -108,80 +111,12 @@ export default function AdminDashboard() {
         show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
     };
 
-    const generateSchedule = async () => {
-        if (!confirm("現在のエントリー状況で対戦カードを生成しますか？（既存のスケジュールは上書きされる可能性があります）")) return;
-        setIsGenerating(true);
-        try {
-            const res = await fetch('/api/admin/schedule/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tournamentId: '2024-Spring' }) // Should ideally imply this or fetch constant
-            });
-            const data = await res.json();
-            if (data.success) {
-                setMatches(data.matches);
-                alert("対戦カードを生成しました");
-            } else {
-                alert(data.error || "生成に失敗しました");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("エラーが発生しました");
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const updateScore = (match: Match, field: 'scoreA' | 'scoreB', value: string) => {
-        const numVal = value === '' ? undefined : parseInt(value);
-        const updatedMatches = matches.map(m => {
-            if (m.id === match.id) {
-                return { ...m, [field]: numVal, status: 'playing' as const };
-            }
-            return m;
-        });
-        setMatches(updatedMatches);
-
-        // Debounce save or save immediately? Let's save on blur or use a button.
-        // For simple UX, let's just update local state and use the 'Finalize' button to really 'commit' status.
-        // But we should probably save values too.
-        // Let's implement auto-save or individual save.
-        // Actually, let's trigger a background save.
-        const updatedMatch = updatedMatches.find(m => m.id === match.id);
-        if (updatedMatch) {
-            fetch('/api/admin/match/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ match: updatedMatch })
-            }).catch(e => console.error(e));
-        }
-    };
-
-    const finalizeMatch = async (match: Match) => {
-        if (!confirm("試合を終了し、結果を確定しますか？")) return;
-        const updatedMatch = { ...match, status: 'finished' as const };
-        // Determine winner logic if needed, but for now just status
-
-        try {
-            const res = await fetch('/api/admin/match/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ match: updatedMatch })
-            });
-            if (res.ok) {
-                setMatches(matches.map(m => m.id === match.id ? updatedMatch : m));
-            }
-        } catch (e) {
-            alert("保存に失敗しました");
-        }
-    };
-
     // Current View Filter logic for matches, entries
     const activeEntries = entries.filter(e => e.tournamentId === selectedProjectId);
     const activeMatches = matches.filter(m => m.tournamentId === selectedProjectId);
 
-    const clinicParticipatingTeams = activeEntries.filter(e => e.status !== 'cancelled' && (e as any).clinicParticipation);
-    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + ((e as any).clinicCount || 0), 0);
+    const clinicParticipatingTeams = activeEntries.filter(e => e.status !== 'cancelled' && e.clinicParticipation);
+    const totalClinicCount = clinicParticipatingTeams.reduce((sum, e) => sum + (e.clinicCount || 0), 0);
 
     const activeProjectData = projects.find(p => p.id === selectedProjectId);
 
@@ -226,7 +161,7 @@ export default function AdminDashboard() {
     // Helper to download Insurance List (Client-side)
     const downloadInsuranceList = () => {
         // 1. Flatten Data
-        const rows: any[] = [];
+        const rows: Record<string, string | number>[] = [];
         activeEntries.forEach(entry => {
             // Find User for Rep Name
             const user = users.find(u => u.id === entry.userId);
@@ -258,7 +193,7 @@ export default function AdminDashboard() {
 
     // Helper to download Detailed Team List
     const downloadDetailedTeamList = () => {
-        const rows: any[] = [];
+        const rows: Record<string, string | number>[] = [];
         activeEntries.forEach(entry => {
             const user = users.find(u => u.id === entry.userId);
             const repName = user ? user.name : "Unknown";
@@ -316,7 +251,7 @@ export default function AdminDashboard() {
         }
 
         try {
-            const res = await fetch('/api/settings', {
+            const res = await staffFetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -333,7 +268,7 @@ export default function AdminDashboard() {
             } else {
                 setSaveMessage({ type: 'error', text: '設定の保存に失敗しました' });
             }
-        } catch (e) {
+        } catch {
             setSaveMessage({ type: 'error', text: '通信エラーが発生しました' });
         } finally {
             setIsSavingSettings(false);
@@ -386,14 +321,14 @@ export default function AdminDashboard() {
         return matchesSearch && matchesFilter;
     });
 
-    const calculateLotteryNumbers = (entriesList: TeamEntry[]) => {
+    const calculateLotteryNumbers = (entriesList: TeamEntryDetails[]) => {
         const validEntries = entriesList.filter(e => e.status !== 'cancelled');
         const sorted = [...validEntries].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         const occupied = new Set<number>();
         const assigned = new Map<string, { requested: number | undefined, final: number | undefined, bumped: boolean }>();
 
         for (const entry of sorted) {
-            let req = entry.preliminaryNumber;
+            const req = entry.preliminaryNumber;
             let finalNum: number | undefined = undefined;
             let bumped = false;
 
@@ -418,25 +353,27 @@ export default function AdminDashboard() {
     const lotteryAssignments = calculateLotteryNumbers(activeEntries);
 
     if (isLoading) {
-        return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white"><Loader2 className="animate-spin w-8 h-8 mr-3 text-indigo-500" /> <span className="text-lg">Loading Admin Data...</span></div>;
+        return <AdminState loading title="管理データを読み込んでいます" />;
     }
 
     return (
-        <div className="min-h-screen">
+        <div className="admin-workspace min-h-screen">
             {/* Header */}
-            <header className="border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
+            <a href="#admin-main" className="admin-skip">本文へ移動</a>
+            <header className="admin-header border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/20">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
-                        <h1 className="text-lg font-bold text-white tracking-tight hidden sm:block">vankycup Admin</h1>
+                        <h1 className="admin-brand text-lg font-bold text-white tracking-tight"><span>VANKY CUP</span>大会管理室</h1>
                     </div>
                     {/* Project Selector section in header */}
                     <div className="flex items-center gap-4">
                         <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
                             <span className="text-xs text-slate-400 pl-2">対象日程:</span>
                             <select
+                                aria-label="対象日程"
                                 value={selectedProjectId}
                                 onChange={(e) => setSelectedProjectId(e.target.value)}
                                 className="bg-slate-950/50 border-none text-slate-200 text-sm rounded focus:ring-1 focus:ring-indigo-500 outline-none h-8 px-2"
@@ -478,7 +415,9 @@ export default function AdminDashboard() {
                             v1.0.0 (Beta)
                         </span>
                         <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white flex items-center gap-1 sm:gap-2" onClick={async () => {
-                            await fetch('/api/admin/auth/logout', { method: 'POST' });
+                            await staffFetch('/api/admin/auth/logout', { method: 'POST' });
+                            // A new/cleared HttpOnly staff session must be checked on a fresh document.
+                            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                             window.location.href = '/';
                         }}>
                             <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline text-xs sm:text-sm font-medium">トップへ戻る</span>
@@ -487,11 +426,12 @@ export default function AdminDashboard() {
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 py-8 max-w-[95%]">
+            <main id="admin-main" tabIndex={-1} className="admin-main container mx-auto px-4 py-8 max-w-[95%]">
                 {/* Mobile Project Selector */}
                 <div className="md:hidden mb-6 bg-slate-900/50 border border-slate-800 rounded-xl p-4 shadow-lg backdrop-blur-sm">
                     <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-widest pl-1">対象日程</label>
                     <select
+                        aria-label="対象日程（モバイル）"
                         value={selectedProjectId}
                         onChange={(e) => setSelectedProjectId(e.target.value)}
                         className="w-full bg-slate-950/80 border border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 outline-none h-12 px-3 transition-colors"
@@ -519,17 +459,16 @@ export default function AdminDashboard() {
                     className="space-y-8"
                 >
                     {/* Welcome Section */}
-                    <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">ダッシュボード</h2>
-                            <p className="text-slate-400 text-sm">大会の運営状況を一元管理し、全体の進行をサポートします。</p>
-                        </div>
+                    <motion.div variants={itemVariants} className="admin-welcome">
+                        <AdminHeading title="大会を動かす、管理室。" description="受付状況から大会の設定、当日の進行まで。必要な情報を、ひとつのデスクに。">
                         <Button
                             className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 flex items-center"
                             onClick={() => setIsSettingsModalOpen(true)}
                         >
-                            <Settings className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">設定</span>
+                            <Settings className="w-4 h-4 mr-2" /> <span>大会費用・共通設定</span>
                         </Button>
+                        </AdminHeading>
+                        <AdminSectionNav />
                     </motion.div>
 
                     {activeProjectData?.hasClinic && (
@@ -569,7 +508,7 @@ export default function AdminDashboard() {
                                                     <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
                                                         <td className="px-4 py-2.5 font-bold text-white">{e.teamName}</td>
                                                         <td className="px-4 py-2.5">{getRepName(e.userId)}</td>
-                                                        <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{(e as any).clinicCount || 0}名</td>
+                                                        <td className="px-4 py-2.5 text-right font-black text-emerald-400 text-sm">{e.clinicCount || 0}名</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -581,13 +520,13 @@ export default function AdminDashboard() {
                     )}
 
                     {/* Stats Grid */}
-                    <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+                    <motion.div variants={itemVariants} className="admin-stats grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
                         <Card className="p-6 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Users className="w-16 h-16 text-white" />
                             </div>
                             <Trophy className="w-8 h-8 text-indigo-400 mb-3" />
-                            <p className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-1">Total Teams</p>
+                            <p className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-1">エントリーチーム</p>
                             <h3 className="text-4xl font-black text-white">{totalEntries}<span className="text-xl text-slate-500 ml-1 font-medium">チーム</span></h3>
                             {activeProjectData?.maxTeams ? (
                                 <div className="mt-2 text-xs flex gap-2">
@@ -635,9 +574,8 @@ export default function AdminDashboard() {
                         </Card>
                     </motion.div>
 
-
                     {/* NEW: Team Management Section */}
-                    <motion.div variants={itemVariants}>
+                    <motion.div id="admin-teams" variants={itemVariants}>
                         <Card className="p-0 overflow-hidden">
                             <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/20">
                                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -660,11 +598,12 @@ export default function AdminDashboard() {
                             </div>
 
                             {/* Search and Filter Controls */}
-                            <div className="px-6 py-4 flex flex-col sm:flex-row gap-4 border-b border-white/5 bg-slate-900/10">
+                            <div className="admin-team-filters px-6 py-4 flex flex-col sm:flex-row gap-4 border-b border-white/5 bg-slate-900/10">
                                 <div className="relative flex-1">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                     <Input
                                         type="text"
+                                        aria-label="チーム名・代表者名・電話番号で検索"
                                         placeholder="チーム名、代表者名、電話番号で検索..."
                                         value={teamSearchQuery}
                                         onChange={(e) => setTeamSearchQuery(e.target.value)}
@@ -672,8 +611,9 @@ export default function AdminDashboard() {
                                     />
                                 </div>
                                 <select
+                                    aria-label="入金状況で絞り込み"
                                     value={teamFilterStatus}
-                                    onChange={(e) => setTeamFilterStatus(e.target.value as any)}
+                                    onChange={(e) => setTeamFilterStatus(e.target.value as typeof teamFilterStatus)}
                                     className="bg-slate-950 border border-slate-800 text-slate-300 text-sm rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-48 p-2.5 outline-none transition-all"
                                 >
                                     <option value="all">すべてのステータス</option>
@@ -767,7 +707,7 @@ export default function AdminDashboard() {
                                                                 </span>
                                                             ) : entry.clinicParticipation === true ? (
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                                                    参加 ({(entry as any).clinicCount || 0}名)
+                                                                    参加 ({entry.clinicCount || 0}名)
                                                                 </span>
                                                             ) : (
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
@@ -778,21 +718,20 @@ export default function AdminDashboard() {
                                                     )}
                                                     <td className="px-4 py-3">
                                                         <button
+                                                            aria-label={`${entry.teamName}の入金確認`}
+                                                            aria-pressed={!!entry.isPaid}
                                                             onClick={async () => {
                                                                 const newStatus = !entry.isPaid;
-                                                                // Optimistic Update
-                                                                setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: newStatus } : e));
-
                                                                 try {
-                                                                    await fetch('/api/admin/entry/update', {
+                                                                    const response = await staffFetch('/api/admin/entry/update', {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify({ entryId: entry.id, updates: { isPaid: newStatus } })
                                                                     });
-                                                                } catch (e) {
+                                                                    if (!response.ok) throw new Error('Save failed');
+                                                                    setEntries(previous => previous.map(item => item.id === entry.id ? { ...item, isPaid: newStatus } : item));
+                                                                } catch {
                                                                     alert("更新に失敗しました");
-                                                                    // Revert
-                                                                    setEntries(entries.map(e => e.id === entry.id ? { ...e, isPaid: !newStatus } : e));
                                                                 }
                                                             }}
                                                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${entry.isPaid
@@ -854,14 +793,15 @@ export default function AdminDashboard() {
                                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 flex flex-col"
+                                    ref={teamDialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="チーム詳細"
+                                    className="admin-dialog admin-team-file bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 flex flex-col"
                                 >
-                                    <div className="p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
+                                    <div className="admin-dialog-header p-6 border-b border-white/5 flex justify-between items-start sticky top-0 bg-slate-900/95 backdrop-blur z-20">
                                         <div>
                                             <h2 className="text-2xl font-bold text-white tracking-tight">{selectedEntry.teamName}</h2>
-                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{(selectedEntry as any).projectName || selectedEntry.tournamentId}</p>
+                                            <p className="text-indigo-400 text-sm mt-1 font-medium">{selectedEntry.projectName || selectedEntry.tournamentId}</p>
                                         </div>
-                                        <button
+                                        <button aria-label="閉じる"
                                             onClick={() => setSelectedEntry(null)}
                                             className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
                                         >
@@ -935,7 +875,7 @@ export default function AdminDashboard() {
 
                                             <div className="mb-4">
                                                 <label className="text-slate-500 text-xs font-bold mb-2 uppercase tracking-wider block px-1">ユニフォーム色</label>
-                                                <Input
+                                                <Input aria-label="ユニフォーム色"
                                                     type="text"
                                                     className="w-full bg-slate-950 border-slate-700 text-slate-200 focus-visible:ring-emerald-500"
                                                     placeholder="例：赤、白、黒 など"
@@ -944,13 +884,14 @@ export default function AdminDashboard() {
                                                     onBlur={async (e) => {
                                                         const newVal = e.target.value;
                                                         try {
-                                                            await fetch('/api/admin/entry/update', {
+                                                            const response = await staffFetch('/api/admin/entry/update', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id, updates: { uniformColor: newVal } })
                                                             });
+                                                            if (!response.ok) throw new Error('Save failed');
                                                             setEntries(prev => prev.map(entry => entry.id === selectedEntry.id ? { ...entry, uniformColor: newVal } : entry));
-                                                        } catch (err) {
+                                                        } catch {
                                                             alert("保存に失敗しました");
                                                         }
                                                     }}
@@ -987,22 +928,22 @@ export default function AdminDashboard() {
                                             <button
                                                 onClick={async () => {
                                                     if (!confirm(selectedEntry.status === 'cancelled' ? "このチームのキャンセルを取り消し、通常エントリーに戻しますか？" : "このチームをキャンセル状態にしますか？(キャンセル待ちのチームが自動的に繰り上がります)")) return;
-                                                    const newStatus = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
+                                                    const newStatus: TeamEntryDetails['status'] = selectedEntry.status === 'cancelled' ? 'submitted' : 'cancelled';
 
                                                     try {
-                                                        const res = await fetch('/api/admin/entry/update', {
+                                                        const res = await staffFetch('/api/admin/entry/update', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: newStatus } })
                                                         });
                                                         if (res.ok) {
-                                                            const updatedEntry = { ...selectedEntry, status: newStatus as any };
+                                                            const updatedEntry = { ...selectedEntry, status: newStatus };
                                                             setSelectedEntry(updatedEntry);
                                                             setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
                                                         } else {
                                                             alert("更新に失敗しました");
                                                         }
-                                                    } catch (e) {
+                                                    } catch {
                                                         alert("エラーが発生しました");
                                                     }
                                                 }}
@@ -1020,19 +961,19 @@ export default function AdminDashboard() {
                                                     onClick={async () => {
                                                         if (!confirm("本当にこのチームを仮エントリー状態に戻しますか？\n（ユーザーが再度メンバー編集できるようになります）")) return;
                                                         try {
-                                                            const res = await fetch('/api/admin/entry/update', {
+                                                            const res = await staffFetch('/api/admin/entry/update', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({ entryId: selectedEntry.id, updates: { status: 'draft' } })
                                                             });
                                                             if (res.ok) {
-                                                                const updatedEntry = { ...selectedEntry, status: 'draft' as any };
+                                                                const updatedEntry = { ...selectedEntry, status: 'draft' as const };
                                                                 setSelectedEntry(updatedEntry);
                                                                 setEntries((prev) => prev.map(e => e.id === selectedEntry.id ? updatedEntry : e));
                                                             } else {
                                                                 alert("更新に失敗しました");
                                                             }
-                                                        } catch (e) {
+                                                        } catch {
                                                             alert("エラーが発生しました");
                                                         }
                                                     }}
@@ -1046,7 +987,7 @@ export default function AdminDashboard() {
                                                 onClick={async () => {
                                                     if (!confirm("⚠️ 【警告】このチームのエントリーデータを完全に削除しますか？\nこの操作は取り消せません。登録された選手データもすべて物理削除され、募集枠が解放されます。")) return;
                                                     try {
-                                                        const res = await fetch('/api/admin/entry/delete', {
+                                                        const res = await staffFetch('/api/admin/entry/delete', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({ entryId: selectedEntry.id })
@@ -1058,7 +999,7 @@ export default function AdminDashboard() {
                                                         } else {
                                                             alert("削除に失敗しました");
                                                         }
-                                                    } catch (e) {
+                                                    } catch {
                                                         alert("エラーが発生しました");
                                                     }
                                                 }}
@@ -1098,11 +1039,6 @@ export default function AdminDashboard() {
                         )}
                     </motion.div>
 
-
-
-
-
-
                     {/* Quick Actions & Checklist Grid */}
                     <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Column 1: Print Checklist */}
@@ -1116,7 +1052,7 @@ export default function AdminDashboard() {
                             <Card className="p-6 bg-slate-900/40 border-white/5 relative overflow-hidden flex-1 flex flex-col justify-between">
                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
                                 <div>
-                                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-white relative z-10">
+                                    <h2 id="admin-tools" className="text-lg font-bold mb-4 flex items-center gap-2 text-white relative z-10">
                                         <FileDown className="w-5 h-5 text-indigo-400" /> 出力・ダウンロード
                                     </h2>
 
@@ -1126,7 +1062,7 @@ export default function AdminDashboard() {
                                                 <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">保険加入者リスト</p>
                                                 <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
                                             </div>
-                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadInsuranceList}>
+                                            <Button aria-label="ダウンロード" size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadInsuranceList}>
                                                 <Download className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -1135,7 +1071,7 @@ export default function AdminDashboard() {
                                                 <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">個人名抽選券</p>
                                                 <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">印刷用 PDF</p>
                                             </div>
-                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={() => window.open('/admin/print/lottery', '_blank')}>
+                                            <Button aria-label="印刷" size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={() => window.open('/admin/print/lottery', '_blank')}>
                                                 <Printer className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -1144,7 +1080,7 @@ export default function AdminDashboard() {
                                                 <p className="font-bold text-white text-sm tracking-wide group-hover:text-indigo-300 transition-colors">詳細チーム・選手情報一覧</p>
                                                 <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Excel .xlsx</p>
                                             </div>
-                                            <Button size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadDetailedTeamList}>
+                                            <Button aria-label="ダウンロード" size="sm" variant="ghost" className="h-8 hover:bg-indigo-500/20" onClick={downloadDetailedTeamList}>
                                                 <Download className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -1161,6 +1097,7 @@ export default function AdminDashboard() {
                                 <div className="space-y-4">
                                     <div className="flex gap-2">
                                         <Input
+                                            aria-label="保険加入状況を確認する選手名"
                                             placeholder="選手名またはフリガナ"
                                             className="flex-1 text-sm bg-slate-800/50"
                                             value={searchQuery}
@@ -1232,11 +1169,14 @@ export default function AdminDashboard() {
                         {/* TimeScheduleEditor */}
                         <div>
                             <p className="text-white font-bold mb-2 text-lg">タイムスケジュール</p>
+                            <div id="admin-matches" className="admin-anchor" />
                             <TimeScheduleEditor
+                                key={selectedProjectId}
+                                tournamentId={selectedProjectId}
                                 entries={activeEntries}
                                 matches={activeMatches}
                                 refreshData={() => {
-                                    fetch('/api/matches').then(res => res.json()).then(data => {
+                                    staffFetch('/api/matches').then(res => res.json()).then(data => {
                                         if (data.matches) setMatches(data.matches);
                                     });
                                 }}
@@ -1372,9 +1312,9 @@ export default function AdminDashboard() {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="w-full max-w-2xl"
+                            className="admin-dialog-container w-full max-w-2xl"
                         >
-                            <Card className="p-6 border-white/5 bg-slate-900/90 relative overflow-hidden backdrop-blur-xl shadow-2xl shadow-indigo-500/10">
+                            <Card ref={settingsDialogRef} data-admin-dialog tabIndex={-1} role="dialog" aria-modal="true" aria-label="大会費用・共通設定" className="p-6 border-white/5 bg-slate-900/90 relative overflow-hidden backdrop-blur-xl shadow-2xl shadow-indigo-500/10">
                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
                                 <div className="flex justify-between items-start mb-6 relative z-10">
                                     <div>
@@ -1384,7 +1324,7 @@ export default function AdminDashboard() {
                                         </h2>
                                         <p className="text-sm text-slate-400">こちらの設定は全チームの合計支払額の算出に使用されます。</p>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-white -mr-2 -mt-2">
+                                    <Button aria-label="閉じる" variant="ghost" size="sm" onClick={() => setIsSettingsModalOpen(false)} className="text-slate-400 hover:text-white -mr-2 -mt-2">
                                         <X className="w-5 h-5" />
                                     </Button>
                                 </div>
@@ -1399,7 +1339,7 @@ export default function AdminDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 mb-6 border-b border-white/5 pb-6">
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">チーム基本参加費 (円)</label>
-                                        <Input
+                                        <Input aria-label="チーム基本参加費 (円)"
                                             type="number"
                                             value={settings.participationFee}
                                             onChange={(e) => setSettings({ ...settings, participationFee: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
@@ -1408,7 +1348,7 @@ export default function AdminDashboard() {
                                     </div>
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">スポーツ保険料 (1人あたり/円)</label>
-                                        <Input
+                                        <Input aria-label="スポーツ保険料 (1人あたり/円)"
                                             type="number"
                                             value={settings.insuranceFee}
                                             onChange={(e) => setSettings({ ...settings, insuranceFee: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
@@ -1419,7 +1359,7 @@ export default function AdminDashboard() {
                                 <div className="grid grid-cols-1 gap-6 relative z-10 mb-6 border-b border-white/5 pb-6">
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">LINEオープンチャットの追加リンク</label>
-                                        <Input
+                                        <Input aria-label="LINEオープンチャットの追加リンク"
                                             type="url"
                                             placeholder="https://line.me/ti/g2/..."
                                             value={settings.lineOpenChatLink || ""}
@@ -1434,6 +1374,7 @@ export default function AdminDashboard() {
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">エントリー締切日</label>
                                         <div className="relative">
                                             <input
+                                                aria-label="共通エントリー締切日時"
                                                 type="datetime-local"
                                                 value={settings.entryDeadline ? new Date(settings.entryDeadline).toISOString().slice(0, 16) : ""}
                                                 onChange={(e) => setSettings({ ...settings, entryDeadline: e.target.value })}

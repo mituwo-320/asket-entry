@@ -63,6 +63,14 @@ export interface TeamEntry {
     createdAt: string;
 }
 
+// Fields attached by the participant read APIs; not persisted on TeamEntry.
+export type TeamEntryDetails = TeamEntry & Partial<Pick<Project, 'hasClinic' | 'clinicTitle' | 'clinicDescription' | 'clinicLimit'>> & {
+    projectName?: string;
+    projectEndDate?: string;
+    isWaitlist?: boolean;
+};
+export type RegistrationProject = Project & { currentEntryCount?: number };
+
 export interface Match {
     id: string;
     tournamentId: string;
@@ -146,8 +154,8 @@ export interface BlockMatch {
     round: number;
     court?: string;
     referee?: string;
-    slotA: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
-    slotB: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string };
+    slotA: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string; isBye?: boolean };
+    slotB: { teamId?: string; teamName?: string; sourceMatchId?: string; isWinner?: boolean; slotId?: string; isBye?: boolean };
     scoreA?: string | number;
     scoreB?: string | number;
     winnerId?: string;
@@ -198,6 +206,4 @@ export interface PrintChecklistItem {
     createdAt?: string;
     updatedAt?: string;
 }
-
-
 

@@ -1,9 +1,10 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { backupTournamentData } from '@/lib/backup';
 
 // POST: Seed test teams for development/testing
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
     try {
         const body = await req.json();
         const { tournamentId, teamCount = 16 } = body;
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
 
         // Automatically backup existing data before wiping
         const backupPath = await backupTournamentData(tournamentId);
+        if (!backupPath) return NextResponse.json({ error: "バックアップを作成できなかったため、テストデータの更新を中止しました" }, { status: 503 });
         if (backupPath) {
             console.log(`Automatic backup created before seed wiping: ${backupPath}`);
         }
@@ -89,3 +91,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to seed test teams' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });

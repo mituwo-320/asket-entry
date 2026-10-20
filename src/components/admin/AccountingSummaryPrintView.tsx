@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -17,16 +18,15 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
         const fetchData = async () => {
             try {
                 const [dataRes, projectsRes, settingsRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch('/api/admin/projects'),
-                    fetch('/api/settings')
+                    staffFetch('/api/admin/data'),
+                    staffFetch('/api/admin/projects'),
+                    staffFetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {
@@ -76,7 +76,6 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
     }
 
     // Calculate accounting details
-    let projectTotalAmount = 0;
     const teamAccountingList = targetEntries.map(entry => {
         const playerCount = entry.players ? entry.players.length : 0;
         const insCount = entry.players ? entry.players.filter(p => p.insurance).length : 0;
@@ -84,8 +83,6 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
         const participationTotal = playerCount * settings.participationFee;
         const insuranceTotal = insCount * settings.insuranceFee;
         const total = participationTotal + insuranceTotal;
-
-        projectTotalAmount += total;
 
         return {
             teamName: entry.teamName,
@@ -95,6 +92,8 @@ export default function AccountingSummaryPrintView({ backUrl }: { backUrl: strin
             total: total
         };
     });
+
+    const projectTotalAmount = teamAccountingList.reduce((sum, entry) => sum + entry.total, 0);
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-900">

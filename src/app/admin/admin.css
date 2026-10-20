@@ -1,0 +1,203 @@
+/* A working tournament office: court art, bound records and high-contrast tools. */
+.admin-surface { position: relative; isolation: isolate; min-height: 100vh; color: #edf0f5; background: #181d25; font-family: var(--font-noto-sans-jp), sans-serif; }
+.admin-surface::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, #181d25 2%, #181d2585 70%, #181d2538), url('/basketball-court-background.webp') center top / cover no-repeat; }
+.admin-workspace { background: transparent; }
+.admin-main { width: min(1440px, calc(100% - 48px)); max-width: none; padding: 28px 0 60px; }
+.admin-skip { position: fixed; top: 10px; left: 16px; z-index: 500; transform: translateY(-160%); padding: 12px 18px; color: #212934; background: #fff7e9; border: 2px solid #b52d45; border-radius: 5px; }
+.admin-skip:focus { transform: translateY(0); }
+.admin-header { background: #1c222cf5; border-top: 4px solid #bd3049; border-bottom: 1px solid #79869a; backdrop-filter: blur(14px); box-shadow: 0 4px 18px #0004; }
+.admin-header > div { height: auto; min-height: 82px; gap: 18px; padding-block: 14px; max-width: 1500px; }
+.admin-header > div > div { min-width: 0; }
+.admin-header > div > div:last-child { flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.admin-header > div > div:first-child > div { background: #ae293f; border-color: #cf7d8e; box-shadow: 0 2px 0 #72192a; }
+.admin-header .admin-brand { font-size: 16px; line-height: 1.6; white-space: nowrap; }
+.admin-brand > span { display: block; color: #f4b7c5; font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .14em; }
+.admin-header select { max-width: 290px; }
+.admin-eyebrow { font: 600 9px/1.9 var(--font-inter), sans-serif; letter-spacing: .15em; }
+.admin-heading { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 200px; padding: 29px 31px; border: 1px solid #8a91a0; border-top: 4px solid #bd3049; border-radius: 5px 14px 14px 5px; background: #1d222b; overflow: hidden; box-shadow: 0 4px 0 #0b1018, 0 18px 35px #0004; }
+.admin-heading > div:first-child { position: relative; z-index: 1; max-width: 72%; }
+.admin-heading .admin-eyebrow { color: #ffc0ce; margin-bottom: 12px; }
+.admin-heading h2 { color: #fffdf8; font-size: clamp(23px, 2.5vw, 33px); line-height: 1.65; letter-spacing: -.035em; font-weight: 700; overflow-wrap: anywhere; }
+.admin-heading h2 + p { max-width: 580px; color: #d0d7e2; font-size: 13px; line-height: 1.95; margin-top: 9px; }
+.admin-heading-art { position: absolute; inset: 0 0 0 auto; width: 42%; z-index: 0; background: linear-gradient(90deg, #1d222b, #1d222b44), url('/basketball-court-background.webp') 54% 40% / cover; }
+.admin-heading-art svg { position: absolute; top: 22px; right: 26px; width: 64px; height: 64px; color: #efc2cd; transform: rotate(9deg); }
+.admin-heading-art > span { position: absolute; bottom: 18px; right: 25px; font: 500 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .15em; text-align: right; color: #efc2cd; }
+.admin-heading-action { position: relative; z-index: 1; align-self: flex-end; flex-shrink: 0; }
+.admin-section-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 20px; overflow: hidden; border: 1px solid #bdb5ab; border-radius: 4px 9px 9px 4px; box-shadow: 0 3px 0 #7a808d, 0 12px 24px #0003; }
+.admin-section-nav a { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 16px 23px; color: #343e4b; background: #f2ece1 url('/entry-grain.svg'); border-right: 1px dashed #bbb0a4; font-size: 13px; font-weight: 700; }
+.admin-section-nav a:last-child { border: 0; }
+.admin-section-nav a > span:first-child { font: 500 24px/1.4 var(--font-outfit), sans-serif; color: #a72841; }
+.admin-section-nav a > span:last-child { margin-left: auto; color: #9b2c40; }
+.admin-section-nav a:hover { background-color: #e6dfd2; }
+.admin-surface :is(button, a, input, textarea, select):focus-visible { outline: 3px solid #ffb5c7; outline-offset: 3px; }
+.admin-surface :is(#admin-teams, #admin-tools, #admin-matches) { scroll-margin-top: 140px; }
+.admin-workspace [data-ui="card"], .admin-workspace .admin-schedule { color: #edf0f5; background: #252d38; border: 1px solid #7c899a; border-radius: 5px 12px 12px 5px; box-shadow: inset 0 1px 0 #ffffff18, 0 3px 0 #0d131c, 0 13px 25px #0003; backdrop-filter: none; }
+.admin-workspace [data-ui="card"] > [class*="blur-2xl"], .admin-workspace [data-ui="card"] > [class*="pointer-events-none"][class*="bg-gradient"] { display: none; }
+.admin-workspace [data-ui="input"], .admin-workspace :is(select, textarea), .admin-workspace input:not([type="checkbox"]):not([type="radio"]) { min-height: 46px; color: #27313f; background: #fbf9f4; border: 1px solid #aeb8c6; border-radius: 6px; font-size: 16px; color-scheme: light; box-shadow: inset 0 2px 3px #242c3814; backdrop-filter: none; }
+.admin-workspace input::placeholder, .admin-workspace textarea::placeholder { color: #626d7c; }
+.admin-workspace :is(select, textarea, input):focus-visible { outline-color: #a72a43; }
+.admin-workspace input:is([type="checkbox"], [type="radio"]) { width: 18px; height: 18px; accent-color: #c43b54; }
+.admin-workspace [data-ui="input-label"], .admin-workspace label { color: #dce2ec; line-height: 1.8; }
+.admin-workspace [data-ui="button"], .admin-header [data-ui="button"] { min-height: 44px; border-radius: 6px; font-size: 13px; white-space: normal; }
+.admin-workspace [data-ui="button"][data-variant="primary"], .admin-header [data-ui="button"][data-variant="primary"] { color: #fff; background: #af2941; border: 1px solid #e291a2; box-shadow: 0 2px 0 #71192b, inset 0 1px 0 #ffffff20; }
+.admin-workspace [data-ui="button"][data-variant="primary"]:hover, .admin-header [data-ui="button"][data-variant="primary"]:hover { background: #922136; }
+.admin-workspace [data-ui="button"][data-variant="outline"], .admin-header [data-ui="button"][data-variant="outline"] { color: #e9e4e6; background: #323b49; border: 1px solid #8c97a8; box-shadow: none; }
+.admin-workspace [data-ui="button"][data-variant="ghost"], .admin-header [data-ui="button"][data-variant="ghost"] { color: #e0dbe0; background: #2b3340; border: 1px solid #657184; box-shadow: none; }
+.admin-workspace [data-ui="button"]:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+.admin-workspace .text-slate-400 { color: #c9d2df; }
+.admin-workspace :is(.text-slate-500, .text-slate-600) { color: #b8c3d2; }
+.admin-workspace :is(.text-indigo-200, .text-indigo-300, .text-indigo-400, .text-indigo-500, .text-purple-400) { color: #ffb6c8; }
+.admin-workspace :is(h1, h2, h3, h4, p, label) { overflow-wrap: anywhere; }
+.admin-workspace :is(button, a) > svg { flex-shrink: 0; }
+.admin-workspace .text-\[9px\], .admin-workspace .text-\[10px\] { font-size: 11px; line-height: 1.8; }
+.admin-workspace table { line-height: 1.8; }
+.admin-workspace table thead { color: #323d4b; background: #e9e2d7; }
+.admin-workspace table thead th { color: #323d4b; font-size: 12px; border-bottom: 2px solid #a02d43; }
+.admin-workspace table td { border-bottom: 1px solid #6d798947; }
+.admin-workspace table button { min-width: 40px; min-height: 40px; }
+.admin-workspace .admin-stats [data-ui="card"] { border: 1px solid #c4b9aa; border-top: 4px solid #b52c43; color: #33404e; background: #f4eee4 url('/entry-grain.svg'); box-shadow: 0 3px 0 #8c8790, 0 10px 22px #0003; padding: 21px; }
+.admin-workspace .admin-stats [data-ui="card"] :is(.text-white, .text-slate-400, .text-slate-500, .text-indigo-300, .text-indigo-400, .text-pink-300, .text-amber-300, .text-emerald-300) { color: #394555; }
+.admin-workspace .admin-stats [data-ui="card"] :is([class*="text-indigo-400/"], [class*="text-pink-400/"], [class*="text-amber-400/"], [class*="text-emerald-400/"]) { color: #66586a; }
+.admin-workspace .admin-stats [data-ui="card"] > .absolute { display: none; }
+.admin-workspace .admin-stats .text-emerald-400 { color: #236044; }
+.admin-workspace .admin-stats .text-amber-400 { color: #81501b; }
+.admin-workspace .admin-stats .text-4xl { font-size: 33px; }
+.admin-team-filters { gap: 15px; }
+.admin-schedule-toolbar { flex-wrap: wrap; gap: 18px; }
+.admin-schedule-toolbar > div { flex-wrap: wrap; gap: 9px; }
+.admin-schedule-toolbar button { min-height: 44px; }
+.admin-schedule-toolbar button[class*="bg-indigo-600"], .admin-schedule-toolbar button[class*="from-pink-600"] { color: #fff; background: #b32b43; border: 1px solid #d98295; box-shadow: 0 2px 0 #751a2c; }
+.admin-workspace .admin-dialog, .admin-workspace .admin-dialog-container > [data-ui="card"] { border: 1px solid #9da8b7; border-top: 5px solid #bd3049; border-radius: 6px 15px 15px 6px; background: #252d38; box-shadow: 0 5px 0 #111821, 0 28px 70px #0009; max-height: 90dvh; overflow-y: auto; }
+.admin-dialog-layer { z-index: 110; }
+.admin-dialog-header { gap: 20px; background: linear-gradient(90deg, #202631 50%, #202631ba), url('/basketball-court-background.webp') 65% 35% / cover; border-bottom: 1px solid #8590a1; }
+.admin-dialog-header > div { min-width: 0; }
+.admin-dialog button[aria-label="閉じる"], .admin-dialog-container button[aria-label="閉じる"] { width: 44px; min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #8290a4; background: #333d4c; border-radius: 50%; flex-shrink: 0; }
+.admin-workspace .admin-lottery-dialog h2 { color: #fff0d0; background: none; -webkit-text-fill-color: currentColor; }
+.admin-workspace .admin-lottery-dialog { border-top-color: #c29a50; }
+.admin-login { display: grid; grid-template-columns: 1.05fr .95fr; gap: 42px; align-items: center; width: min(1060px, calc(100% - 48px)); margin: auto; min-height: 100vh; padding-block: 55px; }
+.admin-login-poster { border: 1px solid #9b9ba2; border-radius: 5px 14px 14px 5px; overflow: hidden; box-shadow: 0 5px 0 #0c121b, 0 22px 40px #0005; }
+.admin-login-poster > div { position: relative; min-height: 390px; padding: 28px; background: linear-gradient(0deg, #1a202bf5, #1a202b22), url('/basketball-court-background.webp') 38% 35% / cover; }
+.admin-login-poster > div > span { font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .12em; color: #f4d4dd; }
+.admin-login-poster svg { position: absolute; top: 72px; right: 25px; width: 70px; height: 70px; color: #f3bbc9; transform: rotate(9deg); }
+.admin-login-poster h2 { position: relative; margin-top: 137px; font-size: 34px; line-height: 1.65; font-weight: 700; letter-spacing: -.04em; color: #fffdf8; }
+.admin-login-poster p { position: relative; font-size: 12px; line-height: 1.95; color: #d4dbe6; margin-top: 15px; }
+.admin-login-poster ol { padding: 15px 26px 23px; background: #f3ede3 url('/entry-grain.svg'); color: #35404e; border-top: 4px solid #ba2f47; }
+.admin-login-poster li { display: flex; align-items: center; gap: 15px; padding-top: 12px; font-size: 12px; font-weight: 700; }
+.admin-login-poster b { color: #a12940; font: 500 24px/1.4 var(--font-outfit), sans-serif; }
+.admin-workspace .admin-login-card[data-ui="card"] { padding: 0; }
+.admin-login-title { padding: 27px 29px; border-bottom: 4px solid #ba2d45; color: #2e3947; background: #f3ede3 url('/entry-grain.svg'); }
+.admin-login-title > div { display: none; }
+.admin-login-title .admin-eyebrow { margin-bottom: 13px; color: #97273d; }
+.admin-login-title > h1 { color: #2e3947; font-size: 27px; }
+.admin-workspace .admin-login-title > p:last-child { color: #5e6775; font-size: 12px; line-height: 1.9; }
+.admin-login-form { padding: 28px 29px; }
+.admin-login-form input { text-align: left; letter-spacing: .08em; }
+.admin-login-foot { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-inline: 29px; padding: 15px 0; border-top: 1px dashed #8b96a8; }
+.admin-login-foot > span { color: #eab6c4; font: 600 8px/1.8 var(--font-inter), sans-serif; letter-spacing: .1em; }
+.admin-login-foot a { display: inline-flex; align-items: center; min-height: 44px; color: #e0d5dc; font-size: 11px; }
+.admin-state { min-height: 85vh; display: grid; place-items: center; padding: 30px 20px; }
+.admin-state > section { width: min(100%, 480px); border: 1px solid #b6ac9f; border-radius: 5px 13px 13px 5px; color: #35404e; background: #f3ede3 url('/entry-grain.svg'); text-align: center; overflow: hidden; box-shadow: 0 4px 0 #87808a, 0 24px 45px #0005; }
+.admin-state-cover { height: 110px; border-bottom: 4px solid #bd3049; background: url('/basketball-court-background.webp') 45% 20% / cover; }
+.admin-state .admin-eyebrow { color: #94283d; margin: 23px 20px; }
+.admin-state h1 { margin: 20px; font-size: 21px; font-weight: 700; line-height: 1.8; }
+.admin-state svg { margin: auto; color: #a72842; }
+.admin-state section > p:last-child:not(.admin-eyebrow) { margin: 15px 24px 30px; font-size: 13px; line-height: 1.9; }
+.admin-bracket-page { background: transparent; }
+.admin-bracket-page > main { gap: 12px; }
+.admin-bracket-header { flex-wrap: wrap; background: #222a35; border: 1px solid #7e8a9b; border-top: 4px solid #bc2f46; padding: 14px 17px; border-radius: 5px 11px 11px 5px; }
+.admin-bracket-header > div { flex-wrap: wrap; }
+.admin-bracket-header select { min-height: 44px; max-width: min(100%, 320px); color: #303b4b; background: #f9f6ef; border-color: #a3acb9; font-size: 16px; }
+.admin-bracket-header button { min-height: 44px; }
+.admin-bracket-header button[class*="from-indigo-"] { background: #ad293f; border: 1px solid #d88b9c; }
+.admin-bracket-links { flex-wrap: wrap; padding: 13px 16px; background: #252d38; border: 1px solid #7a879b; border-radius: 5px; }
+.admin-bracket-links > div:first-child { color: #d1d9e4; line-height: 1.9; }
+.admin-bracket-links a { color: #ffb6c8; overflow-wrap: anywhere; }
+.admin-bracket-links button { min-height: 44px; color: #eee3e8; border: 1px solid #7c8798; }
+.admin-bracket-board { background: #f6f2eb; border: 1px solid #c3b7a8; border-radius: 5px 11px 11px 5px; box-shadow: 0 4px 0 #85818c, 0 15px 30px #0004; }
+.admin-bracket-page .admin-heading { min-height: 150px; padding-block: 22px; }
+.admin-display-connection { padding: 7px 11px; border: 1px solid #7f8b9e; border-radius: 5px; background: #202734e8; box-shadow: 0 2px 7px #0003; pointer-events: none; }
+.admin-display-connection span { color: #d8e1ed; font-size: 11px; }
+.admin-print-guide { display: flex; align-items: center; justify-content: space-between; gap: 25px; width: min(1100px, calc(100% - 40px)); margin: 26px auto; padding: 24px 27px; color: #35404e; background: #f3ede3 url('/entry-grain.svg'); border: 1px solid #bfb3a3; border-left: 5px solid #b42b43; border-radius: 5px 12px 12px 5px; box-shadow: 0 3px 0 #8a828d, 0 16px 30px #0003; }
+.admin-print-guide .admin-eyebrow { color: #94273d; }
+.admin-print-guide h1 { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 23px; font-weight: 700; line-height: 1.7; }
+.admin-print-guide h1 + p { margin-top: 8px; font-size: 12px; line-height: 1.9; color: #5c6574; }
+.admin-print-guide > span { flex-shrink: 0; padding: 12px; border: 1px solid #b67989; color: #94273d; font: 600 9px/1.8 var(--font-inter), sans-serif; letter-spacing: .1em; transform: rotate(7deg); }
+@media screen {
+  .admin-documents > div { background: transparent; }
+  .admin-documents > div > .print\:hidden { color: #edf0f5; background: #252d38; border-block: 1px solid #7a879a; flex-wrap: wrap; gap: 16px; }
+  .admin-documents button, .admin-lottery-print > .print\:hidden button { min-height: 44px; }
+  .admin-lottery-print { background: transparent; }
+}
+@media screen and (max-width: 1100px) {
+  .admin-header > div { align-items: flex-start; flex-wrap: wrap; }
+  .admin-header > div > div:last-child { flex: 1; }
+  .admin-stats { gap: 14px; }
+}
+@media screen and (max-width: 800px) {
+  .admin-login { grid-template-columns: 1fr; max-width: 600px; padding-block: 25px 45px; gap: 25px; }
+  .admin-login-poster > div { min-height: 245px; padding: 23px; }
+  .admin-login-poster h2 { margin-top: 77px; font-size: 28px; }
+  .admin-login-poster p { display: none; }
+  .admin-login-poster svg { top: 56px; width: 52px; height: 52px; }
+  .admin-login-poster ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-inline: 22px; }
+  .admin-login-poster li { display: block; font-size: 10px; line-height: 1.9; }
+  .admin-login-poster b { display: block; margin-bottom: 7px; }
+  .admin-heading { flex-wrap: wrap; }
+  .admin-heading-action { margin-left: auto; }
+  .admin-heading-art { width: 55%; }
+  .admin-section-nav a { padding: 13px; gap: 9px; font-size: 12px; }
+}
+@media screen and (max-width: 600px) {
+  .admin-main { width: calc(100% - 28px); padding-top: 22px; }
+  .admin-header > div > div:last-child { flex-basis: 100%; justify-content: flex-start; }
+  .admin-header [data-ui="button"] { font-size: 11px; padding-inline: 10px; }
+  .admin-header .admin-brand { font-size: 15px; }
+  .admin-heading { padding: 22px; min-height: 190px; }
+  .admin-heading > div:first-child { max-width: 100%; }
+  .admin-heading-art { opacity: .32; }
+  .admin-heading-art > :is(svg, span) { display: none; }
+  .admin-section-nav { grid-template-columns: 1fr; }
+  .admin-section-nav a { border-right: 0; border-bottom: 1px dashed #bcb0a3; min-height: 51px; padding: 10px 18px; }
+  .admin-section-nav a > span:first-child { font-size: 21px; }
+  .admin-surface :is(#admin-teams, #admin-tools, #admin-matches) { scroll-margin-top: 205px; }
+  .admin-workspace .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .admin-workspace .admin-stats [data-ui="card"] { padding: 16px; }
+  .admin-workspace .admin-stats [data-ui="card"]:last-child { grid-column: 1 / -1; }
+  .admin-workspace .admin-stats .text-4xl { font-size: 29px; }
+  .admin-workspace .admin-stats .text-2xl, .admin-workspace .admin-stats .text-3xl { font-size: 22px; overflow-wrap: anywhere; }
+  .admin-schedule-toolbar { padding: 18px; }
+  .admin-schedule-toolbar > div { width: 100%; }
+  .admin-team-file > div { padding: 20px; }
+  .admin-workspace .admin-dialog, .admin-workspace .admin-dialog-container > [data-ui="card"] { max-height: 92dvh; }
+  .admin-login { width: calc(100% - 28px); }
+  .admin-login-title, .admin-login-form { padding: 24px; }
+  .admin-login-foot { margin-inline: 24px; }
+  .admin-bracket-header > div { width: 100%; }
+  .admin-bracket-header > div:last-child { justify-content: flex-end; }
+  .admin-bracket-links > div { width: 100%; }
+  .admin-bracket-links > div:last-child { justify-content: flex-end; }
+  .admin-print-guide { padding: 21px; width: calc(100% - 28px); }
+  .admin-print-guide h1 { font-size: 20px; }
+  .admin-print-guide > span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-surface *, .admin-surface *::before, .admin-surface *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media print {
+  .admin-surface { color: #000; background: #fff; min-height: 0; }
+  .admin-surface::before, .admin-print-guide { display: none !important; }
+}
+@media screen {
+  .admin-workspace button[class*="bg-indigo-600"], .admin-workspace button[class*="from-indigo-600"] { color: #fff; background: #b22b43; border-color: #dc8a9e; }
+  .admin-display-empty { position: relative; isolation: isolate; background: #202733; color: #eff3f7; }
+  .admin-display-empty::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .18; pointer-events: none; background: url('/basketball-court-background.webp') center / cover; }
+  .admin-display-empty > div { max-width: 550px; color: #eef2f7; background: #29323feb; border: 1px solid #8d98a8; border-top: 4px solid #bd3049; box-shadow: 0 4px 0 #101722, 0 15px 30px #0005; }
+  .admin-display-empty > div p { color: #d0d9e6; line-height: 1.9; }
+  .admin-display-empty > button { min-height: 44px; background: #ad293f; border: 1px solid #db91a2; }
+}
+
+.admin-dialog-header { flex-shrink: 0; }
+.admin-workspace .admin-dialog input[type="number"][class*="text-3xl"] { font-size: 30px; }
+@media print { .admin-surface { font-family: inherit; } }
+.admin-workspace .admin-checklist span[class*="select-none"] { white-space: normal; overflow-wrap: anywhere; }
+.admin-workspace .admin-dialog :is(h2, h3, h4) { white-space: normal; }

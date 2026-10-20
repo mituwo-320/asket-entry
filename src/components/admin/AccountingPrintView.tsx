@@ -1,4 +1,5 @@
 "use client";
+import { staffFetch } from "@/lib/staff-fetch";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -17,16 +18,15 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
 
     useEffect(() => {
         if (!projectId) {
-            setIsLoading(false);
             return;
         }
 
         const fetchData = async () => {
             try {
                 const [dataRes, projectsRes, settingsRes] = await Promise.all([
-                    fetch('/api/admin/data'),
-                    fetch('/api/admin/projects'),
-                    fetch('/api/settings')
+                    staffFetch('/api/admin/data'),
+                    staffFetch('/api/admin/projects'),
+                    staffFetch('/api/settings')
                 ]);
 
                 if (dataRes.ok) {
@@ -152,7 +152,7 @@ export default function AccountingPrintView({ backUrl }: { backUrl: string }) {
                 </div>
 
                 {/* PAGE 2+: Team Specific Pages */}
-                {targetEntries.map((entry, index) => {
+                {targetEntries.map((entry) => {
                     const teamColorCounts = teamWristbands[entry.id] || {};
                     const playerCount = entry.players?.length || 0;
                     const insCount = entry.players?.filter(p => p.insurance).length || 0;

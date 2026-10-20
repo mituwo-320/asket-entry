@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { staffFetch } from "@/lib/staff-fetch";
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -10,37 +11,36 @@ interface PrintChecklistProps {
     projectId: string;
 }
 
-export default function PrintChecklist({ projectId }: PrintChecklistProps) {
+function PrintChecklistContent({ projectId }: PrintChecklistProps) {
     const [items, setItems] = useState<PrintChecklistItem[]>([]);
     const [newItemName, setNewItemName] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const loadChecklist = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`/api/admin/checklist?projectId=${projectId}`);
+    const fetchChecklist = useCallback(() => {
+        return staffFetch(`/api/admin/checklist?projectId=${projectId}`).then(async (res) => {
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.items || []);
             } else {
                 setError('印刷チェックリストの取得に失敗しました。');
             }
-        } catch (e) {
+        }).catch((e) => {
             setError('通信エラーが発生しました。');
             console.error(e);
-        } finally {
+        }).finally(() => {
             setIsLoading(false);
-        }
-    };
+        });
+    }, [projectId]);
+
+    const loadChecklist = () => { setIsLoading(true); setError(null); return fetchChecklist(); };
 
     useEffect(() => {
         if (projectId) {
-            loadChecklist();
+            fetchChecklist();
         }
-    }, [projectId]);
+    }, [projectId, fetchChecklist]);
 
     const handleToggle = async (item: PrintChecklistItem) => {
         const targetStatus = !item.isPrinted;
@@ -49,7 +49,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: targetStatus } : i));
 
         try {
-            const res = await fetch('/api/admin/checklist', {
+            const res = await staffFetch('/api/admin/checklist', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: item.id, isPrinted: targetStatus })
@@ -60,7 +60,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                 setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: !targetStatus } : i));
                 alert('ステータスの更新に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             // Revert
             setItems(prev => prev.map(i => i.id === item.id ? { ...i, isPrinted: !targetStatus } : i));
             alert('通信エラーが発生しました。');
@@ -74,7 +74,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         setIsAdding(true);
         setError(null);
         try {
-            const res = await fetch('/api/admin/checklist', {
+            const res = await staffFetch('/api/admin/checklist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ projectId, name: newItemName.trim() })
@@ -87,7 +87,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             } else {
                 alert(data.error || '項目の追加に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             alert('通信エラーが発生しました。');
         } finally {
             setIsAdding(false);
@@ -98,7 +98,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
         if (!confirm(`「${name}」をチェックリストから削除しますか？`)) return;
 
         try {
-            const res = await fetch(`/api/admin/checklist?id=${id}`, {
+            const res = await staffFetch(`/api/admin/checklist?id=${id}`, {
                 method: 'DELETE'
             });
 
@@ -107,7 +107,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             } else {
                 alert('項目の削除に失敗しました。');
             }
-        } catch (e) {
+        } catch {
             alert('通信エラーが発生しました。');
         }
     };
@@ -119,7 +119,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
     const isAllCompleted = totalCount > 0 && printedCount === totalCount;
 
     return (
-        <Card className="p-6 bg-slate-900/40 border-white/5 relative overflow-hidden backdrop-blur-md flex flex-col h-[520px]">
+        <Card className="admin-checklist p-6 bg-slate-900/40 border-white/5 relative overflow-hidden backdrop-blur-md flex flex-col h-[520px]">
             {/* Background Gradient Effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
 
@@ -129,7 +129,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                     <Printer className="w-5 h-5 text-indigo-400" />
                     <span>印刷忘れ防止チェックリスト</span>
                 </h3>
-                <Button 
+                <Button aria-label="更新"
                     variant="ghost" 
                     size="sm" 
                     onClick={loadChecklist} 
@@ -209,6 +209,8 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                             >
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                     <button
+                                        aria-label={`${item.name}の印刷確認`}
+                                        aria-pressed={item.isPrinted}
                                         onClick={() => handleToggle(item)}
                                         className={`w-5 h-5 rounded flex items-center justify-center transition-all ${
                                             item.isPrinted 
@@ -228,7 +230,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
                                     </span>
                                 </div>
 
-                                <button
+                                <button aria-label="削除"
                                     onClick={() => handleDeleteItem(item.id, item.name)}
                                     className="text-slate-500 hover:text-red-400 p-1 hover:bg-white/5 rounded transition-colors ml-2 flex-shrink-0"
                                 >
@@ -244,6 +246,7 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             <form onSubmit={handleAddItem} className="mt-auto relative z-10 pt-3 border-t border-white/5 flex gap-2">
                 <Input
                     type="text"
+                    aria-label="追加する印刷物の名前"
                     placeholder="新しい印刷物を追加..."
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
@@ -264,4 +267,8 @@ export default function PrintChecklist({ projectId }: PrintChecklistProps) {
             </form>
         </Card>
     );
+}
+
+export default function PrintChecklist({ projectId }: PrintChecklistProps) {
+    return <PrintChecklistContent key={projectId} projectId={projectId} />;
 }

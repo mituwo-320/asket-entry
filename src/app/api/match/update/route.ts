@@ -1,9 +1,10 @@
+import { withAuthorization, STAFF } from "@/lib/auth/authorize";
 
 import { NextResponse } from 'next/server';
 import { getMatches, saveMatches } from '@/lib/sheets';
 import { Match } from '@/lib/types';
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
     try {
         const body = await request.json();
         const { matchId, updates } = body;
@@ -72,3 +73,5 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+
+export const POST = withAuthorization(handlePOST, { roles: STAFF });
