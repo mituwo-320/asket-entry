@@ -7,6 +7,7 @@ The owner approved the basketball court illustration and charcoal/crimson palett
 - Use charcoal, crimson, warm paper white, and clear typography. Preserve high contrast, light input fields, visible focus, and generous touch targets.
 - Give each participant page a deliberate composition and clear next action. Background art must support the task without competing with forms or long text.
 - Reuse the approved asset at `public/basketball-court-background.webp`; the source prompt is in `docs/basketball-background.md`.
+- Preserve the owner's full tournament insurance notice on registration: coverage for substantiated injuries from play or accidents, the lower-back pain/whiplash exclusion, and the bold additional-fee notice. Do not abbreviate these notices during UI changes; retain the configured insurance amount and existing fee calculations.
 - Keep decorative images out of printed invoices and receipts. Preserve financial calculations, receipt issuance/view rules, authentication, API payloads, and editing deadlines during visual changes.
 - See `docs/participant-design.md` for the recorded design decisions.
 

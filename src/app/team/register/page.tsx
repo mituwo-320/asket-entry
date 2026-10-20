@@ -393,9 +393,10 @@ export default function RegisterPage() {
                         )}
 
                         <InsuranceChoices value={formData.insurance} onChange={(insurance) => setFormData({ ...formData, insurance })} />
-                        <div className="text-xs text-[#c6cdd8] leading-relaxed space-y-1">
-                            <p>大会保険は、大会中のプレーや事故による根拠のあるケガが補償の対象です。腰痛や鞭打ちなどは対象外です。</p>
-                            <p className="text-[#ffc0cc]">大会保険に加入する場合、別途{settings?.insuranceFee || 150}円が必要です。</p>
+                        <div className="text-sm text-[#c6cdd8] leading-relaxed space-y-1">
+                            <p>大会中の「プレーや事故による根拠のあるケガ」が補償の対象となります。</p>
+                            <p>※腰痛や鞭打ちなどは対象外</p>
+                            <p className="text-[#ffc0cc]"><strong>※ 別途{settings?.insuranceFee || 150}円が必要です</strong></p>
                         </div>
                         <WristbandChoices value={formData.wristbandColor} onChange={(wristbandColor) => setFormData({ ...formData, wristbandColor })} />
 
